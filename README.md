@@ -28,3 +28,5 @@ I have to keep track of the fragments that the each individual has in order do t
 
 My initial idea for the crossover:
 Cross the fragments and link them through the link option of CReM.
+
+In addition, we could give more info to the mutate option, if we know (for some method) that some specific region is needed to improve the potency we could give this info to grow in this direction (the original idea). But know is plugged with a pseudo-GA optimization. I set pseudo because I had not clear how to code the crossover in an efficient way. Basically, the info to where grow will perform a selected mutation (grow in this case) therefore the convergency should speed up.
