@@ -1,0 +1,4 @@
+COc1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1 -9.7
+COc1ccc(C(=O)Nc2cc(C(F)(F)F)ccc2Cl)c(O)c1 -9.5
+CC(C)Oc1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1 -10.0
+COc1ccc(C(=O)Nc2c(F)c(F)c(F)c(F)c2F)c(O)c1 -9.8
