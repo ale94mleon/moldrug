@@ -4,3 +4,4 @@ __pycache__
 .pytest_cache
 .ipynb_checkpoints
 interesting_struct.txt
+out.pkl
