@@ -2,11 +2,13 @@
 # -*- coding: utf-8 -*-
 from rdkit import Chem
 from rdkit.Chem import AllChem
+from rdkit.Chem import rdmolops
 from openbabel import openbabel as ob
 
 from copy import deepcopy
 import tempfile, subprocess, os
 import numpy as np
+import random
 
 #==================================================
 # Class to work with lead
@@ -106,7 +108,13 @@ def confgen(smiles, outformat = "pdbqt"):
         string = o.read()
     return string
 
-
+def fragments(mol):
+    break_point = int(random.choice(np.where(np.array([b.GetBondType() for b in mol.GetBonds()]) == Chem.rdchem.BondType.SINGLE)[0]))
+    # Chem.FragmentOnBonds(mol, break_point) # Could be used to increase randomness give more possible fragments and select two of them
+    with Chem.RWMol(mol) as rwmol:
+        b = rwmol.GetBondWithIdx(break_point)
+        rwmol.RemoveBond(b.GetBeginAtomIdx(), b.GetEndAtomIdx())
+    return rdmolops.GetMolFrags(rwmol, asMols = True)
 
 if __name__ == '__main__':
     import pickle

@@ -1,13 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import tempfile
 from rdkit import Chem
 from crem.crem import mutate_mol, grow_mol, link_mols
-import utility, random, os, tqdm, shutil
+import utility, random, tqdm, shutil, itertools
 import multiprocessing as mp
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle as _pickle
 
+import warnings
+warnings.filterwarnings("ignore", message='not removing hydrogen atom with dummy atom neighbors')
+
+
+## Problem!!
+# The size of the ligands increase with the number of generations (if crossover is used even more)
+# How to implement the rationality of where to grow, not just randomness. That could be the "crossover" operation, in fact the grow in a specific direction, based in (for example) the interaction network or the clashing avoid.
+# Catch repeated structures. This will help to the total simulation time!!!!!!!
+# I have to create a filter of atoms in order that vina doesn't fail because B and atoms like that Vina is not able to handle.
 
 class GA(object):
     
@@ -25,6 +35,7 @@ class GA(object):
         self.gamma = gamma
         self.mu = mu
         self.sigma = sigma
+        self.exceptions = 0
     
     def __call__(self, njobs = 1):
         # Initialize Population
@@ -58,7 +69,8 @@ class GA(object):
             self.pop.append(utility.Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
         
         # Calculating cost of each individual (Doing Docking)
-        os.makedirs('.vina_jobs', exist_ok=True)
+        vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
+        #os.makedirs('.vina_jobs', exist_ok=True)
         pool = mp.Pool(njobs)
         # Creating the arguments
         args = []
@@ -72,14 +84,14 @@ class GA(object):
                 self.costfunc_keywords['exhaustiveness'],
                 self.costfunc_keywords['vina_cpus'],
                 self.costfunc_keywords['num_modes'],
-                '.vina_jobs'
+                vina_jobs.name
                 )
             )
         print(f'Creating the first population with {self.popsize} members:')
         self.pop = [Individual for Individual in tqdm.tqdm(pool.imap(self.costfunc, args), total=len(args))]
         print('Done!')
         pool.close()
-        shutil.rmtree('.vina_jobs')
+        shutil.rmtree(vina_jobs.name)
 
         # Best Cost of Iterations
         bestcost = np.empty(self.maxiter)
@@ -100,23 +112,20 @@ class GA(object):
 
                 # I have to think about this operations, and the parameters to controll them
                 # Perform Crossover
-                # Aqui tengo que poner que lo que me devuelva el crossober sea un Individual
-                # Puedo implementar algo que me diga si hay individuos repetidos para cambiarlos por nuevos.
-                # Cuando termine de generar la poblacion offspring tengo que calcular el costo en paralelo
-                # Guardar el costo de la iteracion
-                # Combinar las poblaciones y tomar los mejores.
-                c1, c2 = self.crossover(p1, p2)
+                # Implement something that tells me if there are repeated Individuals and change them.
+                c1, c2 = self.crossover(p1, p2, ncores=njobs*self.costfunc_keywords['vina_cpus'])
 
                 # Perform Mutation
-                c1 = self.mutate(c1)
-                c2 = self.mutate(c2)
+                c1 = self.mutate(c1, ncores=njobs*self.costfunc_keywords['vina_cpus'])
+                c2 = self.mutate(c2, ncores=njobs*self.costfunc_keywords['vina_cpus'])
 
                 # Save offspring population
                 popc.append(c1)
                 popc.append(c2)
 
             # Calculating cost of each offspring individual (Doing Docking)
-            os.makedirs('.vina_jobs', exist_ok=True)
+            vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
+            #os.makedirs('.vina_jobs', exist_ok=True)
             pool = mp.Pool(njobs)
             # Creating the arguments
             args = []
@@ -132,13 +141,13 @@ class GA(object):
                     self.costfunc_keywords['exhaustiveness'],
                     self.costfunc_keywords['vina_cpus'],
                     self.costfunc_keywords['num_modes'],
-                    '.vina_jobs'
+                    vina_jobs.name
                     )
                 )
             print(f'Evaluating generation {iter}:')
             popc = [Individual for Individual in tqdm.tqdm(pool.imap(self.costfunc, args), total=len(args))]  
             pool.close()
-            shutil.rmtree('.vina_jobs')
+            shutil.rmtree(vina_jobs.name)
 
                 
             # Merge, Sort and Select
@@ -153,14 +162,37 @@ class GA(object):
             print(f"Generation {iter}: Best Cost = {self.pop[0].cost}; Best individual: {self.pop[0].smiles}")
             plt.scatter(iter, self.pop[0].cost)
 
-   
-    # Mejorar
-    def crossover(self, Individual1, Individual2):
-        return Individual1, Individual2
+   # Improve
+    def crossover(self, Individual1, Individual2, ncores = 1):
+        # here I have to select some randomness to perform or not the real crossover because I think that we could get far from the solution. It is just a guess.
+        if random.choice([False, False]): # Testing without crossover
+            fragments1 = utility.fragments(Individual1.mol)
+            fragments2 = utility.fragments(Individual2.mol)
+            all_fragments = list(fragments1) + list(fragments2)
+            combination1, combination2 = list(itertools.combinations(all_fragments, 2))[:2]
+            try:
+                offspring1_smile, offspring1_mol = random.choice(list(link_mols(*combination1, db_name=self.crem_db_path, radius = 3, max_replacements = 5, return_mol=True, ncores=ncores)))
+            except:
+                self.exceptions += 1
+                offspring1_smile, offspring1_mol = Individual1.smiles, Individual1.mol
+            try:
+                offspring2_smile, offspring2_mol = random.choice(list(link_mols(*combination2, db_name=self.crem_db_path, radius = 3, max_replacements = 5, return_mol=True, ncores=ncores)))
+            except:
+                self.exceptions += 1
+                offspring2_smile, offspring2_mol = Individual2.smiles, Individual2.mol
+            return utility.Individual(offspring1_smile, offspring1_mol), utility.Individual(offspring2_smile, offspring2_mol)
+        else:
+            return Individual1, Individual2
     
-    # Mejoraar
-    def mutate(self, Individual):
-        smiles, mol = list(mutate_mol(Individual.mol, self.crem_db_path, return_mol=True, min_size=1, max_size=1))[0]
+    # Improve
+    def mutate(self, Individual, ncores = 1):
+        # See the option max_replacment
+        # Or select the mutant based on some criterion
+        try:
+            smiles, mol = random.choice(list(mutate_mol(Individual.mol, self.crem_db_path, radius=3, min_size=1, max_size=8, max_replacements = 5, return_mol=True, ncores = ncores)))
+        except:
+            self.exceptions += 1
+            smiles, mol = Individual.smiles, Individual.mol
         return utility.Individual(smiles,mol)
     
     def roulette_wheel_selection(self, p):
