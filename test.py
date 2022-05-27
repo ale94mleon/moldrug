@@ -9,7 +9,7 @@ initial_smiles = 'COc1ccc(C(=O)/C=C(\\O)C(F)(F)C(F)(F)F)c(O)c1'
 
 out = ga.GA(
     smiles=initial_smiles,
-    maxiter=10,
+    maxiter=3,
     popsize=4,
     crem_db_path = '/home/ale/GITLAB/bi_crem_database/replacements02_sc2.5.db',
     

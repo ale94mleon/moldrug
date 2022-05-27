@@ -3,10 +3,12 @@
 
 import glob as glob
 import multiprocessing as mp
-import os, tempfile, tqdm
+import os
 import numpy as np
 import utility
 
+# Alias for vina
+vina_executable = os.path.abspath('vina')
 #========Deffinitions of class and methosd to get the output of Vina===========
 class Atom:
     #https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out
@@ -131,24 +133,25 @@ class VINA_OUT:
 #==============================================================================
 
 #=================Deffinition of the run=======================================
-def VinaCost(idx, pdbqt, receptor_path, boxcenter, boxsize, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1, wd = '.vina'):
-    cmd = f"vina --receptor {receptor_path} --ligand {os.path.join(wd, f'{idx}.pdbqt')} "\
+def VinaCost(Individual, receptor_path, boxcenter, boxsize, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1, wd = '.vina_jobs'):
+    cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
         f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
-        f"--out {os.path.join(wd, f'{idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+        f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
     print
     # Creating the ligand pdbqt
-    with open(os.path.join(wd, f'{idx}.pdbqt'), 'w') as l:
-        l.write(pdbqt)
+    with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
+        l.write(Individual.pdbqt)
     utility.run(cmd)
 
     # Getting the information
-    best_energy = VINA_OUT(os.path.join(wd, f'{idx}_out.pdbqt')).BestEnergy()
+    best_energy = VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
     # Changing the xyz conformation by the conformation of the binding pose
-    pdbqt = best_energy.chunk
+    Individual.pdbqt = best_energy.chunk
     # Getting the Scoring function of Vina
-    cost = best_energy.freeEnergy
-    return pdbqt, cost
+    Individual.cost = best_energy.freeEnergy
+    return Individual
+
 def VinaCostStar(args):
     return VinaCost(*args)
 #==============================================================================
@@ -158,8 +161,8 @@ def VinaCostStar(args):
 if __name__ == '__main__':
     pass
     
-    vina = VINA_OUT(".vina/0_out.pdbqt")
-    print(vina.BestEnergy().freeEnergy)
+    # vina = VINA_OUT(".vina/0_out.pdbqt")
+    # print(vina.BestEnergy().freeEnergy)
     #vina.PosNegConf(atom_1 = 17 , atom_2 = 1)
     #runvina("/home/ale/MY_PYTHON_PACKEGES/MDynamic/examples/Vina_Docking/ref_info/boxes.box")
 
