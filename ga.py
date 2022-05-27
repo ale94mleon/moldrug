@@ -14,6 +14,7 @@ warnings.filterwarnings("ignore", message='not removing hydrogen atom with dummy
 
 
 ## Problem!!
+# Apply a filter for redundant molecules.
 # The size of the ligands increase with the number of generations (if crossover is used even more)
 # How to implement the rationality of where to grow, not just randomness. That could be the "crossover" operation, in fact the grow in a specific direction, based in (for example) the interaction network or the clashing avoid.
 # Catch repeated structures. This will help to the total simulation time!!!!!!!
@@ -21,7 +22,7 @@ warnings.filterwarnings("ignore", message='not removing hydrogen atom with dummy
 
 class GA(object):
     
-    def __init__(self, smiles, costfunc, crem_db_path, maxiter, popsize, beta = 0.001, pc =2, gamma = 2, mu = 50, sigma = 2, **costfunc_keywords) -> None:
+    def __init__(self, smiles, costfunc, crem_db_path, maxiter, popsize, beta = 0.001, pc =1, **costfunc_keywords) -> None:
         self.InitIndividual = utility.Individual(smiles)
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
@@ -32,9 +33,6 @@ class GA(object):
         self.beta = beta
         self.costfunc_keywords = costfunc_keywords
         self.nc = int(np.round(pc*popsize/2)*2)
-        self.gamma = gamma
-        self.mu = mu
-        self.sigma = sigma
         self.exceptions = 0
     
     def __call__(self, njobs = 1):
@@ -94,7 +92,7 @@ class GA(object):
         shutil.rmtree(vina_jobs.name)
 
         # Best Cost of Iterations
-        bestcost = np.empty(self.maxiter)
+        self.bestcost = np.empty(self.maxiter)
         # Main Loop
         for iter in range(self.maxiter):
             costs = np.array([Individual.cost for Individual in self.pop])
@@ -156,7 +154,7 @@ class GA(object):
             self.pop = self.pop[0:self.popsize]
 
             # Store Best Cost
-            bestcost[iter] = self.pop[0].cost
+            self.bestcost[iter] = self.pop[0].cost
 
             # Show Iteration Information
             print(f"Generation {iter}: Best Cost = {self.pop[0].cost}; Best individual: {self.pop[0].smiles}")
