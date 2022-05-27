@@ -163,6 +163,10 @@ class GA(object):
    # Improve
     def crossover(self, Individual1, Individual2, ncores = 1):
         # here I have to select some randomness to perform or not the real crossover because I think that we could get far from the solution. It is just a guess.
+        # How do I control the size of the new offspring? 
+        # Performing a fragmentation in such a way that the offspring is the same in size
+        # Here is where more additional information could be used. In order to orient the design of the new offspring. 
+        # Then, I should control how perform the mutation  in such a way that we could keep or at least evaluate the offspring generated for crossover
         if random.choice([False, False]): # Testing without crossover
             fragments1 = utility.fragments(Individual1.mol)
             fragments2 = utility.fragments(Individual2.mol)
