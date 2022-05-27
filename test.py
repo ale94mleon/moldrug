@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from logging import raiseExceptions
-import ga, vina, json
+import ga, vina, json, pickle
 
 with open('data/box.json', 'r') as f:
     grid_opt = json.load(f)['7e27']['A']
@@ -24,3 +24,4 @@ out = ga.GA(
 out(njobs = 4)
 for o in out.pop:
     print(o.smiles, o.cost)
+out.pickle('out.pkl')

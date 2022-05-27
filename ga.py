@@ -6,6 +6,7 @@ import utility, random, os, tqdm, shutil
 import multiprocessing as mp
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle as _pickle
 
 
 class GA(object):
@@ -119,7 +120,9 @@ class GA(object):
             pool = mp.Pool(njobs)
             # Creating the arguments
             args = []
-            for Individual in popc:
+            for (i, Individual) in enumerate(popc):
+                # Add idx label to each Individual
+                Individual.idx = i
                 args.append(
                     (
                     Individual,
@@ -165,6 +168,14 @@ class GA(object):
         r = sum(p)*np.random.rand()
         ind = np.argwhere(r <= c)
         return ind[0][0]
+    
+    def pickle(self,file):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        with open(file, 'wb') as pkl:
+            _pickle.dump(result, pkl)
+
 
 if __name__ == '__main__':
     pass
