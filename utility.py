@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from rdkit import Chem
-from rdkit.Chem import AllChem
-from rdkit.Chem import rdmolops
+from rdkit.Chem import AllChem, rdmolops, DataStructs
 from openbabel import openbabel as ob
 
 from copy import deepcopy
-import tempfile, subprocess, os
-import numpy as np
-import random
+import tempfile, subprocess, os, random, time
+import numpy as np 
 
 #==================================================
 # Class to work with lead
@@ -61,6 +59,21 @@ class Individual:
 #==================================================
 # Define some functions to work with
 #==================================================
+# Useful as decorator
+def timeit(method):
+    def timed(*args, **kw):
+        ts = time.time()
+        result = method(*args, **kw)
+        te = time.time()
+        if 'log_time' in kw:
+            name = kw.get('log_name', method.__name__.upper())
+            kw['log_time'][name] = int((te - ts) * 1000)
+        else:
+            print('%r  %2.2f ms' % \
+                  (method.__name__, (te - ts) * 1000))
+        return result
+    return timed
+
 def run(command, shell = True, executable = '/bin/bash', Popen = False):
     if Popen:
         #In this case you could acces the pid as: run.pid
@@ -115,6 +128,36 @@ def fragments(mol):
         b = rwmol.GetBondWithIdx(break_point)
         rwmol.RemoveBond(b.GetBeginAtomIdx(), b.GetEndAtomIdx())
     return rdmolops.GetMolFrags(rwmol, asMols = True)
+
+def rdkit_numpy_convert(fp):
+    # fp - list of binary fingerprints
+    output = []
+    for f in fp:
+        arr = np.zeros((1,))
+        DataStructs.ConvertToNumpyArray(f, arr)
+        output.append(arr)
+    return np.asarray(output)
+
+def get_top(ms, model):
+    # ms - list of molecules
+    # model - sklearn model
+    fps1 = [AllChem.GetMorganFingerprintAsBitVect(m, 2) for m in ms]
+    x1 = rdkit_numpy_convert(fps1)
+    pred = model.predict(x1)
+    i = np.argmax(pred)
+    return ms[i], pred[i]
+
+def get_sim(ms, ref_fps):
+    # ms - list of molecules
+    # ref_fps - list of fingerprints of reference molecules
+    output = []
+    fps1 = [AllChem.GetMorganFingerprintAsBitVect(m, 2) for m in ms]
+    for fp in fps1:
+        v = DataStructs.BulkTanimotoSimilarity(fp, ref_fps)
+        i = np.argmax(v)
+        output.append([v[i], i])
+    return output
+
 
 if __name__ == '__main__':
     import pickle

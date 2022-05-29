@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import glob as glob
 import multiprocessing as mp
-import os
+import os, utility, warnings
+from datetime import datetime
 import numpy as np
-import utility
+from rdkit import Chem
+from rdkit.Chem import AllChem, DataStructs
+import pickle as _pickle
+from sklearn.ensemble import RandomForestRegressor
 
 # Alias for vina
 vina_executable = os.path.abspath('vina')
@@ -124,7 +127,76 @@ class VINA_OUT:
         min_chunk = min(self.chunks, key= lambda x: x.freeEnergy)
         if write: min_chunk.write("best_energy.pdbqt")
         return min_chunk
-            
+
+
+class VinaScoringPredictor:
+
+    def __init__(self, smiles_scoring:dict, receptor:str, boxcenter:list, boxsize:list, exhaustiveness:int) -> None:
+        # Esto puede servir para simplemente buscar en la base de datos por la moelcula, y si esta dar el valor exacto de Vina sin tenr que hacer el calculo
+        # Y por supuesto para predecir
+        # La prediccion en la parte del "crossover" y el si esta la moelcuela para el caclulo real
+        self.lastupdate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.smiles_scoring = smiles_scoring
+        # This are control variables to save for future use
+        self.receptor = receptor
+        self.boxcenter = boxcenter
+        self.boxsize = boxsize
+        self.exhaustiveness = exhaustiveness
+        self.bfp = utility.rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in self.smiles_scoring])
+        self.model = None
+
+    
+    def __call__(self, **keywords):
+        # n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True
+        self.model = RandomForestRegressor(**keywords)
+        self.model.fit(self.bfp, list(self.smiles_scoring.values()))
+    
+    def update(self, new_smiles_scoring:dict, receptor:str, boxcenter:list, boxsize:list, exhaustiveness:int) -> None:
+        # Control that the new introduced data belongs to the same model
+        assert self.receptor == receptor, f"The original object was constructed with the receptor {self.receptor} and you introduced {receptor}. Consider to generate a new object."
+        assert self.boxcenter == boxcenter, f"The original object was constructed with the boxcenter {self.boxcenter} and you introduced {boxcenter}. Consider to generate a new object."
+        assert self.boxsize == boxsize, f"The original object was constructed with the boxsize {self.boxsize} and you introduced {boxsize}. Consider to generate a new object."
+        assert self.exhaustiveness == exhaustiveness, f"The original object was constructed with the exhaustiveness {self.exhaustiveness} and you introduced {exhaustiveness}. Consider to generate a new object."
+        
+        # Update the date 
+        self.lastupdate = datetime.now().strftime
+        
+        # Look for new structures
+        smiles_scoring2use = dict()
+        for sm_sc in new_smiles_scoring:
+            if sm_sc not in self.smiles_scoring:
+                smiles_scoring2use[sm_sc] = new_smiles_scoring[sm_sc]
+        if smiles_scoring2use:
+            self.smiles_scoring.update(smiles_scoring2use)
+
+            self.bfp = np.vstack((self.bfp, utility.rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles_scoring2use])))
+            self.model = None
+            print(f"{len(smiles_scoring2use)} new structures will be incorporate to the model. Please call the object (__call__ method) in order to create the new model, right now was set to None")
+        else:
+            print("The introduced smiles are already in the data base. No need to update.")
+
+    def predict(self, smiles:list):
+        if self.model and smiles:
+            if type(smiles) == str: smiles = [smiles]
+            fps = [AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles]
+            return self.model.predict(utility.rdkit_numpy_convert(fps))
+        else:
+            if not self.model:
+                warnings.warn('There are not model on this object, please call it (__call__) to create it in order to get a prediction. Right now you just got None!')
+                return None
+            if not smiles:
+                warnings.warn('You did not provide a smiles. You will just get None as prediction')
+                return None
+
+    def pickle(self,file):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        with open(file, 'wb') as pkl:
+            _pickle.dump(result, pkl)
+
+
+
         
 #===========================================================================
 
