@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-import multiprocessing as mp
-import os, utility, warnings
+from lead import utility
+import os, warnings
 from datetime import datetime
 import numpy as np
 from rdkit import Chem
-from rdkit.Chem import AllChem, DataStructs
+from rdkit.Chem import AllChem
 import pickle as _pickle
 from sklearn.ensemble import RandomForestRegressor
 
@@ -171,7 +170,7 @@ class VinaScoringPredictor:
 
             self.bfp = np.vstack((self.bfp, utility.rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles_scoring2use])))
             self.model = None
-            print(f"{len(smiles_scoring2use)} new structures will be incorporate to the model. Please call the object (__call__ method) in order to create the new model, right now was set to None")
+            print(f"{len(smiles_scoring2use)} new structures will be incorporate to the model.")
         else:
             print("The introduced smiles are already in the data base. No need to update.")
 
@@ -182,7 +181,7 @@ class VinaScoringPredictor:
             return self.model.predict(utility.rdkit_numpy_convert(fps))
         else:
             if not self.model:
-                warnings.warn('There are not model on this object, please call it (__call__) to create it in order to get a prediction. Right now you just got None!')
+                warnings.warn('There are not model on this object, please call it (__call__) to create it in order to get a prediction.  If you update the class, you must call the class again in order to create a new model based on the updated information, right now was set to None" Right now you just got None!')
                 return None
             if not smiles:
                 warnings.warn('You did not provide a smiles. You will just get None as prediction')
@@ -210,7 +209,7 @@ def VinaCost(Individual, receptor_path, boxcenter, boxsize, exhaustiveness = 8, 
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
         f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
         f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
-    print
+    #print(cmd)
     # Creating the ligand pdbqt
     with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
         l.write(Individual.pdbqt)

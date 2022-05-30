@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from copy import deepcopy
 import tempfile, os
 from rdkit import Chem
 from rdkit.Chem import AllChem
 from crem.crem import mutate_mol, grow_mol, link_mols
-import utility, vina, random, tqdm, shutil, itertools
+from lead import utility, vina
+import random, tqdm, shutil, itertools
 import multiprocessing as mp
 import numpy as np
 import pickle as _pickle
@@ -15,8 +17,12 @@ warnings.filterwarnings("ignore", message='not removing hydrogen atom with dummy
 
 
 ## Problem!!
+# When the ligands increase in size the docking take much more time to perform
+# Think about how to handle possibles Vina Crash
+# Sometimes the pdbqt structure is not generated (probably problems in the convertion. In this cases the whole simulation crash ans should not be like this, this should rise some warning and continue discarting this structure)
 # Apply a filter for redundant molecules.
 # Apply filter for chemical elemnts to avoid crash on the vina function, in case that Vina crash we could use the predicted model
+# Apply drug-like molecule filters
 # To get an idea of the Scoring function
 # Till now Vina never fails but could happen.
 # Add more cpus for the generation of the conformers with RDKit
@@ -52,7 +58,7 @@ class GA(object):
                 radius=3,
                 min_size=0, max_size = 8,
                 min_inc=-3, max_inc=3,
-                max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
+                #max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
                 return_mol= True,
                 ncores = njobs*self.costfunc_keywords['vina_cpus']
                 )
@@ -64,7 +70,7 @@ class GA(object):
             pass# I am not sure how to deal with this
         elif len(GenInitStructs) > (self.popsize - 1):
             #Selected random sample from the generation 
-            GenInitStructs = GenInitStructs = random.sample(GenInitStructs, k = self.popsize -1)
+            GenInitStructs = random.sample(GenInitStructs, k = self.popsize -1)
         else:
             # Everything is ok!
             pass 
@@ -94,16 +100,18 @@ class GA(object):
                 vina_jobs.name
                 )
             )
-        print(f'Creating the first population with {self.popsize} members:')
+        print(f'\n\nCreating the first population with {self.popsize} members:')
         self.pop = [Individual for Individual in tqdm.tqdm(pool.imap(self.costfunc, args), total=len(args))]
-        print('Done!')
         pool.close()
         shutil.rmtree(vina_jobs.name)
+        
+        # Print some information of the initial population
 
+        BestIndividualOfInitPopulation = min(self.pop, key = lambda x:x.cost)
+        print(f"Initial Population: Best individual: {BestIndividualOfInitPopulation.smiles}. Best cost: {BestIndividualOfInitPopulation.cost}")
         # Getting the info of the first individual (Father/Mother) to print at the end how well performed the method
         # Because How the population was initialized and because we are using pool.imap (ordered). The Father/Mother is the first Individual of self.pop
-        self.init_smiles = self.pop[0].smiles
-        self.init_cost = self.pop[0].cost
+        self.InitIndividual = deepcopy(self.pop[0])
 
         # Saving tracking variables
         for Individual in self.pop:
@@ -116,7 +124,7 @@ class GA(object):
         
         if predictor_model:
             self.Predictor = predictor_model
-            print('Updating the provided model:')
+            print('\nUpdating the provided model:\n')
             self.Predictor.update(
                 new_smiles_scoring = self.saw_smiles_cost.copy(), # make a copy in order to prevent the change of the object because changes on the self.saw_smiles_scoring
                 receptor = os.path.basename(self.costfunc_keywords['receptor_path']).split('.')[0],
@@ -127,7 +135,7 @@ class GA(object):
             self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True)
             print('Done!')
         else:
-            print('Creating the first predicted model.')
+            print('\nCreating the first predicted model...')
             self.Predictor = vina.VinaScoringPredictor(
                 smiles_scoring = self.saw_smiles_cost.copy(), # make a copy in order to prevent the change of the object because changes on the self.saw_smiles_scoring
                 receptor = os.path.basename(self.costfunc_keywords['receptor_path']).split('.')[0],
@@ -138,7 +146,7 @@ class GA(object):
             self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True)
             print('Done!')
 
-        print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}')
+        print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}\n')
         
         # Best Cost of Iterations
         self.bestcost = np.empty(self.maxiter)
@@ -191,7 +199,7 @@ class GA(object):
                     vina_jobs.name
                     )
                 )
-            print(f'Evaluating generation {iter + 1}:')
+            print(f'\nEvaluating generation {iter + 1}:')
 
             #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not prform the docking and just assign the scoring function
 
@@ -200,6 +208,9 @@ class GA(object):
             shutil.rmtree(vina_jobs.name)
                 
             # Merge, Sort and Select
+            # This could be improved. The problem is that the population could start to get the same individual, 
+            # The diversity of the population could be controlled in this steep
+            # 
             self.pop += popc
             self.pop = sorted(self.pop, key=lambda x: x.cost)
             self.pop = self.pop[0:self.popsize]
@@ -216,7 +227,7 @@ class GA(object):
                     #Tracking variables
                     self.saw_smiles_cost[Individual.smiles] = Individual.cost
             # Update the model
-            print(f'Updating the current model with the information of generation {iter + 1}:')
+            print(f'Updating the current model with the information of generation {iter + 1}...')
 
             self.Predictor.update(
                 new_smiles_scoring = new_smiles_cost.copy(),
@@ -226,19 +237,20 @@ class GA(object):
                 exhaustiveness = self.costfunc_keywords['exhaustiveness'],
             )
             self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True)          
-            print(f'The updated model presents a oob_score = {self.Predictor.model.oob_score_}')
             print('Done!')
+            print(f'The updated model presents a oob_score = {self.Predictor.model.oob_score_}')
+            
 
             # Show Iteration Information
-            print(f"Generation {iter + 1}: Best individual: {self.pop[0].smiles}. Best Cost = {self.pop[0].cost}.")
+            print(f"Generation {iter + 1}: Best individual: {self.pop[0].smiles}. Best Cost = {self.pop[0].cost}.\n")
             plt.scatter(iter, self.pop[0].cost)
         
         # Printing summary information
-        print('======================================================================')
+        print(f"\n{50*'=+'}\n")
         print(f'The simulation finished successfully after {self.maxiter} generations with a population of {self.popsize} individuals.')
-        print(f"Initial Structure: {self.init_smiles}. Initial Cost: {self.init_cost}")
+        print(f"Initial Structure: {self.InitIndividual.smiles}. Initial Cost: {self.InitIndividual.cost}")
         print(f"Final Structure: {self.pop[0].smiles}. Final Cost: {self.pop[0].cost}")
-        print('======================================================================') 
+        print(f"\n{50*'=+'}\n")
 
    # Improve
     # def crossover_0_1(self, Individual1, Individual2, ncores = 1):
@@ -313,7 +325,11 @@ class GA(object):
         # print(score)
         # For now I am generating all the mutants and picking only one at random, this is very inefficient, should be better only generate one, but I am afraid that crem generate always the same or not generate any at all.
         # I think that what first crem does is randomly select on spot and find there all possible mutants. If this spot doesn't generate mutants, then you don't get nothing. But this is a supposition. 
-        smiles, mol = random.choice(list(mutate_mol(Individual.mol, self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-3, max_inc=3, return_mol=True, ncores = ncores)))
+        try:
+            smiles, mol = random.choice(list(mutate_mol(Individual.mol, self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-3, max_inc=3, return_mol=True, ncores = ncores)))
+        except:
+            print('The mutation did not work, we returned the same individual')
+            smiles, mol = Individual.smiles, Individual.mol
         return utility.Individual(smiles,mol)
     
     def roulette_wheel_selection(self, p):

@@ -6,7 +6,7 @@ from openbabel import openbabel as ob
 
 from copy import deepcopy
 import tempfile, subprocess, os, random, time
-import numpy as np 
+import numpy as np
 
 #==================================================
 # Class to work with lead
@@ -161,6 +161,7 @@ def get_sim(ms, ref_fps):
 
 if __name__ == '__main__':
     import pickle
-    initial_smiles = 'COC1CC[C@@H](C(O)CC(O)C(F)(F)C(F)(F)F)C(O)C1'
+    initial_smiles = 'COC(=O)C=1C=CC(=CC1)S(=O)(=O)N'
     i = Individual(initial_smiles)
-    print(i)
+    
+    print(i.pdbqt)
