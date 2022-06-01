@@ -3,9 +3,9 @@
 from lead import ga, vina
 import json
 
-receptor = 'x0161'#7e27'#'6lu7'#'x0161'
-maxiter = 1
-popsize = 2
+receptor = '7e27'#7e27'#'6lu7'#'x0161'
+maxiter = 50
+popsize = 50
 
 with open('data/box.json', 'r') as f:
     grid_opt = json.load(f)[receptor]['A']
@@ -23,10 +23,11 @@ out = ga.GA(
     boxcenter = grid_opt['boxcenter'],
     boxsize = grid_opt['boxsize'],
     exhaustiveness = 8,
-    vina_cpus = 6,
+    vina_cpus = 3,
     num_modes = 1,
+    apply_lipinski_filter = True,
     )  
-out(njobs = 2)
+out(njobs = 4)
 for o in out.pop:
     print(o.smiles, o.cost)
-out.pickle(f'{receptor}_{maxiter}_{popsize}.pkl')
+out.pickle(f'lipinski_{receptor}_{maxiter}_{popsize}.pkl')

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from rdkit import Chem
-from rdkit.Chem import AllChem, rdmolops, DataStructs
+from rdkit.Chem import AllChem, rdmolops, DataStructs, Descriptors
 from openbabel import openbabel as ob
 
 from copy import deepcopy
@@ -158,10 +158,25 @@ def get_sim(ms, ref_fps):
         output.append([v[i], i])
     return output
 
+def lipinski_filter(mol, maxviolation = 2):
+    filter = {
+        'HBD': {'method':Descriptors.rdMolDescriptors.CalcNumLipinskiHBD,'cutoff':5},
+        'HBA': {'method':Descriptors.rdMolDescriptors.CalcNumLipinskiHBA,'cutoff':10}, 
+        'wt': {'method':Descriptors.MolWt,'cutoff':500},
+        'MLogP': {'method':Descriptors.MolLogP,'cutoff':5}
+        #'rotbond': {'method': Descriptors.NumRotatableBonds(), 'cutoff':10}
+    }
+    cont = 0
+    for property in filter:
+        
+        if filter[property]['method'](mol) > filter[property]['cutoff']:
+            cont += 1
+        if cont >= maxviolation:
+            return False
+    return True
 
 if __name__ == '__main__':
     import pickle
     initial_smiles = 'COC(=O)C=1C=CC(=CC1)S(=O)(=O)N'
     i = Individual(initial_smiles)
-    
-    print(i.pdbqt)
+    print(Descriptors.MolLogP(Chem.MolFromSmiles('O=C(Nc1ccon1)c1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1')))
