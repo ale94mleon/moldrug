@@ -204,7 +204,7 @@ class VinaScoringPredictor:
 #==============================================================================
 
 #=================Deffinition of the run=======================================
-def VinaCost(Individual, receptor_path, boxcenter, boxsize, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1, wd = '.vina_jobs'):
+def VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
     cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
         f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
@@ -222,9 +222,6 @@ def VinaCost(Individual, receptor_path, boxcenter, boxsize, exhaustiveness = 8, 
     # Getting the Scoring function of Vina
     Individual.cost = best_energy.freeEnergy
     return Individual
-
-def VinaCostStar(args):
-    return VinaCost(*args)
 #==============================================================================
 
 

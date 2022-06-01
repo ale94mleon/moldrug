@@ -3,7 +3,6 @@
 from copy import deepcopy
 import tempfile, os
 from rdkit import Chem
-from rdkit.Chem import AllChem
 from crem.crem import mutate_mol, grow_mol, link_mols
 from lead import utility, vina
 import random, tqdm, shutil, itertools
@@ -17,6 +16,7 @@ warnings.filterwarnings("ignore", message='not removing hydrogen atom with dummy
 
 
 ## Problem!!
+# I can internally create the CostStart function in this way is more intuitively the use of the class. This is to get the progress bars
 # When the ligands increase in size the docking take much more time to perform
 # Think about how to handle possibles Vina Crash
 # Sometimes the pdbqt structure is not generated (probably problems in the convertion. In this cases the whole simulation crash ans should not be like this, this should rise some warning and continue discarting this structure)
@@ -33,7 +33,7 @@ warnings.filterwarnings("ignore", message='not removing hydrogen atom with dummy
 # Implement a continuation and automatic saving method for possible crashing and relaunch of the simulation.
 class GA(object):
     
-    def __init__(self, smiles, costfunc, crem_db_path, maxiter, popsize, beta = 0.001, pc =1, **costfunc_keywords) -> None:
+    def __init__(self, smiles, costfunc, crem_db_path, maxiter, popsize, beta = 0.001, pc =1, **costfunc_kwargs) -> None:
         self.InitIndividual = utility.Individual(smiles)
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
@@ -42,7 +42,7 @@ class GA(object):
         self.maxiter = maxiter
         self.popsize = popsize
         self.beta = beta
-        self.costfunc_keywords = costfunc_keywords
+        self.costfunc_kwargs = costfunc_kwargs
         self.nc = int(np.round(pc*popsize/2)*2)
         self.exceptions = 0
 
@@ -60,7 +60,7 @@ class GA(object):
                 min_inc=-3, max_inc=3,
                 #max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
                 return_mol= True,
-                ncores = njobs*self.costfunc_keywords['vina_cpus']
+                ncores = njobs*self.costfunc_kwargs['vina_cpus']
                 )
             )
         if len(GenInitStructs) < (self.popsize - 1):
@@ -85,23 +85,16 @@ class GA(object):
         # Calculating cost of each individual (Doing Docking)
         vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
         pool = mp.Pool(njobs)
-        # Creating the arguments
-        args = []
+            # Creating the arguments
+        args_list = []
+        # Make a copy of the self.costfunc_kwargs
+        kwargs_copy = self.costfunc_kwargs.copy()
+        kwargs_copy['wd'] = vina_jobs.name
         for Individual in self.pop:
-            args.append(
-                (
-                Individual,
-                self.costfunc_keywords['receptor_path'],
-                self.costfunc_keywords['boxcenter'],
-                self.costfunc_keywords['boxsize'],
-                self.costfunc_keywords['exhaustiveness'],
-                self.costfunc_keywords['vina_cpus'],
-                self.costfunc_keywords['num_modes'],
-                vina_jobs.name
-                )
-            )
+            args_list.append((Individual, kwargs_copy))
+
         print(f'\n\nCreating the first population with {self.popsize} members:')
-        self.pop = [Individual for Individual in tqdm.tqdm(pool.imap(self.costfunc, args), total=len(args))]
+        self.pop = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
         pool.close()
         shutil.rmtree(vina_jobs.name)
         
@@ -127,23 +120,23 @@ class GA(object):
             print('\nUpdating the provided model:\n')
             self.Predictor.update(
                 new_smiles_scoring = self.saw_smiles_cost.copy(), # make a copy in order to prevent the change of the object because changes on the self.saw_smiles_scoring
-                receptor = os.path.basename(self.costfunc_keywords['receptor_path']).split('.')[0],
-                boxcenter = self.costfunc_keywords['boxcenter'],
-                boxsize = self.costfunc_keywords['boxsize'],
-                exhaustiveness = self.costfunc_keywords['exhaustiveness'],
+                receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+                boxcenter = self.costfunc_kwargs['boxcenter'],
+                boxsize = self.costfunc_kwargs['boxsize'],
+                exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
             )
-            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True)
+            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
             print('Done!')
         else:
             print('\nCreating the first predicted model...')
             self.Predictor = vina.VinaScoringPredictor(
                 smiles_scoring = self.saw_smiles_cost.copy(), # make a copy in order to prevent the change of the object because changes on the self.saw_smiles_scoring
-                receptor = os.path.basename(self.costfunc_keywords['receptor_path']).split('.')[0],
-                boxcenter = self.costfunc_keywords['boxcenter'],
-                boxsize = self.costfunc_keywords['boxsize'],
-                exhaustiveness = self.costfunc_keywords['exhaustiveness'],
+                receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+                boxcenter = self.costfunc_kwargs['boxcenter'],
+                boxsize = self.costfunc_kwargs['boxsize'],
+                exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
             )
-            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True)
+            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
             print('Done!')
 
         print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}\n')
@@ -168,11 +161,11 @@ class GA(object):
                 # I have to think about this operations, and the parameters to controll them
                 # Perform Crossover
                 # Implement something that tells me if there are repeated Individuals and change them.
-                c1, c2 = self.crossover(p1, p2, ncores=njobs*self.costfunc_keywords['vina_cpus'])
+                c1, c2 = self.crossover(p1, p2, ncores=njobs*self.costfunc_kwargs['vina_cpus'])
 
                 # Perform Mutation
-                c1 = self.mutate(c1, ncores=njobs*self.costfunc_keywords['vina_cpus'])
-                c2 = self.mutate(c2, ncores=njobs*self.costfunc_keywords['vina_cpus'])
+                c1 = self.mutate(c1, ncores=njobs*self.costfunc_kwargs['vina_cpus'])
+                c2 = self.mutate(c2, ncores=njobs*self.costfunc_kwargs['vina_cpus'])
 
                 # Save offspring population
                 popc.append(c1)
@@ -183,27 +176,20 @@ class GA(object):
             #os.makedirs('.vina_jobs', exist_ok=True)
             pool = mp.Pool(njobs)
             # Creating the arguments
-            args = []
+            args_list = []
+            # Make a copy of the self.costfunc_kwargs
+            kwargs_copy = self.costfunc_kwargs.copy()
+            kwargs_copy['wd'] = vina_jobs.name
             for (i, Individual) in enumerate(popc):
                 # Add idx label to each Individual
                 Individual.idx = i
-                args.append(
-                    (
-                    Individual,
-                    self.costfunc_keywords['receptor_path'],
-                    self.costfunc_keywords['boxcenter'],
-                    self.costfunc_keywords['boxsize'],
-                    self.costfunc_keywords['exhaustiveness'],
-                    self.costfunc_keywords['vina_cpus'],
-                    self.costfunc_keywords['num_modes'],
-                    vina_jobs.name
-                    )
-                )
+                # The problem here is that we are not being general for other possible Cost functions.
+                args_list.append((Individual,kwargs_copy))
             print(f'\nEvaluating generation {iter + 1}:')
 
-            #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not prform the docking and just assign the scoring function
+            #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not perform the docking and just assign the scoring function
 
-            popc = [Individual for Individual in tqdm.tqdm(pool.imap(self.costfunc, args), total=len(args))]  
+            popc = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
             pool.close()
             shutil.rmtree(vina_jobs.name)
                 
@@ -231,12 +217,12 @@ class GA(object):
 
             self.Predictor.update(
                 new_smiles_scoring = new_smiles_cost.copy(),
-                receptor = os.path.basename(self.costfunc_keywords['receptor_path']).split('.')[0],
-                boxcenter = self.costfunc_keywords['boxcenter'],
-                boxsize = self.costfunc_keywords['boxsize'],
-                exhaustiveness = self.costfunc_keywords['exhaustiveness'],
+                receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+                boxcenter = self.costfunc_kwargs['boxcenter'],
+                boxsize = self.costfunc_kwargs['boxsize'],
+                exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
             )
-            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True)          
+            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)          
             print('Done!')
             print(f'The updated model presents a oob_score = {self.Predictor.model.oob_score_}')
             
@@ -277,6 +263,11 @@ class GA(object):
     #         return utility.Individual(offspring1_smile, offspring1_mol), utility.Individual(offspring2_smile, offspring2_mol)
     #     else:
     #         return Individual1, Individual2
+
+    def __costfunc__(self, args_list):
+        Individual, kwargs = args_list
+        #This is just to use the progress bar on pool.imap
+        return self.costfunc(Individual, **kwargs)
 
     def crossover(self, Individual1, Individual2, ncores = 1):
         # here I have to select some randomness to perform or not the real crossover because I think that we could get far from the solution. It is just a guess.
