@@ -149,6 +149,7 @@ class GA(object):
         
         # Best Cost of Iterations
         self.bestcost = np.empty(self.maxiter)
+        self.avg_cost = np.empty(self.maxiter)
         # Main Loop
         for iter in range(self.maxiter):
             costs = np.array([Individual.cost for Individual in self.pop])
@@ -209,6 +210,9 @@ class GA(object):
 
             # Store Best Cost
             self.bestcost[iter] = self.pop[0].cost
+
+            # Store Average cost
+            self.avg_cost[iter] = np.mean(np.array([Individual.cost for Individual in self.pop]))
 
             # Saving tracking variables and getting new ones for the model update
             new_smiles_cost = dict()
