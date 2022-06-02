@@ -18,10 +18,13 @@ RDLogger.DisableLog('rdApp.*')
 
 
 ## Problem!!
-# !!!!!!!!!!!!do not perform docking of seen molecules.
+# !!!!!!!!!!!!See the roulet_weel_selection becasue the average part is given me no desired results
 # The mutation that I am doing right now is more a crossover but with the CReM library instead with the population itself.
 # Code a more conservative mutation (close to the one in the paper of the SMILES) to perform small mutations.
-#
+# Implement in the cost fucntino possible restraints to similaroty (I really dont like this option
+# Add synthetic accesibility prediciton in the cost fucntion
+# Create a better cost fucntion that take into account as much as possible all the necesities of a drug-like molecule,
+
 # We could also, instead a crossover two mutations with different levels. Becasue our 'mutate' is indeed some kind of crossover but with the CReM data base. So, what we could do is implement the mutation sof the paper that is at small scale (local optimazation): the possibilities are point mutations (atom-by-atom), deletion, add new atoms
 # I think that I could control this specifying 
 # For the best ligand we could predict the metabolites with sygma (apart of the module)
@@ -151,11 +154,9 @@ class GA(object):
         
         # Main Loop
         for iter in range(self.maxiter):
+            # Probabilities Selections
             costs = np.array([Individual.cost for Individual in self.pop])
-            avg_cost = np.mean(costs)
-            if avg_cost != 0:
-                costs = costs/avg_cost
-            probs = np.exp(-self.beta*costs)
+            probs = np.exp(-self.beta*costs) / np.sum(np.exp(-self.beta*costs))
 
             popc = []
             for _ in range(self.nc//2):

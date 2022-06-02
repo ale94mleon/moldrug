@@ -3,9 +3,9 @@
 from lead import ga, vina
 import json
 
-receptor = 'x0161'#7e27'#'6lu7'#'x0161'
-maxiter = 2
-popsize = 4
+receptor = '7e27_periplasm'#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
+maxiter = 50
+popsize = 50
 
 with open('data/box.json', 'r') as f:
     grid_opt = json.load(f)[receptor]['A']
