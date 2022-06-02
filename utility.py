@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from rdkit import Chem
-from rdkit.Chem import AllChem, rdmolops, DataStructs, Descriptors
+from rdkit.Chem import AllChem, rdmolops, DataStructs, Lipinski, Descriptors
 from openbabel import openbabel as ob
 
 from copy import deepcopy
@@ -160,11 +160,13 @@ def get_sim(ms, ref_fps):
 
 def lipinski_filter(mol, maxviolation = 2):
     filter = {
-        'HBD': {'method':Descriptors.rdMolDescriptors.CalcNumLipinskiHBD,'cutoff':5},
-        'HBA': {'method':Descriptors.rdMolDescriptors.CalcNumLipinskiHBA,'cutoff':10}, 
+        'NumHAcceptors': {'method':Lipinski.NumHAcceptors,'cutoff':10},
+        'NumHDonors': {'method':Lipinski.NumHDonors,'cutoff':5},
         'wt': {'method':Descriptors.MolWt,'cutoff':500},
-        'MLogP': {'method':Descriptors.MolLogP,'cutoff':5}
-        #'rotbond': {'method': Descriptors.NumRotatableBonds(), 'cutoff':10}
+        'MLogP': {'method':Descriptors.MolLogP,'cutoff':5},
+        'NumRotatableBonds': {'method':Lipinski.NumRotatableBonds,'cutoff':10},
+        'TPSA': {'method':Chem.MolSurf.TPSA,'cutoff':140},
+
     }
     cont = 0
     for property in filter:
@@ -174,6 +176,42 @@ def lipinski_filter(mol, maxviolation = 2):
         if cont >= maxviolation:
             return False
     return True
+
+def lipinski_profile(mol):
+    #https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski
+    properties = {
+        'NumHAcceptors': {'method':Lipinski.NumHAcceptors,'cutoff':10},
+        'NumHDonors': {'method':Lipinski.NumHDonors,'cutoff':5},
+        'wt': {'method':Descriptors.MolWt,'cutoff':500},
+        'MLogP': {'method':Descriptors.MolLogP,'cutoff':5},
+        'NumRotatableBonds': {'method':Lipinski.NumRotatableBonds,'cutoff':10},
+        'TPSA': {'method':Chem.MolSurf.TPSA,'cutoff':range(0,140)},
+
+        'FractionCSP3': {'method':Lipinski.FractionCSP3,'cutoff':None},
+        'HeavyAtomCount': {'method':Lipinski.HeavyAtomCount,'cutoff':None}, 
+        'NHOHCount': {'method':Lipinski.NHOHCount,'cutoff':None},
+        'NOCount': {'method':Lipinski.NOCount,'cutoff':None},
+        'HeavyAtomCount': {'method':Lipinski.HeavyAtomCount,'cutoff':None},
+        'NHOHCount': {'method':Lipinski.NHOHCount,'cutoff':None},
+        'NOCount': {'method':Lipinski.NOCount,'cutoff':None},
+        'NumAliphaticCarbocycles': {'method':Lipinski.NumAliphaticCarbocycles,'cutoff':None},
+        'NumAliphaticHeterocycles': {'method':Lipinski.NumAliphaticHeterocycles,'cutoff':None},
+        'NumAliphaticRings': {'method':Lipinski.NumAliphaticRings,'cutoff':None},
+        'NumAromaticCarbocycles': {'method':Lipinski.NumAromaticCarbocycles,'cutoff':None},
+        'NumAromaticHeterocycles': {'method':Lipinski.NumAromaticHeterocycles,'cutoff':None},
+        'NumAromaticRings': {'method':Lipinski.NumAromaticRings,'cutoff':None},
+        'NumHeteroatoms': {'method':Lipinski.NumHeteroatoms,'cutoff':None},
+        'NumSaturatedCarbocycles': {'method':Lipinski.NumSaturatedCarbocycles,'cutoff':None},
+        'NumSaturatedHeterocycles': {'method':Lipinski.NumSaturatedHeterocycles,'cutoff':None},
+        'NumSaturatedRings': {'method':Lipinski.NumSaturatedRings,'cutoff':None},
+        'RingCount': {'method':Lipinski.RingCount,'cutoff':None},
+    }
+    profile = {}
+    for property in properties:
+        profile[property] = properties[property]['method'](mol)
+        #print(f"{property}: {properties[property]['method'](mol)}. cutoff: {properties[property]['cutoff']}")
+    return profile
+
 
 if __name__ == '__main__':
     import pickle

@@ -19,22 +19,19 @@ RDLogger.DisableLog('rdApp.*')
 
 ## Problem!!
 # !!!!!!!!!!!!do not perform docking of seen molecules.
+# The mutation that I am doing right now is more a crossover but with the CReM library instead with the population itself.
+# Code a more conservative mutation (close to the one in the paper of the SMILES) to perform small mutations.
+#
 # We could also, instead a crossover two mutations with different levels. Becasue our 'mutate' is indeed some kind of crossover but with the CReM data base. So, what we could do is implement the mutation sof the paper that is at small scale (local optimazation): the possibilities are point mutations (atom-by-atom), deletion, add new atoms
 # I think that I could control this specifying 
 # For the best ligand we could predict the metabolites with sygma (apart of the module)
-# I can internally create the CostStart function in this way is more intuitively the use of the class. This is to get the progress bars
-# When the ligands increase in size the docking take much more time to perform
 # Think about how to handle possibles Vina Crash
 # Sometimes the pdbqt structure is not generated (probably problems in the convertion. In this cases the whole simulation crash ans should not be like this, this should rise some warning and continue discarting this structure)
-# Apply a filter for redundant molecules.
 # Apply filter for chemical elemnts to avoid crash on the vina function, in case that Vina crash we could use the predicted model
-# Apply drug-like molecule filters
-# To get an idea of the Scoring function
 # Till now Vina never fails but could happen.
 # Add more cpus for the generation of the conformers with RDKit
 # The size of the ligands increase with the number of generations (if crossover is used even more)
 # How to implement the rationality of where to grow, not just randomness. That could be the "crossover" operation, in fact the grow in a specific direction, based in (for example) the interaction network or the clashing avoid.
-# Catch repeated structures. This will help to the total simulation time!!!!!!!
 # I have to create a filter of atoms in order that vina doesn't fail because B and atoms like that Vina is not able to handle.
 # Implement a continuation and automatic saving method for possible crashing and relaunch of the simulation.
 class GA(object):
@@ -53,7 +50,7 @@ class GA(object):
         self.exceptions = 0
 
         # Tracking parameters
-        self.saw_smiles_cost = dict()
+        self.SawIndividuals = []
     @utility.timeit
     def __call__(self, njobs:int = 1, predictor_model:vina.VinaScoringPredictor = None):
         # Initialize Population
@@ -114,7 +111,8 @@ class GA(object):
 
         # Saving tracking variables
         for Individual in self.pop:
-            self.saw_smiles_cost[Individual.smiles] = Individual.cost
+            if Individual.smiles not in [si.smiles for si in self.SawIndividuals]:
+                self.SawIndividuals.append(Individual)
 
 
         # Creating the first model
@@ -125,7 +123,7 @@ class GA(object):
             self.Predictor = predictor_model
             print('\nUpdating the provided model:\n')
             self.Predictor.update(
-                new_smiles_scoring = self.saw_smiles_cost.copy(), # make a copy in order to prevent the change of the object because changes on the self.saw_smiles_scoring
+                new_smiles_scoring = dict(((Individual.smiles,Individual.cost) if Individual.cost != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
                 receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
                 boxcenter = self.costfunc_kwargs['boxcenter'],
                 boxsize = self.costfunc_kwargs['boxsize'],
@@ -136,7 +134,7 @@ class GA(object):
         else:
             print('\nCreating the first predicted model...')
             self.Predictor = vina.VinaScoringPredictor(
-                smiles_scoring = self.saw_smiles_cost.copy(), # make a copy in order to prevent the change of the object because changes on the self.saw_smiles_scoring
+                smiles_scoring = dict(((Individual.smiles,Individual.cost) if Individual.cost != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
                 receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
                 boxcenter = self.costfunc_kwargs['boxcenter'],
                 boxsize = self.costfunc_kwargs['boxsize'],
@@ -150,6 +148,7 @@ class GA(object):
         # Best Cost of Iterations
         self.bestcost = np.empty(self.maxiter)
         self.avg_cost = np.empty(self.maxiter)
+        
         # Main Loop
         for iter in range(self.maxiter):
             costs = np.array([Individual.cost for Individual in self.pop])
@@ -173,32 +172,34 @@ class GA(object):
                 # Perform Mutation
                 c1 = self.mutate(c1, ncores=njobs*self.costfunc_kwargs['vina_cpus'])
                 c2 = self.mutate(c2, ncores=njobs*self.costfunc_kwargs['vina_cpus'])
-
+                
                 # Save offspring population
-                popc.append(c1)
-                popc.append(c2)
+                # I will save only those offsprings that were not seen 
+                if c1.smiles not in [Individual.smiles for Individual in self.SawIndividuals]: popc.append(c1)
+                if c2.smiles not in [Individual.smiles for Individual in self.SawIndividuals]: popc.append(c2)
 
-            # Calculating cost of each offspring individual (Doing Docking)
-            vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
-            #os.makedirs('.vina_jobs', exist_ok=True)
-            pool = mp.Pool(njobs)
-            # Creating the arguments
-            args_list = []
-            # Make a copy of the self.costfunc_kwargs
-            kwargs_copy = self.costfunc_kwargs.copy()
-            kwargs_copy['wd'] = vina_jobs.name
-            for (i, Individual) in enumerate(popc):
-                # Add idx label to each Individual
-                Individual.idx = i
-                # The problem here is that we are not being general for other possible Cost functions.
-                args_list.append((Individual,kwargs_copy))
-            print(f'\nEvaluating generation {iter + 1}:')
+            if popc: # Only if there are new members
+                # Calculating cost of each offspring individual (Doing Docking)
+                vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
+                #os.makedirs('.vina_jobs', exist_ok=True)
+                pool = mp.Pool(njobs)
+                # Creating the arguments
+                args_list = []
+                # Make a copy of the self.costfunc_kwargs
+                kwargs_copy = self.costfunc_kwargs.copy()
+                kwargs_copy['wd'] = vina_jobs.name
+                for (i, Individual) in enumerate(popc):
+                    # Add idx label to each Individual
+                    Individual.idx = i
+                    # The problem here is that we are not being general for other possible Cost functions.
+                    args_list.append((Individual,kwargs_copy))
+                print(f'\nEvaluating generation {iter + 1}:')
 
-            #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not perform the docking and just assign the scoring function
+                #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not perform the docking and just assign the scoring function
 
-            popc = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
-            pool.close()
-            shutil.rmtree(vina_jobs.name)
+                popc = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
+                pool.close()
+                shutil.rmtree(vina_jobs.name)
                 
             # Merge, Sort and Select
             # This could be improved. The problem is that the population could start to get the same individual, 
@@ -206,7 +207,7 @@ class GA(object):
             # 
             self.pop += popc
             self.pop = sorted(self.pop, key=lambda x: x.cost)
-            self.pop = self.pop[0:self.popsize]
+            self.pop = self.pop[:self.popsize]
 
             # Store Best Cost
             self.bestcost[iter] = self.pop[0].cost
@@ -217,11 +218,14 @@ class GA(object):
             # Saving tracking variables and getting new ones for the model update
             new_smiles_cost = dict()
             for Individual in popc:
-                if Individual.smiles not in self.saw_smiles_cost:
+                if Individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
                     # New variables
-                    new_smiles_cost[Individual.smiles] = Individual.cost
+                    if Individual.cost == np.inf:
+                        new_smiles_cost[Individual.smiles] = 9999
+                    else:
+                        new_smiles_cost[Individual.smiles] = Individual.cost
                     #Tracking variables
-                    self.saw_smiles_cost[Individual.smiles] = Individual.cost
+                    self.SawIndividuals.append(Individual)
             # Update the model
             print(f'Updating the current model with the information of generation {iter + 1}...')
 

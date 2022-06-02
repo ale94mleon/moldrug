@@ -192,11 +192,7 @@ class VinaScoringPredictor:
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
         with open(file, 'wb') as pkl:
-            _pickle.dump(result, pkl)
-
-
-
-        
+            _pickle.dump(result, pkl)    
 #===========================================================================
 
 
@@ -205,7 +201,27 @@ class VinaScoringPredictor:
 
 #=================Deffinition of the run=======================================
 def VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1, apply_lipinski_filter = True):
-    if utility.lipinski_filter(Individual.mol):
+    if apply_lipinski_filter:
+        if utility.lipinski_filter(Individual.mol):
+            cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
+                f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
+                f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
+                f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+            #print(cmd)
+            # Creating the ligand pdbqt
+            with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
+                l.write(Individual.pdbqt)
+            utility.run(cmd)
+
+            # Getting the information
+            best_energy = VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
+            # Changing the xyz conformation by the conformation of the binding pose
+            Individual.pdbqt = best_energy.chunk
+            # Getting the Scoring function of Vina
+            Individual.cost = best_energy.freeEnergy
+        else:
+            Individual.cost = np.inf # This is the default value of and Individual
+    else:
         cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
             f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
             f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
@@ -222,11 +238,10 @@ def VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = No
         Individual.pdbqt = best_energy.chunk
         # Getting the Scoring function of Vina
         Individual.cost = best_energy.freeEnergy
-    else:
-        Individual.cost = 999999999
+         
     return Individual
 
-def VinaCostStart(args):
+def VinaCostStar(args):
     return VinaCost(*args)
 #==============================================================================
 

@@ -7,4 +7,5 @@ interesting_struct.txt
 out.pkl
 *.ipynb
 *.pkl
+*.pdbqt
 data/used
