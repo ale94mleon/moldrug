@@ -79,6 +79,42 @@ def __VinaCostLipinski(Individual, wd = '.vina_jobs', receptor_path = None, boxc
     # We could have vina but also a cost function that integrate all of them is cleaner 
     return Individual
 
+def QED_SAS_vina_cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
+    # multicriteria optimization,Optimization of Several Response Variables
+    # Getting estimate of drug-likness
+    Individual.qed = QED.weights_mean(Individual.mol)
+    
+    # Getting synthetic accessibility score
+    Individual.sa_score = sascorer.calculateScore(Individual.mol)
+    
+    if Individual.qed >=0.75 and Individual.sa_score <= 4:
+
+        # Getting Vina score
+        cmd = f"{vina.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
+            f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
+            f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
+            f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+        #print(cmd)
+        # Creating the ligand pdbqt
+        with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
+            l.write(Individual.pdbqt)
+        utils.run(cmd)
+
+        # Getting the information
+        best_energy = vina.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
+        # Changing the xyz conformation by the conformation of the binding pose
+        Individual.pdbqt = best_energy.chunk
+
+        # Getting the Scoring function of Vina
+        Individual.vina_score = best_energy.freeEnergy
+        Individual.cost = best_energy.freeEnergy
+    else:
+        # Getting the Scoring function of Vina
+        Individual.vina_score =np.inf
+        Individual.cost = np.inf
+    return Individual
+
+
 def Cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
