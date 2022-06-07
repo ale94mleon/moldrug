@@ -6,7 +6,7 @@ import tempfile, os
 from rdkit import Chem
 from rdkit.Chem import Descriptors
 from crem.crem import mutate_mol, grow_mol, link_mols
-from lead import utility, vina
+from lead import vina, utils
 import random, tqdm, shutil, itertools
 import multiprocessing as mp
 import numpy as np
@@ -40,7 +40,7 @@ RDLogger.DisableLog('rdApp.*')
 class GA(object):
     
     def __init__(self, smiles, costfunc, crem_db_path, maxiter, popsize, beta = 0.001, pc =1, **costfunc_kwargs) -> None:
-        self.InitIndividual = utility.Individual(smiles)
+        self.InitIndividual = utils.Individual(smiles)
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
         self.pop = [self.InitIndividual]
@@ -54,7 +54,7 @@ class GA(object):
 
         # Tracking parameters
         self.SawIndividuals = []
-    @utility.timeit
+    @utils.timeit
     def __call__(self, njobs:int = 1, predictor_model:vina.VinaScoringPredictor = None):
         # Initialize Population
         GenInitStructs = list(
@@ -86,7 +86,7 @@ class GA(object):
             _, mol = item
             mol = Chem.RemoveHs(mol)
             # Here I have to keep record of the added fragment
-            self.pop.append(utility.Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
+            self.pop.append(utils.Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
         
         # Calculating cost of each individual (Doing Docking)
         vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
@@ -265,8 +265,8 @@ class GA(object):
         # Here is where more additional information could be used. In order to orient the design of the new offspring. 
         # Then, I should control how perform the mutation  in such a way that we could keep or at least evaluate the offspring generated for crossover
         if random.random() < probability: # 50% of return the same individuals
-            fragments1 = utility.fragments(Individual1.mol)
-            fragments2 = utility.fragments(Individual2.mol)
+            fragments1 = utils.fragments(Individual1.mol)
+            fragments2 = utils.fragments(Individual2.mol)
             all_fragments = list(fragments1) + list(fragments2)
             
             # Initialize offspring smiles; cost
@@ -278,7 +278,7 @@ class GA(object):
                 
                 # Combine the molecules
                 try:
-                    possible_fragments_smiles = list(link_mols(*combination, db_name=self.crem_db_path, radius = 3, min_atoms=1, max_atoms=6, return_mol=False, ncores=ncores))                
+                    possible_fragments_smiles = list(link_mols(*combination, db_name=self.crem_db_path, radius = 3, min_atoms=1, max_atoms=6, dist = 2, return_mol=False, ncores=ncores))                
                 except:
                     # This is for debugging
                     sm1, sm2 = [Chem.MolToSmiles(c) for c in combination]
@@ -300,7 +300,7 @@ class GA(object):
                 # Merge, Sort and Select
                 offsprings = sorted(offsprings + temp_offsprings, key = lambda x:x[1])[:2]
             # Here I should check that exist offsprings (there not None values as smiles). For now I will assume that we always get at least two. See on the future
-            return utility.Individual(smiles = offsprings[0][0]), utility.Individual(smiles = offsprings[1][0])
+            return utils.Individual(smiles = offsprings[0][0]), utils.Individual(smiles = offsprings[1][0])
         else:
             return Individual1, Individual2    
     
@@ -314,7 +314,7 @@ class GA(object):
         # Esto tengo que pensarlo mejor
         # new_mols = list(mutate_mol(Chem.AddHs(Individual.mol), self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-3, max_inc=3, return_mol=True, ncores = ncores))
         # new_mols = [Chem.RemoveHs(i[1]) for i in new_mols]
-        # best_mol, score = utility.get_top(new_mols + [Individual.mol], self.model)
+        # best_mol, score = utils.get_top(new_mols + [Individual.mol], self.model)
         # smiles = Chem.MolToSmiles(best_mol)
         # mol = best_mol
         # print(score)
@@ -325,7 +325,7 @@ class GA(object):
         except:
             print('The mutation did not work, we returned the same individual')
             smiles, mol = Individual.smiles, Individual.mol
-        return utility.Individual(smiles,mol)
+        return utils.Individual(smiles,mol)
     
     def roulette_wheel_selection(self, p):
         c = np.cumsum(p)

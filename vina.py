@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from lead import utility
+from lead import utils
 import os, warnings
 from datetime import datetime
 import numpy as np
@@ -8,6 +8,9 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 import pickle as _pickle
 from sklearn.ensemble import RandomForestRegressor
+
+import os
+
 
 # Alias for vina
 vina_executable = os.path.abspath('vina')
@@ -141,7 +144,7 @@ class VinaScoringPredictor:
         self.boxcenter = boxcenter
         self.boxsize = boxsize
         self.exhaustiveness = exhaustiveness
-        self.bfp = utility.rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in self.smiles_scoring])
+        self.bfp = utils.rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in self.smiles_scoring])
         self.model = None
 
     
@@ -168,7 +171,7 @@ class VinaScoringPredictor:
         if smiles_scoring2use:
             self.smiles_scoring.update(smiles_scoring2use)
 
-            self.bfp = np.vstack((self.bfp, utility.rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles_scoring2use])))
+            self.bfp = np.vstack((self.bfp, utils.rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles_scoring2use])))
             self.model = None
             print(f"{len(smiles_scoring2use)} new structures will be incorporate to the model.")
         else:
@@ -178,7 +181,7 @@ class VinaScoringPredictor:
         if self.model and smiles:
             if type(smiles) == str: smiles = [smiles]
             fps = [AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles]
-            return self.model.predict(utility.rdkit_numpy_convert(fps))
+            return self.model.predict(utils.rdkit_numpy_convert(fps))
         else:
             if not self.model:
                 warnings.warn('There are not model on this object, please call it (__call__) to create it in order to get a prediction.  If you update the class, you must call the class again in order to create a new model based on the updated information, right now was set to None" Right now you just got None!')
@@ -199,59 +202,17 @@ class VinaScoringPredictor:
 
 #==============================================================================
 
-#=================Deffinition of the run=======================================
-def VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1, apply_lipinski_filter = True):
-    if apply_lipinski_filter:
-        if utility.lipinski_filter(Individual.mol):
-            cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
-                f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
-                f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
-                f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
-            #print(cmd)
-            # Creating the ligand pdbqt
-            with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
-                l.write(Individual.pdbqt)
-            utility.run(cmd)
-
-            # Getting the information
-            best_energy = VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
-            # Changing the xyz conformation by the conformation of the binding pose
-            Individual.pdbqt = best_energy.chunk
-            # Getting the Scoring function of Vina
-            Individual.cost = best_energy.freeEnergy
-        else:
-            Individual.cost = np.inf # This is the default value of and Individual
-    else:
-        cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
-            f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
-            f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
-            f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
-        #print(cmd)
-        # Creating the ligand pdbqt
-        with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
-            l.write(Individual.pdbqt)
-        utility.run(cmd)
-
-        # Getting the information
-        best_energy = VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
-        # Changing the xyz conformation by the conformation of the binding pose
-        Individual.pdbqt = best_energy.chunk
-        # Getting the Scoring function of Vina
-        Individual.cost = best_energy.freeEnergy
-         
-    return Individual
-
-def VinaCostStar(args):
-    return VinaCost(*args)
+#=================For compatibility=======================================
+def VinaCost():
+    return None
+def VinaCostStar():
+    return None
 #==============================================================================
 
 
 
 if __name__ == '__main__':
     pass
-    
     # vina = VINA_OUT(".vina/0_out.pdbqt")
     # print(vina.BestEnergy().freeEnergy)
     #vina.PosNegConf(atom_1 = 17 , atom_2 = 1)
-    #runvina("/home/ale/MY_PYTHON_PACKEGES/MDynamic/examples/Vina_Docking/ref_info/boxes.box")
-
