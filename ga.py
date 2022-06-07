@@ -50,7 +50,6 @@ class GA(object):
         self.beta = beta
         self.costfunc_kwargs = costfunc_kwargs
         self.nc = int(np.round(pc*popsize/2)*2)
-        self.exceptions = 0
 
         # Tracking parameters
         self.SawIndividuals = []
@@ -126,7 +125,7 @@ class GA(object):
             self.Predictor = predictor_model
             print('\nUpdating the provided model:\n')
             self.Predictor.update(
-                new_smiles_scoring = dict(((Individual.smiles,Individual.cost) if Individual.cost != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
+                new_smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
                 receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
                 boxcenter = self.costfunc_kwargs['boxcenter'],
                 boxsize = self.costfunc_kwargs['boxsize'],
@@ -137,7 +136,7 @@ class GA(object):
         else:
             print('\nCreating the first predicted model...')
             self.Predictor = vina.VinaScoringPredictor(
-                smiles_scoring = dict(((Individual.smiles,Individual.cost) if Individual.cost != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
+                smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
                 receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
                 boxcenter = self.costfunc_kwargs['boxcenter'],
                 boxsize = self.costfunc_kwargs['boxsize'],

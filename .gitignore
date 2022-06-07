@@ -6,7 +6,9 @@ __pycache__
 interesting_struct.txt
 out.pkl
 *.ipynb
+pkl
 *.pkl
 *.pdbqt
 data/used
 utility.py
+nohup.out
