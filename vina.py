@@ -14,7 +14,7 @@ import os
 
 # Alias for vina
 vina_executable = os.path.abspath('vina')
-#========Deffinitions of class and methosd to get the output of Vina===========
+#========Definitions of class and methods to get the output of Vina===========
 class Atom:
     #https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out
     def __init__(self, line):
@@ -196,20 +196,12 @@ class VinaScoringPredictor:
         result.__dict__.update(self.__dict__)
         with open(file, 'wb') as pkl:
             _pickle.dump(result, pkl)    
-#===========================================================================
-
-
-
-#==============================================================================
-
 #=================For compatibility=======================================
 def VinaCost():
     return None
 def VinaCostStar():
     return None
 #==============================================================================
-
-
 
 if __name__ == '__main__':
     pass

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from lead import ga, fitnes
+from lead import ga, fitness
 import json
 
-receptor = '7e27'#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
-maxiter = 50
-popsize = 50
+receptor = 'x0161'#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
+maxiter = 3
+popsize = 4
 
 with open('data/box.json', 'r') as f:
     grid_opt = json.load(f)[receptor]['A']
@@ -18,15 +18,15 @@ out = ga.GA(
     popsize=popsize,
     crem_db_path = '/home/ale/GITLAB/bi_crem_database/replacements02_sc2.5.db',
     pc = 1,
-    costfunc = fitnes.Cost,#__VinaCostLipinski, Cost
+    costfunc = fitness.__VinaCost,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost
     receptor_path =f'data/{receptor}.pdbqt',
     boxcenter = grid_opt['boxcenter'],
     boxsize = grid_opt['boxsize'],
     exhaustiveness = 8,
     vina_cpus = 3,
     num_modes = 1,
-    )  
+    )
 out(njobs = 4)
 for o in out.pop:
     print(o.smiles, o.cost)
-out.pickle(f'pkl/desirability_{receptor}_{maxiter}_{popsize}.pkl')
+out.pickle(f'pkl/normal_{receptor}_{maxiter}_{popsize}.pkl')

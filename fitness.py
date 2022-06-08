@@ -30,18 +30,8 @@ def __VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = 
     # Getting the Scoring function of Vina
     Individual.vina_score = best_energy.freeEnergy
     Individual.cost = best_energy.freeEnergy
-
-    # Adding the cost using all the information of qed, sas and vina_cost
-
-    # Construct the desirability.
-    # Merge the desirabilities
-    # qed ranges between 0 and 1
-    # sas 0 to 10
-    # Vina is more difficult to capture But i already have an idea.
-    # save cost
-    # Think in a more clean way to this cost function
-    # We could have vina but also a cost function that integrate all of them is cleaner 
     return Individual
+
 def __VinaCostLipinski(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
     if utils.lipinski_filter(Individual.mol):
         cmd = f"{vina.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
@@ -65,23 +55,9 @@ def __VinaCostLipinski(Individual, wd = '.vina_jobs', receptor_path = None, boxc
     else:
         Individual.vina_score = np.inf
         Individual.cost = np.inf
-
-
-    # Adding the cost using all the information of qed, sas and vina_cost
-
-    # Construct the desirability.
-    # Merge the desirabilities
-    # qed ranges between 0 and 1
-    # sas 0 to 10
-    # Vina is more difficult to capture But i already have an idea.
-    # save cost
-    # Think in a more clean way to this cost function
-    # We could have vina but also a cost function that integrate all of them is cleaner 
     return Individual
 
-def QED_SAS_vina_cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
-    # multicriteria optimization,Optimization of Several Response Variables
-    # Getting estimate of drug-likness
+def __QedSasVinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
     Individual.qed = QED.weights_mean(Individual.mol)
     
     # Getting synthetic accessibility score

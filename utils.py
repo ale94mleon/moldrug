@@ -87,11 +87,11 @@ def run(command, shell = True, executable = '/bin/bash', Popen = False):
     return process
 
 def obconvert(inpath, outpath):
-    """Convert  molecule ussing openbabel
+    """Convert  molecule using openbabel
 
     Args:
         input (str, path): input molecule.
-        output (str, path): must have the extention of the molecule.
+        output (str, path): must have the extension of the molecule.
     """
     in_ext = os.path.basename(inpath).split('.')[-1]
     out_ext = os.path.basename(outpath).split('.')[-1]
@@ -250,7 +250,6 @@ def NominalTheBest(Value, LowerLimit, Target, UpperLimit, r1 = 1, r2 = 1):
 
 
 if __name__ == '__main__':
-    import pickle
     initial_smiles = 'COC(=O)C=1C=CC(=CC1)S(=O)(=O)N'
     i = Individual(initial_smiles)
     print(Descriptors.MolLogP(Chem.MolFromSmiles('O=C(Nc1ccon1)c1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1')))
