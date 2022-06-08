@@ -32,7 +32,7 @@ The following are the response variables:
 For each of this response variables we create their corresponded Derringer-Suich desirability functions. And them we combined as a geometric mean:
 
 $$
-D = {\left[\prod_{i = 1}^{3} d_i^{w_i}\right]}^{\frac{1}{\sum_{i = 1}^{3}w_i}}
+D = {\left[\prod_{i = 1}^{3} d_i^{w_i}\right]}^{\frac{1}{\sum_i w_i}}
 $$
 
 where $w_i$ are the weights of each variable; and $d_i$ the desirability functions. Each individual $d_i$ ranges from 0 to 1 and therefore also $D$.
