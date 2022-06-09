@@ -158,6 +158,32 @@ def get_sim(ms, ref_fps):
         output.append([v[i], i])
     return output
 
+def get_similar_mols(mols:list, ref_mol:Chem.rdchem.Mol, pick:int, beta:float = 0.01):
+    """Pick the similar molecules from mols respect to ref_mol using a roulette wheel selection strategy.
+
+    Args:
+        mols (list): the list of molecules from where pick molecules will be chosen
+        ref_mol (Chem.rdchem.Mol): The reference molecule
+        pick (int): Number of molecules to pick from mols
+        beta (float, optional): Selection threshold. Defaults to 0.01.
+
+    Returns:
+        list: A list of picked molecules.
+    """
+    if pick >= len(mols):
+        return mols
+    else:
+        ref_fp = AllChem.GetMorganFingerprintAsBitVect(ref_mol, 2)
+        fps = [AllChem.GetMorganFingerprintAsBitVect(mol, 2) for mol in mols]
+        similarities = np.array(DataStructs.BulkTanimotoSimilarity(ref_fp, fps))
+        probs = np.exp(beta*similarities) / np.sum(np.exp(beta*similarities))
+        cumsum = np.cumsum(probs)
+        indexes = set()
+        while len(indexes) != pick:
+            r = sum(probs)*np.random.rand()
+            indexes.add(np.argwhere(r <= cumsum)[0][0])
+        return [mols[index] for index in indexes]
+
 def lipinski_filter(mol, maxviolation = 2):
     filter = {
         'NumHAcceptors': {'method':Lipinski.NumHAcceptors,'cutoff':10},

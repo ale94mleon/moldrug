@@ -18,7 +18,8 @@ out = ga.GA(
     popsize=popsize,
     crem_db_path = '/home/ale/GITLAB/bi_crem_database/replacements02_sc2.5.db',
     pc = 1,
-    costfunc = fitness.__VinaCost,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost
+    get_similar = False,
+    costfunc = fitness.Cost,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost
     receptor_path =f'data/{receptor}.pdbqt',
     boxcenter = grid_opt['boxcenter'],
     boxsize = grid_opt['boxsize'],
@@ -29,4 +30,4 @@ out = ga.GA(
 out(njobs = 4)
 for o in out.pop:
     print(o.smiles, o.cost)
-out.pickle(f'pkl/normal_{receptor}_{maxiter}_{popsize}.pkl')
+out.pickle(f'pkl/desirability_{receptor}_{maxiter}_{popsize}.pkl')

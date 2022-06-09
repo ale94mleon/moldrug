@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from audioop import avg
 from copy import deepcopy
 import tempfile, os
 from rdkit import Chem
@@ -18,7 +17,10 @@ RDLogger.DisableLog('rdApp.*')
 
 
 ## Problem!!
-# !!!!!!!!!!!!See the roulet_weel_selection becasue the average part is given me no desired results
+# We ahve to customise how the mutation works the thin is that depending on the case, the mutation operatin coudl give non desirable results. For examples if we want 
+# similar molecules and the mutate_mol always returns too diferent molecules the optimazation will fail. so, this parameters shoul be available as user keywords
+
+
 # The mutation that I am doing right now is more a crossover but with the CReM library instead with the population itself.
 # Code a more conservative mutation (close to the one in the paper of the SMILES) to perform small mutations.
 # Implement in the cost fucntino possible restraints to similaroty (I really dont like this option
@@ -39,7 +41,7 @@ RDLogger.DisableLog('rdApp.*')
 # Implement a continuation and automatic saving method for possible crashing and relaunch of the simulation.
 class GA(object):
     
-    def __init__(self, smiles, costfunc, crem_db_path, maxiter, popsize, beta = 0.001, pc =1, **costfunc_kwargs) -> None:
+    def __init__(self, smiles, costfunc, crem_db_path, maxiter, popsize, beta = 0.001, pc =1, get_similar = False, **costfunc_kwargs) -> None:
         self.InitIndividual = utils.Individual(smiles)
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
@@ -50,109 +52,130 @@ class GA(object):
         self.beta = beta
         self.costfunc_kwargs = costfunc_kwargs
         self.nc = int(np.round(pc*popsize/2)*2)
+        self.get_similar = get_similar
 
         # Tracking parameters
+        self.NumCalls = 0
+        self.NumGen = 0
         self.SawIndividuals = []
+    
     @utils.timeit
     def __call__(self, njobs:int = 1, predictor_model:vina.VinaScoringPredictor = None):
+        # Counting the calls 
+        self.NumCalls += 1
         # Initialize Population
-        GenInitStructs = list(
-            mutate_mol(
-                Chem.AddHs(self.InitIndividual.mol),
-                self.crem_db_path,
-                radius=3,
-                min_size=0, max_size = 8,
-                min_inc=-3, max_inc=3,
-                #max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
-                return_mol= True,
-                ncores = njobs*self.costfunc_kwargs['vina_cpus']
+        # In case that the populating exist there is not need to initialize.
+        if len(self.pop) == 1:
+            GenInitStructs = list(
+                mutate_mol(
+                    Chem.AddHs(self.InitIndividual.mol),
+                    self.crem_db_path,
+                    radius=3,
+                    min_size=0, max_size = 8,
+                    min_inc=-3, max_inc=3,
+                    #max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
+                    return_mol= True,
+                    ncores = njobs*self.costfunc_kwargs['vina_cpus']
+                    )
                 )
-            )
-        if len(GenInitStructs) < (self.popsize - 1):
-            print('The initial population has repeated elements')
-            # temporal solution
-            GenInitStructs +=  random.choices(GenInitStructs, k = self.popsize - len(GenInitStructs) -1)
-            pass# I am not sure how to deal with this
-        elif len(GenInitStructs) > (self.popsize - 1):
-            #Selected random sample from the generation 
-            GenInitStructs = random.sample(GenInitStructs, k = self.popsize -1)
-        else:
-            # Everything is ok!
-            pass 
+            
+            # Bias the searching to similar molecules
+            if self.get_similar:
+                GenInitStructs = utils.get_similar_mols(mols = [item[1] for item in GenInitStructs], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
+            
+            # Checking for possible scenarios
+            if len(GenInitStructs) < (self.popsize - 1):
+                print('The initial population has repeated elements')
+                # temporal solution
+                GenInitStructs +=  random.choices(GenInitStructs, k = self.popsize - len(GenInitStructs) -1)
+                pass# I am not sure how to deal with this
+            elif len(GenInitStructs) > (self.popsize - 1):
+                #Selected random sample from the generation 
+                GenInitStructs = random.sample(GenInitStructs, k = self.popsize -1)
+            else:
+                # Everything is ok!
+                pass 
 
-        self.pop = [self.InitIndividual]
-        for i, item in enumerate(GenInitStructs):
-            _, mol = item
-            mol = Chem.RemoveHs(mol)
-            # Here I have to keep record of the added fragment
-            self.pop.append(utils.Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
-        
-        # Calculating cost of each individual (Doing Docking)
-        vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
-        pool = mp.Pool(njobs)
-            # Creating the arguments
-        args_list = []
-        # Make a copy of the self.costfunc_kwargs
-        kwargs_copy = self.costfunc_kwargs.copy()
-        kwargs_copy['wd'] = vina_jobs.name
-        for Individual in self.pop:
-            args_list.append((Individual, kwargs_copy))
+            for i, item in enumerate(GenInitStructs):
+                # if elf.get_similar = True, then GenInitStructs we dont need to unpack the item, in fact we wil get an error, in that case we just use item itself
+                try:
+                    _, mol = item
+                except:
+                    mol = item
+                
+                mol = Chem.RemoveHs(mol)
+                # Here I have to keep record of the added fragment
+                self.pop.append(utils.Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
+            
+            # Calculating cost of each individual (Doing Docking)
+            vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
+            pool = mp.Pool(njobs)
+                # Creating the arguments
+            args_list = []
+            # Make a copy of the self.costfunc_kwargs
+            kwargs_copy = self.costfunc_kwargs.copy()
+            kwargs_copy['wd'] = vina_jobs.name
+            for Individual in self.pop:
+                args_list.append((Individual, kwargs_copy))
 
-        print(f'\n\nCreating the first population with {self.popsize} members:')
-        self.pop = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
-        pool.close()
-        shutil.rmtree(vina_jobs.name)
-        
-        # Print some information of the initial population
+            print(f'\n\nCreating the first population with {self.popsize} members:')
+            self.pop = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
+            pool.close()
+            shutil.rmtree(vina_jobs.name)
+            
+            # Print some information of the initial population
 
-        BestIndividualOfInitPopulation = min(self.pop, key = lambda x:x.cost)
-        print(f"Initial Population: Best individual: {BestIndividualOfInitPopulation.smiles}. Best cost: {BestIndividualOfInitPopulation.cost}")
-        # Getting the info of the first individual (Father/Mother) to print at the end how well performed the method
-        # Because How the population was initialized and because we are using pool.imap (ordered). The Father/Mother is the first Individual of self.pop
-        self.InitIndividual = deepcopy(self.pop[0])
+            BestIndividualOfInitPopulation = min(self.pop, key = lambda x:x.cost)
+            print(f"Initial Population: Best individual: {BestIndividualOfInitPopulation.smiles}. Best cost: {BestIndividualOfInitPopulation.cost}")
+            # Getting the info of the first individual (Father/Mother) to print at the end how well performed the method
+            # Because How the population was initialized and because we are using pool.imap (ordered). The Father/Mother is the first Individual of self.pop
+            self.InitIndividual = deepcopy(self.pop[0])
 
-        # Saving tracking variables
-        for Individual in self.pop:
-            if Individual.smiles not in [si.smiles for si in self.SawIndividuals]:
-                self.SawIndividuals.append(Individual)
+            # Saving tracking variables
+            for Individual in self.pop:
+                if Individual.smiles not in [si.smiles for si in self.SawIndividuals]:
+                    self.SawIndividuals.append(Individual)
 
 
-        # Creating the first model
-        # Could be more pretty like creating a method that is make the model, y lo que se hace es que se gurda el modelo
-        # Aqui se hace por primera vez pero para no repetir tanto codigo solo se llama a update model
-        
-        if predictor_model:
-            self.Predictor = predictor_model
-            print('\nUpdating the provided model:\n')
-            self.Predictor.update(
-                new_smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
-                receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
-                boxcenter = self.costfunc_kwargs['boxcenter'],
-                boxsize = self.costfunc_kwargs['boxsize'],
-                exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
-            )
-            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
-            print('Done!')
-        else:
-            print('\nCreating the first predicted model...')
-            self.Predictor = vina.VinaScoringPredictor(
-                smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
-                receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
-                boxcenter = self.costfunc_kwargs['boxcenter'],
-                boxsize = self.costfunc_kwargs['boxsize'],
-                exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
-            )
-            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
-            print('Done!')
+            # Creating the first model
+            # Could be more pretty like creating a method that is make the model, y lo que se hace es que se gurda el modelo
+            # Aqui se hace por primera vez pero para no repetir tanto codigo solo se llama a update model
+            
+            if predictor_model:
+                self.Predictor = predictor_model
+                print('\nUpdating the provided model:\n')
+                self.Predictor.update(
+                    new_smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
+                    receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+                    boxcenter = self.costfunc_kwargs['boxcenter'],
+                    boxsize = self.costfunc_kwargs['boxsize'],
+                    exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
+                )
+                self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
+                print('Done!')
+            else:
+                print('\nCreating the first predicted model...')
+                self.Predictor = vina.VinaScoringPredictor(
+                    smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
+                    receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+                    boxcenter = self.costfunc_kwargs['boxcenter'],
+                    boxsize = self.costfunc_kwargs['boxsize'],
+                    exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
+                )
+                self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
+                print('Done!')
 
-        print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}\n')
-        
-        # Best Cost of Iterations
-        self.bestcost = np.empty(self.maxiter)
-        self.avg_cost = np.empty(self.maxiter)
+            print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}\n')
+            
+            # Best Cost of Iterations
+            self.bestcost = []
+            self.avg_cost = []
         
         # Main Loop
-        for iter in range(self.maxiter):
+        for _ in range(self.maxiter):
+            # Saving Number of Generations
+            self.NumGen += 1
+
             # Probabilities Selections
             costs = np.array([Individual.cost for Individual in self.pop])
             probs = np.exp(-self.beta*costs) / np.sum(np.exp(-self.beta*costs))
@@ -193,7 +216,7 @@ class GA(object):
                     Individual.idx = i
                     # The problem here is that we are not being general for other possible Cost functions.
                     args_list.append((Individual,kwargs_copy))
-                print(f'\nEvaluating generation {iter + 1}:')
+                print(f'\nEvaluating generation {self.NumGen}:')
 
                 #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not perform the docking and just assign the scoring function
 
@@ -210,10 +233,10 @@ class GA(object):
             self.pop = self.pop[:self.popsize]
 
             # Store Best Cost
-            self.bestcost[iter] = self.pop[0].cost
+            self.bestcost.append(self.pop[0].cost)
 
             # Store Average cost
-            self.avg_cost[iter] = np.mean(np.array([Individual.cost for Individual in self.pop]))
+            self.avg_cost.append(np.mean(np.array([Individual.cost for Individual in self.pop])))
 
             # Saving tracking variables and getting new ones for the model update
             new_smiles_cost = dict()
@@ -227,7 +250,7 @@ class GA(object):
                     #Tracking variables
                     self.SawIndividuals.append(Individual)
             # Update the model
-            print(f'Updating the current model with the information of generation {iter + 1}...')
+            print(f'Updating the current model with the information of generation {self.NumGen}...')
 
             self.Predictor.update(
                 new_smiles_scoring = new_smiles_cost.copy(),
@@ -242,8 +265,8 @@ class GA(object):
             
 
             # Show Iteration Information
-            print(f"Generation {iter + 1}: Best individual: {self.pop[0].smiles}. Best Cost = {self.pop[0].cost}.\n")
-            plt.scatter(iter, self.pop[0].cost)
+            print(f"Generation {self.NumGen}: Best individual: {self.pop[0].smiles}. Best Cost = {self.pop[0].cost}.\n")
+            # plt.scatter(self.NumGen, self.pop[0].cost)
         
         # Printing summary information
         print(f"\n{50*'=+'}\n")
@@ -293,6 +316,11 @@ class GA(object):
                 # In case that it was not possible to link the fragments
                 if not possible_fragments_smiles:continue
 
+                # Bias the searching to similar molecules
+                if self.get_similar:
+                    possible_fragments_mols = utils.get_similar_mols(mols = [Chem.MolFromSmiles(smiles) for smiles in possible_fragments_smiles], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
+                    possible_fragments_smiles = [Chem.MolToSmiles(mol) for mol in possible_fragments_mols]
+                
                 # Here comes the prediction with the model, and get the top two
                 temp_offsprings = list(zip(possible_fragments_smiles, self.Predictor.predict(possible_fragments_smiles).tolist()))
                 
@@ -320,7 +348,13 @@ class GA(object):
         # For now I am generating all the mutants and picking only one at random, this is very inefficient, should be better only generate one, but I am afraid that crem generate always the same or not generate any at all.
         # I think that what first crem does is randomly select on spot and find there all possible mutants. If this spot doesn't generate mutants, then you don't get nothing. But this is a supposition. 
         try:
-            smiles, mol = random.choice(list(mutate_mol(Individual.mol, self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-5, max_inc=3, return_mol=True, ncores = ncores)))
+            mutants = list(mutate_mol(Individual.mol, self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-5, max_inc=3, return_mol=True, ncores = ncores))
+            # Bias the searching to similar molecules
+            if self.get_similar:
+                mol = utils.get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
+                smiles = Chem.MolToSmiles(mol)
+            else:
+                smiles, mol = random.choice(mutants)
         except:
             print('The mutation did not work, we returned the same individual')
             smiles, mol = Individual.smiles, Individual.mol
