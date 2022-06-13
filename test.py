@@ -19,13 +19,15 @@ out = ga.GA(
     crem_db_path = '/home/ale/GITLAB/bi_crem_database/replacements02_sc2.5.db',
     pc = 1,
     get_similar = False,
-    costfunc = fitness.Cost,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost
+    costfunc = fitness.__CostSimilarity,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost
     receptor_path =f'data/{receptor}.pdbqt',
     boxcenter = grid_opt['boxcenter'],
     boxsize = grid_opt['boxsize'],
     exhaustiveness = 8,
     vina_cpus = 3,
     num_modes = 1,
+    ref_smiles = init_smiles,
+
     )
 out(njobs = 4)
 for o in out.pop:
