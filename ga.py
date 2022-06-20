@@ -9,7 +9,6 @@ from lead import vina, utils
 import random, tqdm, shutil, itertools
 import multiprocessing as mp
 import numpy as np
-import pickle as _pickle
 import matplotlib.pyplot as plt
 
 from rdkit import RDLogger
@@ -97,7 +96,7 @@ class GA(object):
                 pass 
 
             for i, item in enumerate(GenInitStructs):
-                # if elf.get_similar = True, then GenInitStructs we dont need to unpack the item, in fact we wil get an error, in that case we just use item itself
+                # if self.get_similar = True, then GenInitStructs we dont need to unpack the item, in fact we wil get an error, in that case we just use item itself
                 try:
                     _, mol = item
                 except:
@@ -141,37 +140,38 @@ class GA(object):
             # Could be more pretty like creating a method that is make the model, y lo que se hace es que se gurda el modelo
             # Aqui se hace por primera vez pero para no repetir tanto codigo solo se llama a update model
             
-            if predictor_model:
-                self.Predictor = predictor_model
-                print('\nUpdating the provided model:\n')
-                self.Predictor.update(
-                    new_smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
-                    receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
-                    boxcenter = self.costfunc_kwargs['boxcenter'],
-                    boxsize = self.costfunc_kwargs['boxsize'],
-                    exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
-                )
-                self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
-                print('Done!')
-            else:
-                print('\nCreating the first predicted model...')
-                self.Predictor = vina.VinaScoringPredictor(
-                    smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
-                    receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
-                    boxcenter = self.costfunc_kwargs['boxcenter'],
-                    boxsize = self.costfunc_kwargs['boxsize'],
-                    exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
-                )
-                self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
-                print('Done!')
+            # if predictor_model:
+            #     self.Predictor = predictor_model
+            #     print('\nUpdating the provided model:\n')
+            #     self.Predictor.update(
+            #         new_smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
+            #         receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+            #         boxcenter = self.costfunc_kwargs['boxcenter'],
+            #         boxsize = self.costfunc_kwargs['boxsize'],
+            #         exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
+            #     )
+            #     self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
+            #     print('Done!')
+            # else:
+            #     print('\nCreating the first predicted model...')
+            #     self.Predictor = vina.VinaScoringPredictor(
+            #         smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
+            #         receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+            #         boxcenter = self.costfunc_kwargs['boxcenter'],
+            #         boxsize = self.costfunc_kwargs['boxsize'],
+            #         exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
+            #     )
+            #     self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
+            #     print('Done!')
 
-            print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}\n')
+            # print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}\n')
             
             # Best Cost of Iterations
             self.bestcost = []
             self.avg_cost = []
         
         # Main Loop
+        number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
         for _ in range(self.maxiter):
             # Saving Number of Generations
             self.NumGen += 1
@@ -216,7 +216,7 @@ class GA(object):
                     Individual.idx = i
                     # The problem here is that we are not being general for other possible Cost functions.
                     args_list.append((Individual,kwargs_copy))
-                print(f'\nEvaluating generation {self.NumGen}:')
+                print(f'\nEvaluating generation {self.NumGen} / {self.maxiter + number_of_previous_generations}:')
 
                 #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not perform the docking and just assign the scoring function
 
@@ -249,19 +249,20 @@ class GA(object):
                         new_smiles_cost[Individual.smiles] = Individual.cost
                     #Tracking variables
                     self.SawIndividuals.append(Individual)
-            # Update the model
-            print(f'Updating the current model with the information of generation {self.NumGen}...')
 
-            self.Predictor.update(
-                new_smiles_scoring = new_smiles_cost.copy(),
-                receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
-                boxcenter = self.costfunc_kwargs['boxcenter'],
-                boxsize = self.costfunc_kwargs['boxsize'],
-                exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
-            )
-            self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)          
-            print('Done!')
-            print(f'The updated model presents a oob_score = {self.Predictor.model.oob_score_}')
+            # # Update the model
+            # print(f'Updating the current model with the information of generation {self.NumGen}...')
+
+            # self.Predictor.update(
+            #     new_smiles_scoring = new_smiles_cost.copy(),
+            #     receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+            #     boxcenter = self.costfunc_kwargs['boxcenter'],
+            #     boxsize = self.costfunc_kwargs['boxsize'],
+            #     exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
+            # )
+            # self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)          
+            # print('Done!')
+            # print(f'The updated model presents a oob_score = {self.Predictor.model.oob_score_}')
             
 
             # Show Iteration Information
@@ -366,12 +367,14 @@ class GA(object):
         ind = np.argwhere(r <= c)
         return ind[0][0]
     
-    def pickle(self,file):
+    def pickle(self,title, compress = True):
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        with open(file, 'wb') as pkl:
-            _pickle.dump(result, pkl)
+        if compress:
+            utils.compressed_pickle(title, result)
+        else:
+            utils.full_pickle(title, result)
 
 
 if __name__ == '__main__':

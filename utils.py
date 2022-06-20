@@ -8,6 +8,10 @@ from copy import deepcopy
 import tempfile, subprocess, os, random, time
 import numpy as np
 
+import bz2
+import pickle
+import _pickle as cPickle
+
 #==================================================
 # Class to work with lead
 #==================================================
@@ -273,7 +277,26 @@ def NominalTheBest(Value, LowerLimit, Target, UpperLimit, r1 = 1, r2 = 1):
         return ((UpperLimit-Value)/(UpperLimit-Target))**r2
     else:
         return 0.0
+# Saving data
 
+# Saves the "data" with the "title" and adds the .pickle
+def full_pickle(title, data):
+    with open(f'{title}.pkl', 'wb') as pkl:
+        pickle.dump(data, pkl)
+# loads and returns a pickled objects
+def loosen(file):
+    with open(file, 'rb') as pkl:
+        data = pickle.load(pkl)
+    return data
+# Pickle a file and then compress it into a file with extension 
+def compressed_pickle(title, data):
+    with bz2.BZ2File(f'{title}.pbz2', 'w') as f: 
+        cPickle.dump(data, f)   
+# Load any compressed pickle file
+def decompress_pickle(file):
+    data = bz2.BZ2File(file, 'rb')
+    data = cPickle.load(data)
+    return data  
 
 if __name__ == '__main__':
     initial_smiles = 'COC(=O)C=1C=CC(=CC1)S(=O)(=O)N'

@@ -198,3 +198,6 @@ def Cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, 
     # And because we are minimizing we have to return 
     Individual.cost = 1 - D
     return Individual
+
+if __name__ == '__main__':
+    pass
