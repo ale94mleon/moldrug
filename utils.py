@@ -12,10 +12,12 @@ import bz2
 import pickle
 import _pickle as cPickle
 
+
 #==================================================
 # Class to work with lead
 #==================================================
 
+# Remove fragments in the future
 class Individual:
 
     def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt = None,fragments:list = None, cost:float = np.inf) -> None:
@@ -277,28 +279,62 @@ def NominalTheBest(Value, LowerLimit, Target, UpperLimit, r1 = 1, r2 = 1):
         return ((UpperLimit-Value)/(UpperLimit-Target))**r2
     else:
         return 0.0
-# Saving data
 
-# Saves the "data" with the "title" and adds the .pickle
-def full_pickle(title, data):
+
+# Saving data
+def full_pickle(title:str, data:object):
+    """Normal pickle.
+
+    Args:
+        title (str): name of the file without extension, .pkl will be added by default.
+        data (object): Any serializable python object
+    """
     with open(f'{title}.pkl', 'wb') as pkl:
         pickle.dump(data, pkl)
-# loads and returns a pickled objects
+
 def loosen(file):
+    """Unpickle a pickled object.
+
+    Args:
+        file (path): The path to the file who store the pickle object.
+
+    Returns:
+        object: The python object.
+    """
     with open(file, 'rb') as pkl:
         data = pickle.load(pkl)
     return data
-# Pickle a file and then compress it into a file with extension 
-def compressed_pickle(title, data):
+
+def compressed_pickle(title:str, data:object):
+    """Compress python object. First cPickle it and then bz2.BZ2File compressed it.
+
+    Args:
+        title (str): Name of the file without extensions, .pbz2 will be added by default
+        data (object): Any serializable python object
+    """
     with bz2.BZ2File(f'{title}.pbz2', 'w') as f: 
         cPickle.dump(data, f)   
-# Load any compressed pickle file
+
 def decompress_pickle(file):
+    """Decompress CPickle objects compressed first with bz2 formats
+
+    Args:
+        file (path): This is the cPickle files compressed with bz2.BZ2File. (as a convention with extension .pbz2, but not needed)
+
+    Returns:
+        object: The python object.
+    """
     data = bz2.BZ2File(file, 'rb')
     data = cPickle.load(data)
     return data  
 
 if __name__ == '__main__':
-    initial_smiles = 'COC(=O)C=1C=CC(=CC1)S(=O)(=O)N'
-    i = Individual(initial_smiles)
-    print(Descriptors.MolLogP(Chem.MolFromSmiles('O=C(Nc1ccon1)c1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1')))
+    pass
+    # import pandas as pd
+    # initial_smiles = 'COC(=O)C=1C=CC(=CC1)S(=O)(=O)N'
+    # i = Individual(initial_smiles)
+    # ii = Individual('O=C(Nc1ccon1)c1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1')
+    # # print(Descriptors.MolLogP(Chem.MolFromSmiles('O=C(Nc1ccon1)c1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1')))
+    # new = i.__dict__.copy()
+    # del new['mol']
+    # print(new.keys())

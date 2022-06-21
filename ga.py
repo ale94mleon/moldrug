@@ -9,27 +9,22 @@ from lead import vina, utils
 import random, tqdm, shutil, itertools
 import multiprocessing as mp
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
+from inspect import getfullargspec
 
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
 
 
 ## Problem!!
-# We ahve to customise how the mutation works the thin is that depending on the case, the mutation operatin coudl give non desirable results. For examples if we want 
-# similar molecules and the mutate_mol always returns too diferent molecules the optimazation will fail. so, this parameters shoul be available as user keywords
-
 
 # The mutation that I am doing right now is more a crossover but with the CReM library instead with the population itself.
-# Code a more conservative mutation (close to the one in the paper of the SMILES) to perform small mutations.
-# Implement in the cost fucntino possible restraints to similaroty (I really dont like this option
-# Add synthetic accesibility prediciton in the cost fucntion
-# Create a better cost fucntion that take into account as much as possible all the necesities of a drug-like molecule,
-
+# Code a more conservative mutation (close to the one in the paper of the SMILES) to perform small mutations. (now is user controlled)
 # We could also, instead a crossover two mutations with different levels. Becasue our 'mutate' is indeed some kind of crossover but with the CReM data base. So, what we could do is implement the mutation sof the paper that is at small scale (local optimazation): the possibilities are point mutations (atom-by-atom), deletion, add new atoms
-# I think that I could control this specifying 
+# hard_mutate and soft_mutate, our genetic operations
 # For the best ligand we could predict the metabolites with sygma (apart of the module)
-# Think about how to handle possibles Vina Crash
+# Think about how to handle possibles Vina Crash (problems with the type of atoms). i think that is some problems happens with vina the cost fucntion will be just np.inf
 # Sometimes the pdbqt structure is not generated (probably problems in the convertion. In this cases the whole simulation crash ans should not be like this, this should rise some warning and continue discarting this structure)
 # Apply filter for chemical elemnts to avoid crash on the vina function, in case that Vina crash we could use the predicted model
 # Till now Vina never fails but could happen.
@@ -40,8 +35,8 @@ RDLogger.DisableLog('rdApp.*')
 # Implement a continuation and automatic saving method for possible crashing and relaunch of the simulation.
 class GA(object):
     
-    def __init__(self, smiles, costfunc, crem_db_path, maxiter, popsize, beta = 0.001, pc =1, get_similar = False, **costfunc_kwargs) -> None:
-        self.InitIndividual = utils.Individual(smiles)
+    def __init__(self, smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs = {}) -> None:
+        self.InitIndividual = utils.Individual(smiles, idx=0)
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
         self.pop = [self.InitIndividual]
@@ -50,9 +45,23 @@ class GA(object):
         self.popsize = popsize
         self.beta = beta
         self.costfunc_kwargs = costfunc_kwargs
+        if 'ncores' in costfunc_kwargs:
+            self.costfunc_ncores = self.costfunc_kwargs['ncores']
+        else:
+            self.costfunc_ncores = 1
+        
         self.nc = int(np.round(pc*popsize/2)*2)
         self.get_similar = get_similar
-
+        self.mutate_crem_kwargs = {
+            'radius':3,
+            'min_size':1,
+            'max_size':8,
+            'min_inc':-5,
+            'max_inc':3,
+            'return_mol':True,
+            'ncores':1,
+        }
+        self.mutate_crem_kwargs.update(mutate_crem_kwargs)
         # Tracking parameters
         self.NumCalls = 0
         self.NumGen = 0
@@ -74,7 +83,7 @@ class GA(object):
                     min_inc=-3, max_inc=3,
                     #max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
                     return_mol= True,
-                    ncores = njobs*self.costfunc_kwargs['vina_cpus']
+                    ncores = self.mutate_crem_kwargs['ncores']
                     )
                 )
             
@@ -106,21 +115,24 @@ class GA(object):
                 # Here I have to keep record of the added fragment
                 self.pop.append(utils.Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
             
-            # Calculating cost of each individual (Doing Docking)
-            vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
+            # Calculating cost of each individual
             pool = mp.Pool(njobs)
                 # Creating the arguments
             args_list = []
             # Make a copy of the self.costfunc_kwargs
             kwargs_copy = self.costfunc_kwargs.copy()
-            kwargs_copy['wd'] = vina_jobs.name
+            if 'wd' in getfullargspec(self.costfunc).args:
+                costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
+                kwargs_copy['wd'] = costfunc_jobs.name
+            
             for Individual in self.pop:
                 args_list.append((Individual, kwargs_copy))
 
             print(f'\n\nCreating the first population with {self.popsize} members:')
             self.pop = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
             pool.close()
-            shutil.rmtree(vina_jobs.name)
+            
+            if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
             
             # Print some information of the initial population
 
@@ -130,10 +142,9 @@ class GA(object):
             # Because How the population was initialized and because we are using pool.imap (ordered). The Father/Mother is the first Individual of self.pop
             self.InitIndividual = deepcopy(self.pop[0])
 
-            # Saving tracking variables
-            for Individual in self.pop:
-                if Individual.smiles not in [si.smiles for si in self.SawIndividuals]:
-                    self.SawIndividuals.append(Individual)
+            # Saving tracking variables, the first population
+            for Individual in self.pop: 
+                self.SawIndividuals.append(Individual)
 
 
             # Creating the first model
@@ -150,7 +161,7 @@ class GA(object):
             #         boxsize = self.costfunc_kwargs['boxsize'],
             #         exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
             #     )
-            #     self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
+            #     self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_ncores, random_state=42, oob_score=True)
             #     print('Done!')
             # else:
             #     print('\nCreating the first predicted model...')
@@ -161,7 +172,7 @@ class GA(object):
             #         boxsize = self.costfunc_kwargs['boxsize'],
             #         exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
             #     )
-            #     self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)
+            #     self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_ncores, random_state=42, oob_score=True)
             #     print('Done!')
 
             # print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}\n')
@@ -190,11 +201,11 @@ class GA(object):
                 # I have to think about this operations, and the parameters to controll them
                 # Perform Crossover
                 # Implement something that tells me if there are repeated Individuals and change them.
-                c1, c2 = self.crossover(p1, p2, ncores=njobs*self.costfunc_kwargs['vina_cpus'])
+                c1, c2 = self.crossover(p1, p2, ncores=njobs*self.costfunc_ncores)
 
                 # Perform Mutation
-                c1 = self.mutate(c1, ncores=njobs*self.costfunc_kwargs['vina_cpus'])
-                c2 = self.mutate(c2, ncores=njobs*self.costfunc_kwargs['vina_cpus'])
+                c1 = self.mutate(c1)
+                c2 = self.mutate(c2)
                 
                 # Save offspring population
                 # I will save only those offsprings that were not seen 
@@ -203,17 +214,21 @@ class GA(object):
 
             if popc: # Only if there are new members
                 # Calculating cost of each offspring individual (Doing Docking)
-                vina_jobs = tempfile.TemporaryDirectory(prefix='vina')
+
                 #os.makedirs('.vina_jobs', exist_ok=True)
                 pool = mp.Pool(njobs)
                 # Creating the arguments
                 args_list = []
                 # Make a copy of the self.costfunc_kwargs
                 kwargs_copy = self.costfunc_kwargs.copy()
-                kwargs_copy['wd'] = vina_jobs.name
+                if 'wd' in getfullargspec(self.costfunc).args:
+                    costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
+                    kwargs_copy['wd'] = costfunc_jobs.name
+                
+                NumbOfSawIndividuals = len(self.SawIndividuals)
                 for (i, Individual) in enumerate(popc):
                     # Add idx label to each Individual
-                    Individual.idx = i
+                    Individual.idx = i + NumbOfSawIndividuals
                     # The problem here is that we are not being general for other possible Cost functions.
                     args_list.append((Individual,kwargs_copy))
                 print(f'\nEvaluating generation {self.NumGen} / {self.maxiter + number_of_previous_generations}:')
@@ -222,7 +237,7 @@ class GA(object):
 
                 popc = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
                 pool.close()
-                shutil.rmtree(vina_jobs.name)
+                if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
                 
             # Merge, Sort and Select
             # This could be improved. The problem is that the population could start to get the same individual, 
@@ -239,14 +254,14 @@ class GA(object):
             self.avg_cost.append(np.mean(np.array([Individual.cost for Individual in self.pop])))
 
             # Saving tracking variables and getting new ones for the model update
-            new_smiles_cost = dict()
+            # new_smiles_cost = dict()
             for Individual in popc:
                 if Individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
-                    # New variables
-                    if Individual.cost == np.inf:
-                        new_smiles_cost[Individual.smiles] = 9999
-                    else:
-                        new_smiles_cost[Individual.smiles] = Individual.cost
+                    # # New variables
+                    # if Individual.cost == np.inf:
+                    #     new_smiles_cost[Individual.smiles] = 9999
+                    # else:
+                    #     new_smiles_cost[Individual.smiles] = Individual.cost
                     #Tracking variables
                     self.SawIndividuals.append(Individual)
 
@@ -260,7 +275,7 @@ class GA(object):
             #     boxsize = self.costfunc_kwargs['boxsize'],
             #     exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
             # )
-            # self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_kwargs['vina_cpus'], random_state=42, oob_score=True)          
+            # self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_ncores, random_state=42, oob_score=True)          
             # print('Done!')
             # print(f'The updated model presents a oob_score = {self.Predictor.model.oob_score_}')
             
@@ -333,7 +348,7 @@ class GA(object):
             return Individual1, Individual2    
     
     # Improve
-    def mutate(self, Individual, ncores = 1):
+    def mutate(self, Individual):
         # See the option max_replacment
         # Or select the mutant based on some criterion
         # try:
@@ -349,7 +364,7 @@ class GA(object):
         # For now I am generating all the mutants and picking only one at random, this is very inefficient, should be better only generate one, but I am afraid that crem generate always the same or not generate any at all.
         # I think that what first crem does is randomly select on spot and find there all possible mutants. If this spot doesn't generate mutants, then you don't get nothing. But this is a supposition. 
         try:
-            mutants = list(mutate_mol(Individual.mol, self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-5, max_inc=3, return_mol=True, ncores = ncores))
+            mutants = list(mutate_mol(Individual.mol, self.crem_db_path, **self.mutate_crem_kwargs))
             # Bias the searching to similar molecules
             if self.get_similar:
                 mol = utils.get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
@@ -375,6 +390,15 @@ class GA(object):
             utils.compressed_pickle(title, result)
         else:
             utils.full_pickle(title, result)
+    
+    def to_dataframe(self):
+        list_of_dictionaries = []
+        for Individual in self.SawIndividuals:
+            dictionary = Individual.__dict__.copy()
+            del dictionary['mol']
+            list_of_dictionaries.append(dictionary)
+        return pd.DataFrame(list_of_dictionaries)
+
 
 
 if __name__ == '__main__':

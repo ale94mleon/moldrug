@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 from lead import ga, fitness
 import json
+from multiprocessing import cpu_count
 
 receptor = '7e27'#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
 maxiter = 2
-popsize = 2
+popsize = 3
+njobs = 3
 
 with open('data/box.json', 'r') as f:
     grid_opt = json.load(f)[receptor]['A']
@@ -19,18 +21,29 @@ out = ga.GA(
     crem_db_path = '/home/ale/GITLAB/bi_crem_database/replacements02_sc2.5.db',
     pc = 1,
     get_similar = False,
+    mutate_crem_kwargs = {
+        'radius':3,
+        'min_size':1,
+        'max_size':8,
+        'min_inc':-5,
+        'max_inc':3,
+        'return_mol':True,
+        'ncores':cpu_count(),
+    },
     costfunc = fitness.Cost,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost
-    receptor_path =f'data/{receptor}.pdbqt',
-    boxcenter = grid_opt['boxcenter'],
-    boxsize = grid_opt['boxsize'],
-    exhaustiveness = 8,
-    vina_cpus = 3,
-    num_modes = 1,
-    #ref_smiles = init_smiles,
-
+    costfunc_kwargs = {
+        'receptor_path': f'data/{receptor}.pdbqt',
+        'boxcenter' : grid_opt['boxcenter'],
+        'boxsize': grid_opt['boxsize'],
+        'exhaustiveness': 8,
+        'ncores': int(cpu_count() / njobs),
+        'num_modes': 1,
+        #'ref_smiles': init_smiles,
+    },
     )
-out(njobs = 4)
-out(njobs = 4)
+out(njobs = njobs)
+out(njobs = njobs)
 for o in out.pop:
     print(o.smiles, o.cost)
-out.pickle(f'pkl/desirability_{receptor}_{maxiter}_{popsize}')
+out.pickle(f'pkl/desirability_{receptor}_NumGen_{out.NumGen}_PopSize_{popsize}')
+print(out.to_dataframe())

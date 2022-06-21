@@ -12,11 +12,11 @@ import sascorer
 
 # !!! Add a cost function with similarity as a desirability or just as filter.
 
-def __VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
+def __VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, ncores = 1,  num_modes = 1):
     cmd = f"{vina.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
         f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
-        f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+        f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
     #print(cmd)
     # Creating the ligand pdbqt
     with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
@@ -26,19 +26,19 @@ def __VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = 
     # Getting the information
     best_energy = vina.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
     # Changing the xyz conformation by the conformation of the binding pose
-    Individual.pdbqt = best_energy.chunk
+    Individual.pdbqt = ''.join(best_energy.chunk)
 
     # Getting the Scoring function of Vina
     Individual.vina_score = best_energy.freeEnergy
     Individual.cost = best_energy.freeEnergy
     return Individual
 
-def __VinaCostLipinski(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
+def __VinaCostLipinski(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, ncores = 1,  num_modes = 1):
     if utils.lipinski_filter(Individual.mol):
         cmd = f"{vina.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
             f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
             f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
-            f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+            f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
         #print(cmd)
         # Creating the ligand pdbqt
         with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
@@ -48,7 +48,7 @@ def __VinaCostLipinski(Individual, wd = '.vina_jobs', receptor_path = None, boxc
         # Getting the information
         best_energy = vina.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
         # Changing the xyz conformation by the conformation of the binding pose
-        Individual.pdbqt = best_energy.chunk
+        Individual.pdbqt = ''.join(best_energy.chunk)
 
         # Getting the Scoring function of Vina
         Individual.vina_score = best_energy.freeEnergy
@@ -58,7 +58,7 @@ def __VinaCostLipinski(Individual, wd = '.vina_jobs', receptor_path = None, boxc
         Individual.cost = np.inf
     return Individual
 
-def __QedSasVinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
+def __QedSasVinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, ncores = 1,  num_modes = 1):
     Individual.qed = QED.weights_mean(Individual.mol)
     
     # Getting synthetic accessibility score
@@ -70,7 +70,7 @@ def __QedSasVinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcen
         cmd = f"{vina.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
             f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
             f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
-            f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+            f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
         #print(cmd)
         # Creating the ligand pdbqt
         with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
@@ -80,7 +80,7 @@ def __QedSasVinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcen
         # Getting the information
         best_energy = vina.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
         # Changing the xyz conformation by the conformation of the binding pose
-        Individual.pdbqt = best_energy.chunk
+        Individual.pdbqt = ''.join(best_energy.chunk)
 
         # Getting the Scoring function of Vina
         Individual.vina_score = best_energy.freeEnergy
@@ -92,7 +92,7 @@ def __QedSasVinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcen
     return Individual
 
 
-def __CostSimilarity(Individual, ref_smiles, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
+def __CostSimilarity(Individual, ref_smiles, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, ncores = 1,  num_modes = 1):
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
     Individual.qed = QED.weights_mean(Individual.mol)
@@ -112,7 +112,7 @@ def __CostSimilarity(Individual, ref_smiles, wd = '.vina_jobs', receptor_path = 
     cmd = f"{vina.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
         f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
-        f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+        f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
     #print(cmd)
     # Creating the ligand pdbqt
     with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
@@ -122,7 +122,7 @@ def __CostSimilarity(Individual, ref_smiles, wd = '.vina_jobs', receptor_path = 
     # Getting the information
     best_energy = vina.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
     # Changing the xyz conformation by the conformation of the binding pose
-    Individual.pdbqt = best_energy.chunk
+    Individual.pdbqt = ''.join(best_energy.chunk)
 
     # Getting the Scoring function of Vina
     Individual.vina_score = best_energy.freeEnergy
@@ -151,7 +151,7 @@ def __CostSimilarity(Individual, ref_smiles, wd = '.vina_jobs', receptor_path = 
     Individual.cost = 1 - D
     return Individual
 
-def Cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, vina_cpus = 1,  num_modes = 1):
+def Cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, ncores = 1,  num_modes = 1):
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
     Individual.qed = QED.weights_mean(Individual.mol)
@@ -163,7 +163,7 @@ def Cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, 
     cmd = f"{vina.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
         f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
-        f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {vina_cpus} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+        f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
     #print(cmd)
     # Creating the ligand pdbqt
     with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
@@ -173,7 +173,7 @@ def Cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, 
     # Getting the information
     best_energy = vina.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
     # Changing the xyz conformation by the conformation of the binding pose
-    Individual.pdbqt = best_energy.chunk
+    Individual.pdbqt = ''.join(best_energy.chunk)
 
     # Getting the Scoring function of Vina
     Individual.vina_score = best_energy.freeEnergy
@@ -200,4 +200,6 @@ def Cost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, 
     return Individual
 
 if __name__ == '__main__':
+    import inspect
+    print(inspect.getargspec(Cost).args)
     pass
