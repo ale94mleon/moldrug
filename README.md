@@ -12,7 +12,7 @@ Here we address this problem using a GA. The inputs are:
 3. Definition of the binding pocket.
 4. Definition of the GA running variables.
 
-With the initial SMILES, a random population of `popsize` individuals will be generated through the crem operation `mutate_mol`. Every individual will be evaluated through the fitness function. The best individual will be used for crossover and mutation, generating `pc*popsize` offsprings. The offsprings will be merge with the current population, sorted respect to the fitness function and the first `popsize` individuals will be kept for the next generation. This cycle will run for `maxiter` generations.
+With the initial SMILES, a random population of `popsize` individuals will be generated through the [crem](https://github.com/DrrDom/crem) operation `mutate_mol`. Every individual will be evaluated through the fitness function. The best individual will be used for crossover and mutation, generating `pc*popsize` offsprings. The offsprings will be merge with the current population, sorted respect to the fitness function and the first `popsize` individuals will be kept for the next generation. This cycle will run for `maxiter` generations.
 
 ## Fitness functions
 
@@ -29,7 +29,7 @@ The following are the response variables:
 1. Quantitative Estimation of Drug-likeness. [paper](https://www.nature.com/articles/nchem.1243)
 2. Synthetic accessibility. [paper](https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)
 
-For each of this response variables we create their corresponded Derringer-Suich desirability functions. And them we combined as a geometric mean:
+For each of this response variables we create their corresponded Derringer-Suich desirability functions. And them we combine them as a geometric mean:
 
 $$
 D = {\left[\prod_{i = 1}^{3} d_i^{w_i}\right]}^{\frac{1}{\sum_i w_i}}
