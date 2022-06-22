@@ -5,9 +5,10 @@ import json
 from multiprocessing import cpu_count
 
 receptor = '7e27'#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
-maxiter = 2
+maxiter = 4
 popsize = 3
 njobs = 3
+NumbCalls = 2
 
 with open('data/box.json', 'r') as f:
     grid_opt = json.load(f)[receptor]['A']
@@ -27,7 +28,6 @@ out = ga.GA(
         'max_size':8,
         'min_inc':-5,
         'max_inc':3,
-        'return_mol':True,
         'ncores':cpu_count(),
     },
     costfunc = fitness.Cost,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost
@@ -40,9 +40,12 @@ out = ga.GA(
         'num_modes': 1,
         #'ref_smiles': init_smiles,
     },
+    save_pop_every_gen = 2,
+    pop_file_name = f'pkl/pop',
     )
-out(njobs = njobs)
-out(njobs = njobs)
+for i in range(NumbCalls):
+    out(njobs = njobs)
+
 for o in out.pop:
     print(o.smiles, o.cost)
 out.pickle(f'pkl/desirability_{receptor}_NumGen_{out.NumGen}_PopSize_{popsize}')

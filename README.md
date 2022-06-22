@@ -40,37 +40,110 @@ Because we are looking for the minimum, the function `cost` return $ 1 - D$.
 
 ## Example of use
 ```python
-import lead as pb
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+from lead import ga, fitness, utils
 import json
+from multiprocessing import cpu_count
 
 receptor = 'x0161'
-maxiter = 3
-popsize = 4
+maxiter = 2
+popsize = 2
+njobs = 2
 
 with open('data/box.json', 'r') as f:
     grid_opt = json.load(f)[receptor]['A']
 with open('data/smi.json', 'r') as f:
     init_smiles = json.load(f)[receptor]
 
-out = pb.ga.GA(
+out = ga.GA(
     smiles=init_smiles,
     maxiter=maxiter,
     popsize=popsize,
     crem_db_path = '/provide/the/path/to/replacements02_sc2.5.db',
     pc = 1,
-    costfunc = pb.fitness.Cost,
-    receptor_path =f'data/{receptor}.pdbqt',
-    boxcenter = grid_opt['boxcenter'],
-    boxsize = grid_opt['boxsize'],
-    exhaustiveness = 8,
-    vina_cpus = 3,
-    num_modes = 1,
+    get_similar = False,
+    mutate_crem_kwargs = {
+        'radius':3,
+        'min_size':1,
+        'max_size':8,
+        'min_inc':-5,
+        'max_inc':3,
+        'ncores':cpu_count(),
+    },
+    costfunc = fitness.Cost,
+    costfunc_kwargs = {
+        'receptor_path': f'data/{receptor}.pdbqt',
+        'boxcenter' : grid_opt['boxcenter'],
+        'boxsize': grid_opt['boxsize'],
+        'exhaustiveness': 8,
+        'ncores': int(cpu_count() / njobs),
+        'num_modes': 1,
+        #'ref_smiles': init_smiles,
+    },
     )
-out(njobs = 4)
-for o in out.pop:
-    print(o.smiles, o.cost)
-out.pickle(f'model.pkl')
+out(njobs = njobs)
 ```
+### Saving the data
+After completion we could save the whole GA object with the `pickle` method. By default the compress option is set to False, but you could change it. To reopen the saved file use `utils.decompress_pickle` or `utils.loosen`  if the saved object was compressed or not respectively.
+*   Non-Compressed
+```python
+out.pickle(f'result')
+out = utils.loosen('result.pkl')
+```
+*   Compressed
+```python
+out.pickle(f'result', compress = True)
+out = utils.decompress_pickle('result.pbz2')
+```
+
+If you would like to run in this object four more generations, you just need to set `maxiter` to 4 and call the class again. Even you can modify some parameters used in the searching (do not modify the cost function for the next call, it will not give errors but the results will not be correct)
+```python
+out.maxiter = 4
+out.mutate_crem_kwargs = {
+    'radius':5,
+    'min_size':2,
+    'max_size':5,
+    'min_inc':-1,
+    'max_inc':2,
+    'ncores':2,
+},
+out(njobs = njobs)
+```
+The `out` instance has several useful attributes:
+*   `out.pop`, the last (and the best) population of the simulation sorted by cost function. `out.pop[0]` will return the best `Individual`.
+    *   Each `Individual` is a `utils.Individual` instance that have several attributes:
+        *   `idx`: A unique identifier, that give the order of when the current Individual was generated during the simulation.
+        *   `cost`: The cost calculated by the cost function.
+        *   `mol`: A `Chem.rdchem.Mol` molecule.
+        *   Other attributes that the cost function adds. In the case of `fitness.Cost`: `pdbqt`, `vina_score`, `qed` and `sa_score`.
+*   `out.NumCalls`: Number of time that you call this instance. In this case, because we called twice, it must should 2.
+*   `out.NumGen`: The total number of generations. During the first call we set `maxiter = 2` and in the second one `maxiter = 4`. Therefore, in total we made 6 generations. So, the result of this attribute should be 6.
+*   `out.SawIndividuals` is a list of every generated `Individual` over the simulation.
+
+#### Saving intermediate solution
+Could be that for some reason the job is killed. In order to prevent loose all the information you could set in the initialization of the `GA` class the keywords:
+*   `save_pop_every_gen`: Every how many generations the population will be saved
+*   `pop_file_name`: The name of the file to save the population. By default the extension .pkl is added.
+
+Then you just need to initialize the `GA` class and give as population the saved one.
+```python
+from lead import utils, ga
+generation, init_pop = utils.loosen('pop.pkl')
+# Initialize GA
+out = ga.GA(...)
+out.pop = init_pop
+out(njobs = 3)
+```
+As you could imagine `out.pop` accept whatever you put there; but a correct input will be a list of `Individual` objects for which the corresponded `cost` function was passed. In other words, must have the `cost` attribute.
+
+#### Exporting a DataFrame
+In case that the simulation is really big (many Individuals in the population and many generations). Could be possible to export a simplified result.
+```python
+dataframe = out.to_dataframe()
+```
+This basically return the DataFrame of `out.SawIndividuals`. Every row is an `Individual`, and every columns the corresponded attributes. The attribute `mol` is deleted.
+
 
 ## Git commands
 ```bash

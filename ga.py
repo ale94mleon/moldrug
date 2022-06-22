@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from configparser import MAX_INTERPOLATION_DEPTH
 from copy import deepcopy
 import tempfile, os
 from rdkit import Chem
@@ -35,7 +36,7 @@ RDLogger.DisableLog('rdApp.*')
 # Implement a continuation and automatic saving method for possible crashing and relaunch of the simulation.
 class GA(object):
     
-    def __init__(self, smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs = {}) -> None:
+    def __init__(self, smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}, save_pop_every_gen:int = 0, pop_file_name:int = 'pop') -> None:
         self.InitIndividual = utils.Individual(smiles, idx=0)
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
@@ -62,6 +63,13 @@ class GA(object):
             'ncores':1,
         }
         self.mutate_crem_kwargs.update(mutate_crem_kwargs)
+        # We need to return the molecule, so we override the posible user deffinition respect to this keyword
+        self.mutate_crem_kwargs['return_mol'] = True
+        
+        # Saving parameters
+        self.save_pop_every_gen = save_pop_every_gen
+        self.pop_file_name = pop_file_name
+        
         # Tracking parameters
         self.NumCalls = 0
         self.NumGen = 0
@@ -142,10 +150,6 @@ class GA(object):
             # Because How the population was initialized and because we are using pool.imap (ordered). The Father/Mother is the first Individual of self.pop
             self.InitIndividual = deepcopy(self.pop[0])
 
-            # Saving tracking variables, the first population
-            for Individual in self.pop: 
-                self.SawIndividuals.append(Individual)
-
 
             # Creating the first model
             # Could be more pretty like creating a method that is make the model, y lo que se hace es que se gurda el modelo
@@ -181,9 +185,18 @@ class GA(object):
             self.bestcost = []
             self.avg_cost = []
         
+        # Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.
+        for Individual in self.pop:
+            if Individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
+                self.SawIndividuals.append(Individual)
+        
+        # Saving population in disk if it was required
+        if self.save_pop_every_gen:
+            utils.full_pickle(self.pop_file_name, (self.NumGen,self.pop))
+        
         # Main Loop
         number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
-        for _ in range(self.maxiter):
+        for iter in range(self.maxiter):
             # Saving Number of Generations
             self.NumGen += 1
 
@@ -264,6 +277,12 @@ class GA(object):
                     #     new_smiles_cost[Individual.smiles] = Individual.cost
                     #Tracking variables
                     self.SawIndividuals.append(Individual)
+            
+            # Saving population in disk if it was required
+            if self.save_pop_every_gen:
+                # Save every save_pop_every_gen and always the last population
+                if self.NumGen % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
+                    utils.full_pickle(self.pop_file_name, (self.NumGen, self.pop))
 
             # # Update the model
             # print(f'Updating the current model with the information of generation {self.NumGen}...')
@@ -382,7 +401,7 @@ class GA(object):
         ind = np.argwhere(r <= c)
         return ind[0][0]
     
-    def pickle(self,title, compress = True):
+    def pickle(self,title, compress = False):
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
