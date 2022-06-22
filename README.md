@@ -114,16 +114,16 @@ The `out` instance has several useful attributes:
 *   `out.pop`, the last (and the best) population of the simulation sorted by cost function. `out.pop[0]` will return the best `Individual`.
     *   Each `Individual` is a `utils.Individual` instance that have several attributes:
         *   `idx`: A unique identifier, that give the order of when the current Individual was generated during the simulation.
-        *   `cost`: The cost calculated by the cost function.
+        *   `cost`: The cost calculated by the cost function (or np.inf by default)
         *   `mol`: A `Chem.rdchem.Mol` molecule.
         *   Other attributes that the cost function adds. In the case of `fitness.Cost`: `pdbqt`, `vina_score`, `qed` and `sa_score`.
-*   `out.NumCalls`: Number of time that you call this instance. In this case, because we called twice, it must should 2.
+*   `out.NumCalls`: Number of time that you call this instance. In this case, because we called twice, it should be 2.
 *   `out.NumGen`: The total number of generations. During the first call we set `maxiter = 2` and in the second one `maxiter = 4`. Therefore, in total we made 6 generations. So, the result of this attribute should be 6.
 *   `out.SawIndividuals` is a list of every generated `Individual` over the simulation.
 
 #### Saving intermediate solution
 Could be that for some reason the job is killed. In order to prevent loose all the information you could set in the initialization of the `GA` class the keywords:
-*   `save_pop_every_gen`: Every how many generations the population will be saved
+*   `save_pop_every_gen`: Every how many generations the population will be saved.
 *   `pop_file_name`: The name of the file to save the population. By default the extension .pkl is added.
 
 Then you just need to initialize the `GA` class and give as population the saved one.

@@ -33,7 +33,6 @@ RDLogger.DisableLog('rdApp.*')
 # The size of the ligands increase with the number of generations (if crossover is used even more)
 # How to implement the rationality of where to grow, not just randomness. That could be the "crossover" operation, in fact the grow in a specific direction, based in (for example) the interaction network or the clashing avoid.
 # I have to create a filter of atoms in order that vina doesn't fail because B and atoms like that Vina is not able to handle.
-# Implement a continuation and automatic saving method for possible crashing and relaunch of the simulation.
 class GA(object):
     
     def __init__(self, smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}, save_pop_every_gen:int = 0, pop_file_name:int = 'pop') -> None:
