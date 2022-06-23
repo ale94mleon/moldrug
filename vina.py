@@ -13,7 +13,7 @@ import os
 
 
 # Alias for vina
-vina_executable = os.path.abspath('vina')
+vina_executable = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vina')
 #========Definitions of class and methods to get the output of Vina===========
 class Atom:
     #https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out
@@ -207,6 +207,8 @@ def VinaCostStar():
 
 if __name__ == '__main__':
     pass
+    print(vina_executable)
+    print(utils.run(f"{vina_executable} --help").stdout)
     # vina = VINA_OUT(".vina/0_out.pdbqt")
     # print(vina.BestEnergy().freeEnergy)
     #vina.PosNegConf(atom_1 = 17 , atom_2 = 1)

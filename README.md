@@ -1,3 +1,4 @@
+![lead logo](./logo.png)
 # lead
 
 lead is a python package for lead generation and optimization of small molecules. It use a Genetic Algorithm (GA) as searching engine in the chemical space and CReM library ([crem](https://github.com/DrrDom/crem)) as chemical structure generator.

@@ -98,12 +98,7 @@ class GA(object):
                     mutate_mol(
                         Chem.AddHs(self.InitIndividual.mol),
                         self.crem_db_path,
-                        radius=3,
-                        min_size=0, max_size = 8,
-                        min_inc=-3, max_inc=3,
-                        #max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
-                        return_mol= True,
-                        ncores = self.mutate_crem_kwargs['ncores']
+                        **self.mutate_crem_kwargs,
                         )
                     )
                 GenInitStructs = [Chem.RemoveHs(mol) for (_, mol) in GenInitStructs]
@@ -215,11 +210,12 @@ class GA(object):
                 # I have to think about this operations, and the parameters to controll them
                 # Perform Crossover
                 # Implement something that tells me if there are repeated Individuals and change them.
-                c1, c2 = self.crossover(p1, p2, ncores=njobs*self.costfunc_ncores)
+                c1 = self.hard_mutate(p1)
+                c2 = self.hard_mutate(p2)
 
                 # Perform Mutation
-                c1 = self.mutate(c1)
-                c2 = self.mutate(c2)
+                c1 = self.soft_mutate(c1)
+                c2 = self.soft_mutate(c2)
                 
                 # Save offspring population
                 # I will save only those offsprings that were not seen 
@@ -316,59 +312,87 @@ class GA(object):
         #This is just to use the progress bar on pool.imap
         return self.costfunc(Individual, **kwargs)
 
-    def crossover(self, Individual1, Individual2, ncores = 1, probability = 0, MaxRatioOfIncreaseInWt = 0.25):
-        # here I have to select some randomness to perform or not the real crossover because I think that we could get far from the solution. It is just a guess.
-        # How do I control the size of the new offspring? 
-        # Performing a fragmentation in such a way that the offspring is the same in size
-        # Here is where more additional information could be used. In order to orient the design of the new offspring. 
-        # Then, I should control how perform the mutation  in such a way that we could keep or at least evaluate the offspring generated for crossover
-        if random.random() < probability: # 50% of return the same individuals
-            fragments1 = utils.fragments(Individual1.mol)
-            fragments2 = utils.fragments(Individual2.mol)
-            all_fragments = list(fragments1) + list(fragments2)
+    # def crossover(self, Individual1, Individual2, ncores = 1, probability = 0, MaxRatioOfIncreaseInWt = 0.25):
+    #     # here I have to select some randomness to perform or not the real crossover because I think that we could get far from the solution. It is just a guess.
+    #     # How do I control the size of the new offspring? 
+    #     # Performing a fragmentation in such a way that the offspring is the same in size
+    #     # Here is where more additional information could be used. In order to orient the design of the new offspring. 
+    #     # Then, I should control how perform the mutation  in such a way that we could keep or at least evaluate the offspring generated for crossover
+    #     if random.random() < probability: # 50% of return the same individuals
+    #         fragments1 = utils.fragments(Individual1.mol)
+    #         fragments2 = utils.fragments(Individual2.mol)
+    #         all_fragments = list(fragments1) + list(fragments2)
             
-            # Initialize offspring smiles; cost
-            offsprings = [
-                    [None, np.inf],
-                    [None, np.inf],
-            ]
-            for combination in itertools.combinations(all_fragments, 2):
+    #         # Initialize offspring smiles; cost
+    #         offsprings = [
+    #                 [None, np.inf],
+    #                 [None, np.inf],
+    #         ]
+    #         for combination in itertools.combinations(all_fragments, 2):
                 
-                # Combine the molecules
-                try:
-                    possible_fragments_smiles = list(link_mols(*combination, db_name=self.crem_db_path, radius = 3, min_atoms=1, max_atoms=6, dist = 2, return_mol=False, ncores=ncores))                
-                except:
-                    # This is for debugging
-                    sm1, sm2 = [Chem.MolToSmiles(c) for c in combination]
-                    raise RuntimeError(f'These are the problematic SMILES: {sm1}, {sm2}')
+    #             # Combine the molecules
+    #             try:
+    #                 possible_fragments_smiles = list(link_mols(*combination, db_name=self.crem_db_path, radius = 3, min_atoms=1, max_atoms=6, dist = 2, return_mol=False, ncores=ncores))                
+    #             except:
+    #                 # This is for debugging
+    #                 sm1, sm2 = [Chem.MolToSmiles(c) for c in combination]
+    #                 raise RuntimeError(f'These are the problematic SMILES: {sm1}, {sm2}')
                 
-                # Perform a filter based on weight. This control the size of the fragments. For now I will test 25 %. Think in the future work with the mols instead of smiles, I have to convert to mols too many times in this section of the code
-                avg_wt  = 0.5*(Descriptors.ExactMolWt(Individual1.mol) + Descriptors.ExactMolWt(Individual1.mol))
-                threshold_wt = (MaxRatioOfIncreaseInWt + 1) * avg_wt
-                print(f'We had {len(possible_fragments_smiles)} possible fragments')
-                possible_fragments_smiles = list(filter(lambda x: Descriptors.ExactMolWt(Chem.MolFromSmiles(x)) < threshold_wt, possible_fragments_smiles))
-                print(f'After the weight filter we have {len(possible_fragments_smiles)} possible fragments')
+    #             # Perform a filter based on weight. This control the size of the fragments. For now I will test 25 %. Think in the future work with the mols instead of smiles, I have to convert to mols too many times in this section of the code
+    #             avg_wt  = 0.5*(Descriptors.ExactMolWt(Individual1.mol) + Descriptors.ExactMolWt(Individual1.mol))
+    #             threshold_wt = (MaxRatioOfIncreaseInWt + 1) * avg_wt
+    #             print(f'We had {len(possible_fragments_smiles)} possible fragments')
+    #             possible_fragments_smiles = list(filter(lambda x: Descriptors.ExactMolWt(Chem.MolFromSmiles(x)) < threshold_wt, possible_fragments_smiles))
+    #             print(f'After the weight filter we have {len(possible_fragments_smiles)} possible fragments')
 
-                # In case that it was not possible to link the fragments
-                if not possible_fragments_smiles:continue
+    #             # In case that it was not possible to link the fragments
+    #             if not possible_fragments_smiles:continue
 
-                # Bias the searching to similar molecules
-                if self.get_similar:
-                    possible_fragments_mols = utils.get_similar_mols(mols = [Chem.MolFromSmiles(smiles) for smiles in possible_fragments_smiles], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
-                    possible_fragments_smiles = [Chem.MolToSmiles(mol) for mol in possible_fragments_mols]
+    #             # Bias the searching to similar molecules
+    #             if self.get_similar:
+    #                 possible_fragments_mols = utils.get_similar_mols(mols = [Chem.MolFromSmiles(smiles) for smiles in possible_fragments_smiles], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
+    #                 possible_fragments_smiles = [Chem.MolToSmiles(mol) for mol in possible_fragments_mols]
                 
-                # Here comes the prediction with the model, and get the top two
-                temp_offsprings = list(zip(possible_fragments_smiles, self.Predictor.predict(possible_fragments_smiles).tolist()))
+    #             # Here comes the prediction with the model, and get the top two
+    #             temp_offsprings = list(zip(possible_fragments_smiles, self.Predictor.predict(possible_fragments_smiles).tolist()))
                 
-                # Merge, Sort and Select
-                offsprings = sorted(offsprings + temp_offsprings, key = lambda x:x[1])[:2]
-            # Here I should check that exist offsprings (there not None values as smiles). For now I will assume that we always get at least two. See on the future
-            return utils.Individual(smiles = offsprings[0][0]), utils.Individual(smiles = offsprings[1][0])
-        else:
-            return Individual1, Individual2    
+    #             # Merge, Sort and Select
+    #             offsprings = sorted(offsprings + temp_offsprings, key = lambda x:x[1])[:2]
+    #         # Here I should check that exist offsprings (there not None values as smiles). For now I will assume that we always get at least two. See on the future
+    #         return utils.Individual(smiles = offsprings[0][0]), utils.Individual(smiles = offsprings[1][0])
+    #     else:
+    #         return Individual1, Individual2    
     
     # Improve
-    def mutate(self, Individual):
+    def soft_mutate(self, Individual):
+        # See the option max_replacment
+        # Or select the mutant based on some criterion
+        # try:
+            # Here i will pick the molecules based on the model.
+        # El problema de seleccionar asi los compuestos es que siempre seleccionamos los mismos. Siempre se esta entrando la misma estructura y terminamos con una pobalcion redundante
+        # Esto tengo que pensarlo mejor
+        # new_mols = list(mutate_mol(Chem.AddHs(Individual.mol), self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-3, max_inc=3, return_mol=True, ncores = ncores))
+        # new_mols = [Chem.RemoveHs(i[1]) for i in new_mols]
+        # best_mol, score = utils.get_top(new_mols + [Individual.mol], self.model)
+        # smiles = Chem.MolToSmiles(best_mol)
+        # mol = best_mol
+        # print(score)
+        # For now I am generating all the mutants and picking only one at random, this is very inefficient, should be better only generate one, but I am afraid that crem generate always the same or not generate any at all.
+        # I think that what first crem does is randomly select on spot and find there all possible mutants. If this spot doesn't generate mutants, then you don't get nothing. But this is a supposition. 
+        try:
+            mutants = list(mutate_mol(Individual.mol, self.crem_db_path,return_mol = True, min_size=1, max_size=1, min_inc=-1, max_inc=1))
+            # Bias the searching to similar molecules
+            if self.get_similar:
+                mol = utils.get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
+                smiles = Chem.MolToSmiles(mol)
+            else:
+                smiles, mol = random.choice(mutants)
+        except:
+            print('The soft mutation did not work, we returned the same individual')
+            smiles, mol = Individual.smiles, Individual.mol
+        return utils.Individual(smiles,mol)
+
+    def hard_mutate(self, Individual):
         # See the option max_replacment
         # Or select the mutant based on some criterion
         # try:
@@ -392,9 +416,10 @@ class GA(object):
             else:
                 smiles, mol = random.choice(mutants)
         except:
-            print('The mutation did not work, we returned the same individual')
+            print('The hard mutation did not work, we returned the same individual')
             smiles, mol = Individual.smiles, Individual.mol
         return utils.Individual(smiles,mol)
+    
     
     def roulette_wheel_selection(self, p):
         c = np.cumsum(p)
