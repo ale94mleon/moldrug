@@ -189,13 +189,15 @@ class VinaScoringPredictor:
             if not smiles:
                 warnings.warn('You did not provide a smiles. You will just get None as prediction')
                 return None
-
-    def pickle(self,file):
+    
+    def pickle(self,title, compress = False):
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
-        with open(file, 'wb') as pkl:
-            _pickle.dump(result, pkl)    
+        if compress:
+            utils.compressed_pickle(title, result)
+        else:
+            utils.full_pickle(title, result) 
 #=================For compatibility=======================================
 def VinaCost():
     return None

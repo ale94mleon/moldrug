@@ -21,7 +21,7 @@ out = ga.GA(
     popsize=popsize,
     crem_db_path = '/home/ale/GITLAB/bi_crem_database/replacements02_sc2.5.db',
     pc = 1,
-    get_similar = False,
+    get_similar = True,
     mutate_crem_kwargs = {
         'radius':3,
         'min_size':1,

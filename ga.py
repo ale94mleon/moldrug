@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from configparser import MAX_INTERPOLATION_DEPTH
 from copy import deepcopy
-import tempfile, os
+import tempfile
 from rdkit import Chem
 from rdkit.Chem import Descriptors
 from crem.crem import mutate_mol, grow_mol, link_mols
@@ -11,7 +10,6 @@ import random, tqdm, shutil, itertools
 import multiprocessing as mp
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from inspect import getfullargspec
 
 from rdkit import RDLogger
@@ -81,23 +79,35 @@ class GA(object):
         # Initialize Population
         # In case that the populating exist there is not need to initialize.
         if len(self.pop) == 1:
-            GenInitStructs = list(
-                mutate_mol(
-                    Chem.AddHs(self.InitIndividual.mol),
-                    self.crem_db_path,
-                    radius=3,
-                    min_size=0, max_size = 8,
-                    min_inc=-3, max_inc=3,
-                    #max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
-                    return_mol= True,
-                    ncores = self.mutate_crem_kwargs['ncores']
-                    )
-                )
-            
-            # Bias the searching to similar molecules
             if self.get_similar:
-                GenInitStructs = utils.get_similar_mols(mols = [item[1] for item in GenInitStructs], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
-            
+                # Bias the searching to similar molecules
+                GenInitStructs = list(
+                    grow_mol(
+                        Chem.AddHs(self.InitIndividual.mol),
+                        self.crem_db_path,
+                        radius=3,
+                        min_atoms=1, max_atoms = 4,
+                        return_mol= True,
+                        ncores = self.mutate_crem_kwargs['ncores']
+                        )
+                    )
+                GenInitStructs = utils.get_similar_mols(mols = [Chem.RemoveHs(item[1]) for item in GenInitStructs], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
+                
+            else:
+                GenInitStructs = list(
+                    mutate_mol(
+                        Chem.AddHs(self.InitIndividual.mol),
+                        self.crem_db_path,
+                        radius=3,
+                        min_size=0, max_size = 8,
+                        min_inc=-3, max_inc=3,
+                        #max_replacements=self.popsize + int(self.popsize/2), # I have to generate more structure
+                        return_mol= True,
+                        ncores = self.mutate_crem_kwargs['ncores']
+                        )
+                    )
+                GenInitStructs = [Chem.RemoveHs(mol) for (_, mol) in GenInitStructs]
+                       
             # Checking for possible scenarios
             if len(GenInitStructs) < (self.popsize - 1):
                 print('The initial population has repeated elements')
@@ -111,15 +121,7 @@ class GA(object):
                 # Everything is ok!
                 pass 
 
-            for i, item in enumerate(GenInitStructs):
-                # if self.get_similar = True, then GenInitStructs we dont need to unpack the item, in fact we wil get an error, in that case we just use item itself
-                try:
-                    _, mol = item
-                except:
-                    mol = item
-                
-                mol = Chem.RemoveHs(mol)
-                # Here I have to keep record of the added fragment
+            for i, mol in enumerate(GenInitStructs):
                 self.pop.append(utils.Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
             
             # Calculating cost of each individual
