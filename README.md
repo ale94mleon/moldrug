@@ -1,13 +1,13 @@
 ![lead logo](./logo.png)
 # Table of content
 1.  [lead](#lead)
-    1.  [The idea](##The-idea)
-    2.  [Fitness functions](##Fitness-functions)
-    3.  [Example of use](##Example-of-use)
-        1.  [Saving the data](###Saving-the-data)
-            1.  [Saving intermediate solution](####Saving-intermediate-solution)
-            2.  [Exporting a DataFrame](####Exporting-a-DataFrame)
-    4.  [Global and local optimization](##Global-and-local-optimization)         
+    1.  [The idea](#The-idea)
+    2.  [Fitness functions](#Fitness-functions)
+    3.  [Example of use](#Example-of-use)
+        1.  [Saving the data](#Saving-the-data)
+            1.  [Saving intermediate solution](#Saving-intermediate-solution)
+            2.  [Exporting a DataFrame](#Exporting-a-DataFrame)
+    4.  [Global and local optimization](#Global-and-local-optimization)         
 
 # lead
 
