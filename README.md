@@ -160,7 +160,7 @@ Walking on the chemical space is done through the method `mutate` of `GA` class 
 If we know that the input smiles is not optimal, it should be convenient to take wider steeps in the chemical space. This could be accomplished with:
 `min_size=1, max_size=8, min_inc=-5, max_inc=3`. In the other hand, if our interest is explore close to the input smiles, we should be more conservative and use `min_size=0, max_size=1, min_inc=-1, max_inc=1`. In this case the operation will be only: replace or delate one heavy atom, add one or two heavy atoms. In addition we could set `get_similar = True`. This flag doesn't ensure get similar molecules but get the most similar from the generated through the operation `mutate_mol` and a more conservative first population. Also we could add to the cost function the similarity as another response variable.
 
-As standard, one possibility could be: a first run with wide steeps, and them call again the class but with more conservative parameters for the `mutate` method. In other words, a first run aiming global optimization and a second one aiming local optimization. [Saving the data](####Saving-the-data)
+As standard, one possibility could be: a first run with wide steeps, and them call again the class but with more conservative parameters for the `mutate` method. In other words, a first run aiming global optimization and a second one aiming local optimization (this strategy was shown on [Saving the data](#Saving-the-data)).
 
 ## Git commands
 ```bash
