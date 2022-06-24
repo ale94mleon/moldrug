@@ -20,7 +20,7 @@ import _pickle as cPickle
 # Remove fragments in the future
 class Individual:
 
-    def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt = None,fragments:list = None, cost:float = np.inf) -> None:
+    def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt = None, cost:float = np.inf) -> None:
         self.smiles = smiles
         
         if not mol:
@@ -42,11 +42,6 @@ class Individual:
             self.pdbqt = pdbqt
 
         self.cost = cost
-        
-        if fragments:
-            self.fragments = fragments
-        else:
-            self.fragments = []
         
     def __copy__(self):
         cls = self.__class__

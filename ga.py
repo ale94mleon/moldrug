@@ -3,8 +3,7 @@
 from copy import deepcopy
 import tempfile
 from rdkit import Chem
-from rdkit.Chem import Descriptors
-from crem.crem import mutate_mol, grow_mol, link_mols
+from crem.crem import mutate_mol, grow_mol
 from lead import vina, utils
 import random, tqdm, shutil, itertools
 import multiprocessing as mp
@@ -17,15 +16,16 @@ RDLogger.DisableLog('rdApp.*')
 
 
 ## Problem!!
-
+# Another way to overcome the problem on generating similar molecules is to instead of calculate the similarity respect to the whole molecule give some part of the reference structure, give the pharmacophore in the initialization of GA
+# and in the cost function, first find the closer fragments and from there calculate the similarity. because always the generated molecules will be different
 # The mutation that I am doing right now is more a crossover but with the CReM library instead with the population itself.
 # Code a more conservative mutation (close to the one in the paper of the SMILES) to perform small mutations. (now is user controlled)
-# We could also, instead a crossover two mutations with different levels. Becasue our 'mutate' is indeed some kind of crossover but with the CReM data base. So, what we could do is implement the mutation sof the paper that is at small scale (local optimazation): the possibilities are point mutations (atom-by-atom), deletion, add new atoms
+# We could also, instead a crossover two mutations with different levels. Because our 'mutate' is indeed some kind of crossover but with the CReM data base. So, what we could do is implement the mutation sof the paper that is at small scale (local optimization): the possibilities are point mutations (atom-by-atom), deletion, add new atoms
 # hard_mutate and soft_mutate, our genetic operations
 # For the best ligand we could predict the metabolites with sygma (apart of the module)
-# Think about how to handle possibles Vina Crash (problems with the type of atoms). i think that is some problems happens with vina the cost fucntion will be just np.inf
-# Sometimes the pdbqt structure is not generated (probably problems in the convertion. In this cases the whole simulation crash ans should not be like this, this should rise some warning and continue discarting this structure)
-# Apply filter for chemical elemnts to avoid crash on the vina function, in case that Vina crash we could use the predicted model
+# Think about how to handle possibles Vina Crash (problems with the type of atoms). i think that is some problems happens with vina the cost function will be just np.inf
+# Sometimes the pdbqt structure is not generated (probably problems in the conversion. In this cases the whole simulation crash ans should not be like this, this should rise some warning and continue discarding this structure)
+# Apply filter for chemical elements to avoid crash on the vina function, in case that Vina crash we could use the predicted model
 # Till now Vina never fails but could happen.
 # Add more cpus for the generation of the conformers with RDKit
 # The size of the ligands increase with the number of generations (if crossover is used even more)
@@ -48,7 +48,7 @@ class GA(object):
         else:
             self.costfunc_ncores = 1
         
-        self.nc = int(np.round(pc*popsize/2)*2)
+        self.nc = round(pc*popsize)
         self.get_similar = get_similar
         self.mutate_crem_kwargs = {
             'radius':3,
@@ -56,7 +56,6 @@ class GA(object):
             'max_size':8,
             'min_inc':-5,
             'max_inc':3,
-            'return_mol':True,
             'ncores':1,
         }
         self.mutate_crem_kwargs.update(mutate_crem_kwargs)
@@ -201,26 +200,16 @@ class GA(object):
             probs = np.exp(-self.beta*costs) / np.sum(np.exp(-self.beta*costs))
 
             popc = []
-            for _ in range(self.nc//2):
+            for _ in range(self.nc):
                 # Perform Roulette Wheel Selection
-                p1 = self.pop[self.roulette_wheel_selection(probs)]
-                p2 = self.pop[self.roulette_wheel_selection(probs)]
-                
+                parent = self.pop[self.roulette_wheel_selection(probs)]
 
-                # I have to think about this operations, and the parameters to controll them
-                # Perform Crossover
-                # Implement something that tells me if there are repeated Individuals and change them.
-                c1 = self.hard_mutate(p1)
-                c2 = self.hard_mutate(p2)
-
-                # Perform Mutation
-                c1 = self.soft_mutate(c1)
-                c2 = self.soft_mutate(c2)
+                # Perform Mutation (this mutation is some kind of crossover but with CReM library)
+                children = self.mutate(parent)
                 
                 # Save offspring population
                 # I will save only those offsprings that were not seen 
-                if c1.smiles not in [Individual.smiles for Individual in self.SawIndividuals]: popc.append(c1)
-                if c2.smiles not in [Individual.smiles for Individual in self.SawIndividuals]: popc.append(c2)
+                if children.smiles not in [Individual.smiles for Individual in self.SawIndividuals]: popc.append(children)
 
             if popc: # Only if there are new members
                 # Calculating cost of each offspring individual (Doing Docking)
@@ -364,35 +353,8 @@ class GA(object):
     #         return Individual1, Individual2    
     
     # Improve
-    def soft_mutate(self, Individual):
-        # See the option max_replacment
-        # Or select the mutant based on some criterion
-        # try:
-            # Here i will pick the molecules based on the model.
-        # El problema de seleccionar asi los compuestos es que siempre seleccionamos los mismos. Siempre se esta entrando la misma estructura y terminamos con una pobalcion redundante
-        # Esto tengo que pensarlo mejor
-        # new_mols = list(mutate_mol(Chem.AddHs(Individual.mol), self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-3, max_inc=3, return_mol=True, ncores = ncores))
-        # new_mols = [Chem.RemoveHs(i[1]) for i in new_mols]
-        # best_mol, score = utils.get_top(new_mols + [Individual.mol], self.model)
-        # smiles = Chem.MolToSmiles(best_mol)
-        # mol = best_mol
-        # print(score)
-        # For now I am generating all the mutants and picking only one at random, this is very inefficient, should be better only generate one, but I am afraid that crem generate always the same or not generate any at all.
-        # I think that what first crem does is randomly select on spot and find there all possible mutants. If this spot doesn't generate mutants, then you don't get nothing. But this is a supposition. 
-        try:
-            mutants = list(mutate_mol(Individual.mol, self.crem_db_path,return_mol = True, min_size=1, max_size=1, min_inc=-1, max_inc=1))
-            # Bias the searching to similar molecules
-            if self.get_similar:
-                mol = utils.get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
-                smiles = Chem.MolToSmiles(mol)
-            else:
-                smiles, mol = random.choice(mutants)
-        except:
-            print('The soft mutation did not work, we returned the same individual')
-            smiles, mol = Individual.smiles, Individual.mol
-        return utils.Individual(smiles,mol)
 
-    def hard_mutate(self, Individual):
+    def mutate(self, Individual):
         # See the option max_replacment
         # Or select the mutant based on some criterion
         # try:
