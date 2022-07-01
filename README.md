@@ -49,6 +49,9 @@ $$
 where $w_i$ are the weights of each variable; and $d_i$ the desirability functions. Each individual $d_i$ ranges from 0 to 1 and therefore also $D$.
 Because we are looking for the minimum, the function `cost` return $ 1 - D$.
 
+### Multi Receptor
+Could be that our receptor presents high flexibility or that we are interested in generate specific small molecules. In this case could be convenient to add more than one receptor to the cost function. In the `fitness` module the cost function `CostMultiReceptors` tries to reach this goal. For the case of flexibility, we could perform docking in an ensemble of protein structures, and just keep the lower scoring rather that included all of them in the final desirability function.
+
 ## Example of use
 ```python
 #!/usr/bin/env python3

@@ -222,12 +222,12 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', recep
     Individual.sa_score = sascorer.calculateScore(Individual.mol)
     
     # Getting Vina score
-    Individual.pdbqt = []
-    Individual.vina_score = []
-    for i in range(receptor_path):
-        cmd = f"{vina.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}_{i}.pdbqt')} "\
-            f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
-            f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
+    Individual.vina_pdbqts = []
+    Individual.vina_scores = []
+    for i in range(len(receptor_path)):
+        cmd = f"{vina.vina_executable} --receptor {receptor_path[i]} --ligand {os.path.join(wd, f'{Individual.idx}_{i}.pdbqt')} "\
+            f"--center_x {boxcenter[i][0]} --center_y {boxcenter[i][1]} --center_z {boxcenter[i][2]} "\
+            f"--size_x {boxsize[i][0]} --size_y {boxsize[i][1]} --size_z {boxsize[i][2]} "\
             f"--out {os.path.join(wd, f'{Individual.idx}_{i}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
         #print(cmd)
         # Creating the ligand pdbqt
@@ -238,10 +238,10 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', recep
         # Getting the information
         best_energy = vina.VINA_OUT(os.path.join(wd, f'{Individual.idx}_{i}_out.pdbqt')).BestEnergy()
         # Changing the xyz conformation by the conformation of the binding pose
-        Individual.pdbqt.append(''.join(best_energy.chunk))
+        Individual.vina_pdbqts.append(''.join(best_energy.chunk))
 
         # Getting the Scoring function of Vina
-        Individual.vina_score.append(best_energy.freeEnergy)
+        Individual.vina_scores.append(best_energy.freeEnergy)
 
     # Adding the cost using all the information of qed, sas and vina_cost
 
@@ -256,7 +256,7 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', recep
     # Vina. In this case is difficult to create a desirability because the range, we will use as target -12 upperlimit -6.
     w_vina_scores = len(vina_score_types)*[1]
     d_vina_scores = []
-    for vina_score, vina_score_type in zip(Individual.vina_score, vina_score_types):
+    for vina_score, vina_score_type in zip(Individual.vina_scores, vina_score_types):
         if vina_score_type == 'min':
             d_vina_scores.append(utils.SmallerTheBest(vina_score, Target = -12, UpperLimit=-6, r = 1))
         elif vina_score_type == 'max':

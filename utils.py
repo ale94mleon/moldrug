@@ -1,12 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from xml.dom.minidom import ReadOnlySequentialNamedNodeMap
+from xxlimited import new
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdmolops, DataStructs, Lipinski, Descriptors
 from openbabel import openbabel as ob
 
+from crem.crem import grow_mol
+
 from copy import deepcopy
-import tempfile, subprocess, os, random, time
+from inspect import getfullargspec
+import multiprocessing as mp
+import tempfile, subprocess, os, random, time, shutil, tqdm
 import numpy as np
+import pandas as pd
 
 import bz2
 import pickle
@@ -57,6 +64,73 @@ class Individual:
             setattr(result, k, deepcopy(v, memo))
         return result
 
+class Local:
+    def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
+        self.mol = mol
+        self.crem_db_path = crem_db_path
+        self.grow_crem_kwargs = grow_crem_kwargs
+        self.grow_crem_kwargs.update({'return_mol':True})
+        self.costfunc = costfunc
+        self.costfunc_kwargs = costfunc_kwargs
+
+        self.pop = [Individual(Chem.MolToSmiles(self.mol), self.mol, idx = 0)]
+    def __call__(self, njobs:int = 1, pick:int = None):
+        new_mols = list(grow_mol(
+            self.mol,
+            self.crem_db_path,
+            **self.grow_crem_kwargs
+            ))
+        if pick:
+            random.shuffle(new_mols)
+            new_mols = new_mols[:pick]
+            new_mols = [Chem.RemoveHs(item[1]) for item in new_mols]
+
+        idx0 = len(self.pop)
+        for i, mol in enumerate(new_mols):
+            self.pop.append(Individual(Chem.MolToSmiles(mol), mol, idx = idx0 + i))
+        
+        # Calculating cost of each individual
+        # Creating the arguments
+        args_list = []
+        # Make a copy of the self.costfunc_kwargs
+        kwargs_copy = self.costfunc_kwargs.copy()
+        if 'wd' in getfullargspec(self.costfunc).args:
+            costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
+            kwargs_copy['wd'] = costfunc_jobs.name
+        
+        for individual in self.pop:
+            args_list.append((individual, kwargs_copy))
+
+        print(f'Calculating cost function...')
+        pool = mp.Pool(njobs)
+        self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
+        pool.close()
+        
+        if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
+
+
+    def __costfunc__(self, args_list):
+        Individual, kwargs = args_list
+        #This is just to use the progress bar on pool.imap
+        return self.costfunc(Individual, **kwargs)
+            
+    def pickle(self,title, compress = False):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        if compress:
+            compressed_pickle(title, result)
+        else:
+            full_pickle(title, result)
+    
+    def to_dataframe(self):
+        list_of_dictionaries = []
+        for Individual in self.pop:
+            dictionary = Individual.__dict__.copy()
+            del dictionary['mol']
+            list_of_dictionaries.append(dictionary)
+        return pd.DataFrame(list_of_dictionaries)       
+        
 #==================================================
 # Define some functions to work with
 #==================================================

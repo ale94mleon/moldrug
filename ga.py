@@ -119,8 +119,7 @@ class GA(object):
                 self.pop.append(utils.Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
             
             # Calculating cost of each individual
-            pool = mp.Pool(njobs)
-                # Creating the arguments
+            # Creating the arguments
             args_list = []
             # Make a copy of the self.costfunc_kwargs
             kwargs_copy = self.costfunc_kwargs.copy()
@@ -128,11 +127,12 @@ class GA(object):
                 costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
                 kwargs_copy['wd'] = costfunc_jobs.name
             
-            for Individual in self.pop:
-                args_list.append((Individual, kwargs_copy))
+            for individual in self.pop:
+                args_list.append((individual, kwargs_copy))
 
             print(f'\n\nCreating the first population with {self.popsize} members:')
-            self.pop = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
+            pool = mp.Pool(njobs)
+            self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
             pool.close()
             
             if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
@@ -154,7 +154,7 @@ class GA(object):
             #     self.Predictor = predictor_model
             #     print('\nUpdating the provided model:\n')
             #     self.Predictor.update(
-            #         new_smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
+            #         new_smiles_scoring = dict(((individual.smiles,individual.vina_score) if individual.vina_score != np.inf else (individual.smiles,9999) for individual in self.SawIndividuals)),
             #         receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
             #         boxcenter = self.costfunc_kwargs['boxcenter'],
             #         boxsize = self.costfunc_kwargs['boxsize'],
@@ -165,7 +165,7 @@ class GA(object):
             # else:
             #     print('\nCreating the first predicted model...')
             #     self.Predictor = vina.VinaScoringPredictor(
-            #         smiles_scoring = dict(((Individual.smiles,Individual.vina_score) if Individual.vina_score != np.inf else (Individual.smiles,9999) for Individual in self.SawIndividuals)),
+            #         smiles_scoring = dict(((individual.smiles,individual.vina_score) if individual.vina_score != np.inf else (individual.smiles,9999) for individual in self.SawIndividuals)),
             #         receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
             #         boxcenter = self.costfunc_kwargs['boxcenter'],
             #         boxsize = self.costfunc_kwargs['boxsize'],
@@ -181,9 +181,9 @@ class GA(object):
             self.avg_cost = []
         
         # Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.
-        for Individual in self.pop:
-            if Individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
-                self.SawIndividuals.append(Individual)
+        for individual in self.pop:
+            if individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
+                self.SawIndividuals.append(individual)
         
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
@@ -196,7 +196,7 @@ class GA(object):
             self.NumGen += 1
 
             # Probabilities Selections
-            costs = np.array([Individual.cost for Individual in self.pop])
+            costs = np.array([individual.cost for individual in self.pop])
             probs = np.exp(-self.beta*costs) / np.sum(np.exp(-self.beta*costs))
 
             popc = []
@@ -209,7 +209,7 @@ class GA(object):
                 
                 # Save offspring population
                 # I will save only those offsprings that were not seen 
-                if children.smiles not in [Individual.smiles for Individual in self.SawIndividuals]: popc.append(children)
+                if children.smiles not in [individual.smiles for individual in self.SawIndividuals]: popc.append(children)
 
             if popc: # Only if there are new members
                 # Calculating cost of each offspring individual (Doing Docking)
@@ -225,16 +225,16 @@ class GA(object):
                     kwargs_copy['wd'] = costfunc_jobs.name
                 
                 NumbOfSawIndividuals = len(self.SawIndividuals)
-                for (i, Individual) in enumerate(popc):
-                    # Add idx label to each Individual
-                    Individual.idx = i + NumbOfSawIndividuals
+                for (i, individual) in enumerate(popc):
+                    # Add idx label to each individual
+                    individual.idx = i + NumbOfSawIndividuals
                     # The problem here is that we are not being general for other possible Cost functions.
-                    args_list.append((Individual,kwargs_copy))
+                    args_list.append((individual,kwargs_copy))
                 print(f'\nEvaluating generation {self.NumGen} / {self.maxiter + number_of_previous_generations}:')
 
                 #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not perform the docking and just assign the scoring function
 
-                popc = [Individual for Individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
+                popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
                 pool.close()
                 if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
                 
@@ -250,19 +250,19 @@ class GA(object):
             self.bestcost.append(self.pop[0].cost)
 
             # Store Average cost
-            self.avg_cost.append(np.mean(np.array([Individual.cost for Individual in self.pop])))
+            self.avg_cost.append(np.mean(np.array([individual.cost for individual in self.pop])))
 
             # Saving tracking variables and getting new ones for the model update
             # new_smiles_cost = dict()
-            for Individual in popc:
-                if Individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
+            for individual in popc:
+                if individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
                     # # New variables
-                    # if Individual.cost == np.inf:
-                    #     new_smiles_cost[Individual.smiles] = 9999
+                    # if individual.cost == np.inf:
+                    #     new_smiles_cost[individual.smiles] = 9999
                     # else:
-                    #     new_smiles_cost[Individual.smiles] = Individual.cost
+                    #     new_smiles_cost[individual.smiles] = individual.cost
                     #Tracking variables
-                    self.SawIndividuals.append(Individual)
+                    self.SawIndividuals.append(individual)
             
             # Saving population in disk if it was required
             if self.save_pop_every_gen:
@@ -297,19 +297,19 @@ class GA(object):
         print(f"\n{50*'=+'}\n")
 
     def __costfunc__(self, args_list):
-        Individual, kwargs = args_list
+        individual, kwargs = args_list
         #This is just to use the progress bar on pool.imap
-        return self.costfunc(Individual, **kwargs)
+        return self.costfunc(individual, **kwargs)
 
-    # def crossover(self, Individual1, Individual2, ncores = 1, probability = 0, MaxRatioOfIncreaseInWt = 0.25):
+    # def crossover(self, individual1, individual2, ncores = 1, probability = 0, MaxRatioOfIncreaseInWt = 0.25):
     #     # here I have to select some randomness to perform or not the real crossover because I think that we could get far from the solution. It is just a guess.
     #     # How do I control the size of the new offspring? 
     #     # Performing a fragmentation in such a way that the offspring is the same in size
     #     # Here is where more additional information could be used. In order to orient the design of the new offspring. 
     #     # Then, I should control how perform the mutation  in such a way that we could keep or at least evaluate the offspring generated for crossover
     #     if random.random() < probability: # 50% of return the same individuals
-    #         fragments1 = utils.fragments(Individual1.mol)
-    #         fragments2 = utils.fragments(Individual2.mol)
+    #         fragments1 = utils.fragments(individual1.mol)
+    #         fragments2 = utils.fragments(individual2.mol)
     #         all_fragments = list(fragments1) + list(fragments2)
             
     #         # Initialize offspring smiles; cost
@@ -328,7 +328,7 @@ class GA(object):
     #                 raise RuntimeError(f'These are the problematic SMILES: {sm1}, {sm2}')
                 
     #             # Perform a filter based on weight. This control the size of the fragments. For now I will test 25 %. Think in the future work with the mols instead of smiles, I have to convert to mols too many times in this section of the code
-    #             avg_wt  = 0.5*(Descriptors.ExactMolWt(Individual1.mol) + Descriptors.ExactMolWt(Individual1.mol))
+    #             avg_wt  = 0.5*(Descriptors.ExactMolWt(individual1.mol) + Descriptors.ExactMolWt(individual1.mol))
     #             threshold_wt = (MaxRatioOfIncreaseInWt + 1) * avg_wt
     #             print(f'We had {len(possible_fragments_smiles)} possible fragments')
     #             possible_fragments_smiles = list(filter(lambda x: Descriptors.ExactMolWt(Chem.MolFromSmiles(x)) < threshold_wt, possible_fragments_smiles))
@@ -350,27 +350,27 @@ class GA(object):
     #         # Here I should check that exist offsprings (there not None values as smiles). For now I will assume that we always get at least two. See on the future
     #         return utils.Individual(smiles = offsprings[0][0]), utils.Individual(smiles = offsprings[1][0])
     #     else:
-    #         return Individual1, Individual2    
+    #         return individual1, individual2    
     
     # Improve
 
-    def mutate(self, Individual):
+    def mutate(self, individual):
         # See the option max_replacment
         # Or select the mutant based on some criterion
         # try:
             # Here i will pick the molecules based on the model.
         # El problema de seleccionar asi los compuestos es que siempre seleccionamos los mismos. Siempre se esta entrando la misma estructura y terminamos con una pobalcion redundante
         # Esto tengo que pensarlo mejor
-        # new_mols = list(mutate_mol(Chem.AddHs(Individual.mol), self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-3, max_inc=3, return_mol=True, ncores = ncores))
+        # new_mols = list(mutate_mol(Chem.AddHs(individual.mol), self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-3, max_inc=3, return_mol=True, ncores = ncores))
         # new_mols = [Chem.RemoveHs(i[1]) for i in new_mols]
-        # best_mol, score = utils.get_top(new_mols + [Individual.mol], self.model)
+        # best_mol, score = utils.get_top(new_mols + [individual.mol], self.model)
         # smiles = Chem.MolToSmiles(best_mol)
         # mol = best_mol
         # print(score)
         # For now I am generating all the mutants and picking only one at random, this is very inefficient, should be better only generate one, but I am afraid that crem generate always the same or not generate any at all.
         # I think that what first crem does is randomly select on spot and find there all possible mutants. If this spot doesn't generate mutants, then you don't get nothing. But this is a supposition. 
         try:
-            mutants = list(mutate_mol(Individual.mol, self.crem_db_path, **self.mutate_crem_kwargs))
+            mutants = list(mutate_mol(individual.mol, self.crem_db_path, **self.mutate_crem_kwargs))
             # Bias the searching to similar molecules
             if self.get_similar:
                 mol = utils.get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
@@ -379,7 +379,7 @@ class GA(object):
                 smiles, mol = random.choice(mutants)
         except:
             print('The hard mutation did not work, we returned the same individual')
-            smiles, mol = Individual.smiles, Individual.mol
+            smiles, mol = individual.smiles, individual.mol
         return utils.Individual(smiles,mol)
     
     
@@ -400,8 +400,8 @@ class GA(object):
     
     def to_dataframe(self):
         list_of_dictionaries = []
-        for Individual in self.SawIndividuals:
-            dictionary = Individual.__dict__.copy()
+        for individual in self.SawIndividuals:
+            dictionary = individual.__dict__.copy()
             del dictionary['mol']
             list_of_dictionaries.append(dictionary)
         return pd.DataFrame(list_of_dictionaries)
