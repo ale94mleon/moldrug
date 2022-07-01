@@ -66,6 +66,7 @@ class Individual:
 
 class Local:
     def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
+        # Add check to get if the molecules is with Hs in case that some specification of the where to grow is given
         self.mol = mol
         self.crem_db_path = crem_db_path
         self.grow_crem_kwargs = grow_crem_kwargs
