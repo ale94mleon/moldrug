@@ -72,8 +72,9 @@ class Local:
         self.grow_crem_kwargs.update({'return_mol':True})
         self.costfunc = costfunc
         self.costfunc_kwargs = costfunc_kwargs
-
-        self.pop = [Individual(Chem.MolToSmiles(self.mol), self.mol, idx = 0)]
+        
+        MolNonHs = Chem.RemoveHs(self.mol)
+        self.pop = [Individual(Chem.MolToSmiles(MolNonHs), MolNonHs, idx = 0)]
     def __call__(self, njobs:int = 1, pick:int = None):
         new_mols = list(grow_mol(
             self.mol,
