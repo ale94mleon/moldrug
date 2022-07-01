@@ -33,8 +33,8 @@ RDLogger.DisableLog('rdApp.*')
 # I have to create a filter of atoms in order that vina doesn't fail because B and atoms like that Vina is not able to handle.
 class GA(object):
     
-    def __init__(self, smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}, save_pop_every_gen:int = 0, pop_file_name:int = 'pop') -> None:
-        self.InitIndividual = utils.Individual(smiles, idx=0)
+    def __init__(self, seed_smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}, save_pop_every_gen:int = 0, pop_file_name:int = 'pop') -> None:
+        self.InitIndividual = utils.Individual(seed_smiles, idx=0)
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
         self.pop = [self.InitIndividual]
@@ -59,7 +59,7 @@ class GA(object):
             'ncores':1,
         }
         self.mutate_crem_kwargs.update(mutate_crem_kwargs)
-        # We need to return the molecule, so we override the posible user deffinition respect to this keyword
+        # We need to return the molecule, so we override the possible user definition respect to this keyword
         self.mutate_crem_kwargs['return_mol'] = True
         
         # Saving parameters
