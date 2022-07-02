@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from lead import ga, fitness, utils
+from lead import fitness, utils
 import json
 from multiprocessing import cpu_count
 import os
@@ -15,13 +15,13 @@ TypeOfTest = [
     'multi_receptor',
     'local',
 ]
-TypeOfTest = TypeOfTest[2]
+TypeOfTest = TypeOfTest[1]
 
 if TypeOfTest == 'single_receptor':
 
     receptor = '7e27'#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
     maxiter = 4
-    popsize = 10
+    popsize = 5
     njobs = 3
     NumbCalls = 1
 
@@ -44,7 +44,7 @@ if TypeOfTest == 'single_receptor':
     with open(os.path.join(file_path,'data/smi.json'), 'r') as f:
         init_smiles = json.load(f)[receptor]
 
-    out = ga.GA(
+    out = utils.GA(
         seed_smiles=init_smiles,
         maxiter=maxiter,
         popsize=popsize,
@@ -84,7 +84,7 @@ if TypeOfTest == 'single_receptor':
 elif TypeOfTest == 'multi_receptor':
     receptor = ['7e27_periplasm', '7e27']#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
     maxiter = 4
-    popsize = 10
+    popsize = 5
     njobs = 3
     NumbCalls = 1
 
@@ -107,7 +107,7 @@ elif TypeOfTest == 'multi_receptor':
     with open(os.path.join(file_path,'data/smi.json'), 'r') as f:
         init_smiles = json.load(f)[receptor[0]]
 
-    out = ga.GA(
+    out = utils.GA(
         seed_smiles=init_smiles,
         maxiter=maxiter,
         popsize=popsize,
@@ -176,5 +176,5 @@ elif TypeOfTest == 'local':
                 'num_modes': 1,
             },
     )
-local(njobs = njobs, pick=30)
-print(local.to_dataframe())
+    local(njobs = njobs, pick=30)
+    print(local.to_dataframe())

@@ -1,141 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from xml.dom.minidom import ReadOnlySequentialNamedNodeMap
-from xxlimited import new
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdmolops, DataStructs, Lipinski, Descriptors
 from openbabel import openbabel as ob
 
-from crem.crem import grow_mol
+from crem.crem import mutate_mol, grow_mol
 
 from copy import deepcopy
 from inspect import getfullargspec
 import multiprocessing as mp
-import tempfile, subprocess, os, random, time, shutil, tqdm
+import tempfile, subprocess, os, random, time, shutil, tqdm, warnings
+from datetime import datetime
 import numpy as np
 import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
 
 import bz2
 import pickle
 import _pickle as cPickle
 
+import random, tqdm, shutil
 
-#==================================================
-# Class to work with lead
-#==================================================
+from rdkit import RDLogger
+RDLogger.DisableLog('rdApp.*') 
 
-# Remove fragments in the future
-class Individual:
+# Alias for vina
+vina_executable = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vina')
 
-    def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt = None, cost:float = np.inf) -> None:
-        self.smiles = smiles
-        
-        if not mol:
-            try:
-                self.mol = Chem.MolFromSmiles(smiles)
-            except:
-                self.mol = None
-        else:
-            self.mol = mol
-        
-        self.idx = idx
-        
-        if not pdbqt:
-            try:
-                self.pdbqt = confgen(smiles, outformat = 'pdbqt')
-            except:
-                self.pdbqt = None
-        else:
-            self.pdbqt = pdbqt
-
-        self.cost = cost
-        
-    def __copy__(self):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        return result
-
-    def __deepcopy__(self, memo):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        memo[id(self)] = result
-        for k, v in self.__dict__.items():
-            setattr(result, k, deepcopy(v, memo))
-        return result
-
-class Local:
-    def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
-        # Add check to get if the molecules is with Hs in case that some specification of the where to grow is given
-        self.mol = mol
-        self.crem_db_path = crem_db_path
-        self.grow_crem_kwargs = grow_crem_kwargs
-        self.grow_crem_kwargs.update({'return_mol':True})
-        self.costfunc = costfunc
-        self.costfunc_kwargs = costfunc_kwargs
-        
-        MolNonHs = Chem.RemoveHs(self.mol)
-        self.pop = [Individual(Chem.MolToSmiles(MolNonHs), MolNonHs, idx = 0)]
-    def __call__(self, njobs:int = 1, pick:int = None):
-        new_mols = list(grow_mol(
-            self.mol,
-            self.crem_db_path,
-            **self.grow_crem_kwargs
-            ))
-        if pick:
-            random.shuffle(new_mols)
-            new_mols = new_mols[:pick]
-            new_mols = [Chem.RemoveHs(item[1]) for item in new_mols]
-
-        idx0 = len(self.pop)
-        for i, mol in enumerate(new_mols):
-            self.pop.append(Individual(Chem.MolToSmiles(mol), mol, idx = idx0 + i))
-        
-        # Calculating cost of each individual
-        # Creating the arguments
-        args_list = []
-        # Make a copy of the self.costfunc_kwargs
-        kwargs_copy = self.costfunc_kwargs.copy()
-        if 'wd' in getfullargspec(self.costfunc).args:
-            costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
-            kwargs_copy['wd'] = costfunc_jobs.name
-        
-        for individual in self.pop:
-            args_list.append((individual, kwargs_copy))
-
-        print(f'Calculating cost function...')
-        pool = mp.Pool(njobs)
-        self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
-        pool.close()
-        
-        if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
-
-
-    def __costfunc__(self, args_list):
-        Individual, kwargs = args_list
-        #This is just to use the progress bar on pool.imap
-        return self.costfunc(Individual, **kwargs)
-            
-    def pickle(self,title, compress = False):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        if compress:
-            compressed_pickle(title, result)
-        else:
-            full_pickle(title, result)
-    
-    def to_dataframe(self):
-        list_of_dictionaries = []
-        for Individual in self.pop:
-            dictionary = Individual.__dict__.copy()
-            del dictionary['mol']
-            list_of_dictionaries.append(dictionary)
-        return pd.DataFrame(list_of_dictionaries)       
-        
-#==================================================
-# Define some functions to work with
-#==================================================
+#=====================================================================================================================================
+#                                   Here are some important functions to work with
+#=====================================================================================================================================
 # Useful as decorator
 def timeit(method):
     def timed(*args, **kw):
@@ -397,7 +291,710 @@ def decompress_pickle(file):
     """
     data = bz2.BZ2File(file, 'rb')
     data = cPickle.load(data)
-    return data  
+    return data
+#=====================================================================================================================================
+
+
+
+
+#=====================================================================================================================================
+#                   Classes to work with Vina
+#=====================================================================================================================================
+class Atom:
+    #https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out
+    def __init__(self, line):
+        self.lineType = "ATOM"
+        self.serial = int(line[6:11])
+        self.name = line[12:16].strip()
+        self.altLoc = line[16]
+        self.resName = line[17:21].strip()
+        self.chainID = line[21]
+        self.resSeq = int(line[22:26])
+        self.iCode = line[26]
+        self.x = float(line[30:38])
+        self.y = float(line[38:46])
+        self.z = float(line[46:54])
+        self.occupancy = line[54:60].strip()
+        self.tempFactor = line[60:66].strip()
+        self.partialChrg = line[66:76].strip()
+        self.atomType = line[78:80].strip()
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+class Hetatm:
+    def __init__(self, line):
+        self.lineType = "HETATM"
+        self.serial = int(line[6:11])
+        self.name = line[12:16].strip()
+        self.altLoc = line[16]
+        self.resName = line[17:21].strip()
+        self.chainID = line[21]
+        self.resSeq = int(line[22:26])
+        self.iCode = line[26]
+        self.x = float(line[30:38])
+        self.y = float(line[38:46])
+        self.z = float(line[46:54])
+        self.occupancy = line[54:60].strip()
+        self.tempFactor = line[60:66].strip()
+        self.partialChrg = line[66:76].strip()
+        self.atomType = line[78:80].strip()
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+class Remark:
+    def __init__(self, line):
+        pass
+
+class CHUNK_VINA_OUT:
+    def __init__(self, chunk):
+        self.chunk = chunk
+        self.atoms = []
+        self.run = None
+        self.freeEnergy = None
+        self.RMSD1 = None
+        self.RMSD2 = None
+        self.parse()
+
+    def parse(self):
+        for line in self.chunk:
+            if line.startswith("MODEL"):
+                self.run = int(line[5:])
+            elif line.startswith("REMARK VINA RESULT:"):
+                    (self.freeEnergy, self.RMSD1, self.RMSD2) = [float(number) for number in line.split(":")[-1].split()]
+                    
+            elif line.startswith("ATOM"):
+                self.atoms.append(Atom(line))
+            else:
+                pass
+
+    def get_atoms(self):
+        """Return a list of all atoms.
+
+        If to_dict is True, each atom is represented as a dictionary.
+        Otherwise, a list of Atom objects is returned."""
+        return [x.__dict__ for x in self.atoms]
+        
+    def write(self, name = None):
+        if name:
+            with open(name,"w") as f:
+                f.writelines(self.chunk)
+        else:
+            with open(f"Run_{self.run}.pdbqt","w") as f:
+                f.writelines(self.chunk)            
+
+class VINA_OUT:
+    """
+    To acces the chunks you need to take into account that 
+    """
+    def __init__(self, file):
+        self.file = file
+
+        self.chunks = []
+        self.parse()
+
+    def parse(self):
+        with open(self.file, "r") as input_file:
+            lines = input_file.readlines()
+        i = 0
+        while i < len(lines):
+
+            if lines[i].startswith("MODEL"):
+                j = i
+                tmp_chunk = []
+                while (not lines[j].startswith("ENDMDL")) and (j < len(lines)):
+                    tmp_chunk.append(lines[j])
+                    j += 1
+                    i += 1
+                tmp_chunk.append("ENDMDL\n")
+                self.chunks.append(CHUNK_VINA_OUT(tmp_chunk))
+
+            i += 1
+            
+    def BestEnergy(self, write = False):
+        min_chunk = min(self.chunks, key= lambda x: x.freeEnergy)
+        if write: min_chunk.write("best_energy.pdbqt")
+        return min_chunk
+
+
+class VinaScoringPredictor:
+
+    def __init__(self, smiles_scoring:dict, receptor:str, boxcenter:list, boxsize:list, exhaustiveness:int) -> None:
+        # Esto puede servir para simplemente buscar en la base de datos por la moelcula, y si esta dar el valor exacto de Vina sin tenr que hacer el calculo
+        # Y por supuesto para predecir
+        # La prediccion en la parte del "crossover" y el si esta la moelcuela para el caclulo real
+        self.lastupdate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.smiles_scoring = smiles_scoring
+        # This are control variables to save for future use
+        self.receptor = receptor
+        self.boxcenter = boxcenter
+        self.boxsize = boxsize
+        self.exhaustiveness = exhaustiveness
+        self.bfp = rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in self.smiles_scoring])
+        self.model = None
+
+    
+    def __call__(self, **keywords):
+        # n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True
+        self.model = RandomForestRegressor(**keywords)
+        self.model.fit(self.bfp, list(self.smiles_scoring.values()))
+    
+    def update(self, new_smiles_scoring:dict, receptor:str, boxcenter:list, boxsize:list, exhaustiveness:int) -> None:
+        # Control that the new introduced data belongs to the same model
+        assert self.receptor == receptor, f"The original object was constructed with the receptor {self.receptor} and you introduced {receptor}. Consider to generate a new object."
+        assert self.boxcenter == boxcenter, f"The original object was constructed with the boxcenter {self.boxcenter} and you introduced {boxcenter}. Consider to generate a new object."
+        assert self.boxsize == boxsize, f"The original object was constructed with the boxsize {self.boxsize} and you introduced {boxsize}. Consider to generate a new object."
+        assert self.exhaustiveness == exhaustiveness, f"The original object was constructed with the exhaustiveness {self.exhaustiveness} and you introduced {exhaustiveness}. Consider to generate a new object."
+        
+        # Update the date 
+        self.lastupdate = datetime.now().strftime
+        
+        # Look for new structures
+        smiles_scoring2use = dict()
+        for sm_sc in new_smiles_scoring:
+            if sm_sc not in self.smiles_scoring:
+                smiles_scoring2use[sm_sc] = new_smiles_scoring[sm_sc]
+        if smiles_scoring2use:
+            self.smiles_scoring.update(smiles_scoring2use)
+
+            self.bfp = np.vstack((self.bfp, rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles_scoring2use])))
+            self.model = None
+            print(f"{len(smiles_scoring2use)} new structures will be incorporate to the model.")
+        else:
+            print("The introduced smiles are already in the data base. No need to update.")
+
+    def predict(self, smiles:list):
+        if self.model and smiles:
+            if type(smiles) == str: smiles = [smiles]
+            fps = [AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles]
+            return self.model.predict(rdkit_numpy_convert(fps))
+        else:
+            if not self.model:
+                warnings.warn('There are not model on this object, please call it (__call__) to create it in order to get a prediction.  If you update the class, you must call the class again in order to create a new model based on the updated information, right now was set to None" Right now you just got None!')
+                return None
+            if not smiles:
+                warnings.warn('You did not provide a smiles. You will just get None as prediction')
+                return None
+    
+    def pickle(self,title, compress = False):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        if compress:
+            compressed_pickle(title, result)
+        else:
+            full_pickle(title, result) 
+#=====================================================================================================================================
+
+
+
+
+#=====================================================================================================================================
+#                   Classes to work lead
+#=====================================================================================================================================
+
+
+# Remove fragments in the future
+class Individual:
+
+    def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt = None, cost:float = np.inf) -> None:
+        self.smiles = smiles
+        
+        if not mol:
+            try:
+                self.mol = Chem.MolFromSmiles(smiles)
+            except:
+                self.mol = None
+        else:
+            self.mol = mol
+        
+        self.idx = idx
+        
+        if not pdbqt:
+            try:
+                self.pdbqt = confgen(smiles, outformat = 'pdbqt')
+            except:
+                self.pdbqt = None
+        else:
+            self.pdbqt = pdbqt
+
+        self.cost = cost
+        
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        return result
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, deepcopy(v, memo))
+        return result
+
+class Local:
+
+    def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
+        # Add check to get if the molecules is with Hs in case that some specification of the where to grow is given
+        self.mol = mol
+        self.crem_db_path = crem_db_path
+        self.grow_crem_kwargs = grow_crem_kwargs
+        self.grow_crem_kwargs.update({'return_mol':True})
+        self.costfunc = costfunc
+        self.costfunc_kwargs = costfunc_kwargs
+        
+        MolNonHs = Chem.RemoveHs(self.mol)
+        self.pop = [Individual(Chem.MolToSmiles(MolNonHs), MolNonHs, idx = 0)]
+    def __call__(self, njobs:int = 1, pick:int = None):
+        new_mols = list(grow_mol(
+            self.mol,
+            self.crem_db_path,
+            **self.grow_crem_kwargs
+            ))
+        if pick:
+            random.shuffle(new_mols)
+            new_mols = new_mols[:pick]
+            new_mols = [Chem.RemoveHs(item[1]) for item in new_mols]
+
+        idx0 = len(self.pop)
+        for i, mol in enumerate(new_mols):
+            self.pop.append(Individual(Chem.MolToSmiles(mol), mol, idx = idx0 + i))
+        
+        # Calculating cost of each individual
+        # Creating the arguments
+        args_list = []
+        # Make a copy of the self.costfunc_kwargs
+        kwargs_copy = self.costfunc_kwargs.copy()
+        if 'wd' in getfullargspec(self.costfunc).args:
+            costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
+            kwargs_copy['wd'] = costfunc_jobs.name
+        
+        for individual in self.pop:
+            args_list.append((individual, kwargs_copy))
+
+        print(f'Calculating cost function...')
+        pool = mp.Pool(njobs)
+        self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
+        pool.close()
+        
+        if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
+
+
+    def __costfunc__(self, args_list):
+        Individual, kwargs = args_list
+        #This is just to use the progress bar on pool.imap
+        return self.costfunc(Individual, **kwargs)
+            
+    def pickle(self,title, compress = False):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        if compress:
+            compressed_pickle(title, result)
+        else:
+            full_pickle(title, result)
+    
+    def to_dataframe(self):
+        list_of_dictionaries = []
+        for Individual in self.pop:
+            dictionary = Individual.__dict__.copy()
+            del dictionary['mol']
+            list_of_dictionaries.append(dictionary)
+        return pd.DataFrame(list_of_dictionaries)       
+
+## Problem!!
+# Another way to overcome the problem on generating similar molecules is to instead of calculate the similarity respect to the whole molecule give some part of the reference structure, give the pharmacophore in the initialization of GA
+# and in the cost function, first find the closer fragments and from there calculate the similarity. because always the generated molecules will be different
+# The mutation that I am doing right now is more a crossover but with the CReM library instead with the population itself.
+# Code a more conservative mutation (close to the one in the paper of the SMILES) to perform small mutations. (now is user controlled)
+# We could also, instead a crossover two mutations with different levels. Because our 'mutate' is indeed some kind of crossover but with the CReM data base. So, what we could do is implement the mutation sof the paper that is at small scale (local optimization): the possibilities are point mutations (atom-by-atom), deletion, add new atoms
+# hard_mutate and soft_mutate, our genetic operations
+# For the best ligand we could predict the metabolites with sygma (apart of the module)
+# Think about how to handle possibles Vina Crash (problems with the type of atoms). i think that is some problems happens with vina the cost function will be just np.inf
+# Sometimes the pdbqt structure is not generated (probably problems in the conversion. In this cases the whole simulation crash ans should not be like this, this should rise some warning and continue discarding this structure)
+# Apply filter for chemical elements to avoid crash on the vina function, in case that Vina crash we could use the predicted model
+# Till now Vina never fails but could happen.
+# Add more cpus for the generation of the conformers with RDKit
+# The size of the ligands increase with the number of generations (if crossover is used even more)
+# How to implement the rationality of where to grow, not just randomness. That could be the "crossover" operation, in fact the grow in a specific direction, based in (for example) the interaction network or the clashing avoid.
+# I have to create a filter of atoms in order that vina doesn't fail because B and atoms like that Vina is not able to handle.
+class GA(object):
+    
+    def __init__(self, seed_smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}, save_pop_every_gen:int = 0, pop_file_name:int = 'pop') -> None:
+        self.InitIndividual = Individual(seed_smiles, idx=0)
+        self.costfunc = costfunc
+        self.crem_db_path = crem_db_path
+        self.pop = [self.InitIndividual]
+
+        self.maxiter = maxiter
+        self.popsize = popsize
+        self.beta = beta
+        self.costfunc_kwargs = costfunc_kwargs
+        if 'ncores' in costfunc_kwargs:
+            self.costfunc_ncores = self.costfunc_kwargs['ncores']
+        else:
+            self.costfunc_ncores = 1
+        
+        self.nc = round(pc*popsize)
+        self.get_similar = get_similar
+        self.mutate_crem_kwargs = {
+            'radius':3,
+            'min_size':1,
+            'max_size':8,
+            'min_inc':-5,
+            'max_inc':3,
+            'ncores':1,
+        }
+        self.mutate_crem_kwargs.update(mutate_crem_kwargs)
+        # We need to return the molecule, so we override the possible user definition respect to this keyword
+        self.mutate_crem_kwargs['return_mol'] = True
+        
+        # Saving parameters
+        self.save_pop_every_gen = save_pop_every_gen
+        self.pop_file_name = pop_file_name
+        
+        # Tracking parameters
+        self.NumCalls = 0
+        self.NumGen = 0
+        self.SawIndividuals = []
+    
+    @timeit
+    def __call__(self, njobs:int = 1, predictor_model:VinaScoringPredictor = None):
+        # Counting the calls 
+        self.NumCalls += 1
+        # Initialize Population
+        # In case that the populating exist there is not need to initialize.
+        if len(self.pop) == 1:
+            if self.get_similar:
+                # Bias the searching to similar molecules
+                GenInitStructs = list(
+                    grow_mol(
+                        Chem.AddHs(self.InitIndividual.mol),
+                        self.crem_db_path,
+                        radius=3,
+                        min_atoms=1, max_atoms = 4,
+                        return_mol= True,
+                        ncores = self.mutate_crem_kwargs['ncores']
+                        )
+                    )
+                GenInitStructs = get_similar_mols(mols = [Chem.RemoveHs(item[1]) for item in GenInitStructs], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
+                
+            else:
+                GenInitStructs = list(
+                    mutate_mol(
+                        Chem.AddHs(self.InitIndividual.mol),
+                        self.crem_db_path,
+                        **self.mutate_crem_kwargs,
+                        )
+                    )
+                GenInitStructs = [Chem.RemoveHs(mol) for (_, mol) in GenInitStructs]
+                       
+            # Checking for possible scenarios
+            if len(GenInitStructs) < (self.popsize - 1):
+                print('The initial population has repeated elements')
+                # temporal solution
+                GenInitStructs +=  random.choices(GenInitStructs, k = self.popsize - len(GenInitStructs) -1)
+                pass# I am not sure how to deal with this
+            elif len(GenInitStructs) > (self.popsize - 1):
+                #Selected random sample from the generation 
+                GenInitStructs = random.sample(GenInitStructs, k = self.popsize -1)
+            else:
+                # Everything is ok!
+                pass 
+
+            for i, mol in enumerate(GenInitStructs):
+                self.pop.append(Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
+            
+            # Calculating cost of each individual
+            # Creating the arguments
+            args_list = []
+            # Make a copy of the self.costfunc_kwargs
+            kwargs_copy = self.costfunc_kwargs.copy()
+            if 'wd' in getfullargspec(self.costfunc).args:
+                costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
+                kwargs_copy['wd'] = costfunc_jobs.name
+            
+            for individual in self.pop:
+                args_list.append((individual, kwargs_copy))
+
+            print(f'\n\nCreating the first population with {self.popsize} members:')
+            pool = mp.Pool(njobs)
+            self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
+            pool.close()
+            
+            if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
+            
+            # Print some information of the initial population
+
+            BestIndividualOfInitPopulation = min(self.pop, key = lambda x:x.cost)
+            print(f"Initial Population: Best individual: {BestIndividualOfInitPopulation.smiles}. Best cost: {BestIndividualOfInitPopulation.cost}")
+            # Getting the info of the first individual (Father/Mother) to print at the end how well performed the method
+            # Because How the population was initialized and because we are using pool.imap (ordered). The Father/Mother is the first Individual of self.pop
+            self.InitIndividual = deepcopy(self.pop[0])
+
+
+            # Creating the first model
+            # Could be more pretty like creating a method that is make the model, y lo que se hace es que se gurda el modelo
+            # Aqui se hace por primera vez pero para no repetir tanto codigo solo se llama a update model
+            
+            # if predictor_model:
+            #     self.Predictor = predictor_model
+            #     print('\nUpdating the provided model:\n')
+            #     self.Predictor.update(
+            #         new_smiles_scoring = dict(((individual.smiles,individual.vina_score) if individual.vina_score != np.inf else (individual.smiles,9999) for individual in self.SawIndividuals)),
+            #         receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+            #         boxcenter = self.costfunc_kwargs['boxcenter'],
+            #         boxsize = self.costfunc_kwargs['boxsize'],
+            #         exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
+            #     )
+            #     self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_ncores, random_state=42, oob_score=True)
+            #     print('Done!')
+            # else:
+            #     print('\nCreating the first predicted model...')
+            #     self.Predictor = vina.VinaScoringPredictor(
+            #         smiles_scoring = dict(((individual.smiles,individual.vina_score) if individual.vina_score != np.inf else (individual.smiles,9999) for individual in self.SawIndividuals)),
+            #         receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+            #         boxcenter = self.costfunc_kwargs['boxcenter'],
+            #         boxsize = self.costfunc_kwargs['boxsize'],
+            #         exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
+            #     )
+            #     self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_ncores, random_state=42, oob_score=True)
+            #     print('Done!')
+
+            # print(f'The model presents a oob_score = {self.Predictor.model.oob_score_}\n')
+            
+            # Best Cost of Iterations
+            self.bestcost = []
+            self.avg_cost = []
+        
+        # Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.
+        for individual in self.pop:
+            if individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
+                self.SawIndividuals.append(individual)
+        
+        # Saving population in disk if it was required
+        if self.save_pop_every_gen:
+            full_pickle(self.pop_file_name, (self.NumGen,self.pop))
+        
+        # Main Loop
+        number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
+        for iter in range(self.maxiter):
+            # Saving Number of Generations
+            self.NumGen += 1
+
+            # Probabilities Selections
+            costs = np.array([individual.cost for individual in self.pop])
+            probs = np.exp(-self.beta*costs) / np.sum(np.exp(-self.beta*costs))
+
+            popc = []
+            for _ in range(self.nc):
+                # Perform Roulette Wheel Selection
+                parent = self.pop[self.roulette_wheel_selection(probs)]
+
+                # Perform Mutation (this mutation is some kind of crossover but with CReM library)
+                children = self.mutate(parent)
+                
+                # Save offspring population
+                # I will save only those offsprings that were not seen 
+                if children.smiles not in [individual.smiles for individual in self.SawIndividuals]: popc.append(children)
+
+            if popc: # Only if there are new members
+                # Calculating cost of each offspring individual (Doing Docking)
+
+                #os.makedirs('.vina_jobs', exist_ok=True)
+                pool = mp.Pool(njobs)
+                # Creating the arguments
+                args_list = []
+                # Make a copy of the self.costfunc_kwargs
+                kwargs_copy = self.costfunc_kwargs.copy()
+                if 'wd' in getfullargspec(self.costfunc).args:
+                    costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
+                    kwargs_copy['wd'] = costfunc_jobs.name
+                
+                NumbOfSawIndividuals = len(self.SawIndividuals)
+                for (i, individual) in enumerate(popc):
+                    # Add idx label to each individual
+                    individual.idx = i + NumbOfSawIndividuals
+                    # The problem here is that we are not being general for other possible Cost functions.
+                    args_list.append((individual,kwargs_copy))
+                print(f'\nEvaluating generation {self.NumGen} / {self.maxiter + number_of_previous_generations}:')
+
+                #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not perform the docking and just assign the scoring function
+
+                popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
+                pool.close()
+                if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
+                
+            # Merge, Sort and Select
+            # This could be improved. The problem is that the population could start to get the same individual, 
+            # The diversity of the population could be controlled in this steep
+            # 
+            self.pop += popc
+            self.pop = sorted(self.pop, key=lambda x: x.cost)
+            self.pop = self.pop[:self.popsize]
+
+            # Store Best Cost
+            self.bestcost.append(self.pop[0].cost)
+
+            # Store Average cost
+            self.avg_cost.append(np.mean(np.array([individual.cost for individual in self.pop])))
+
+            # Saving tracking variables and getting new ones for the model update
+            # new_smiles_cost = dict()
+            for individual in popc:
+                if individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
+                    # # New variables
+                    # if individual.cost == np.inf:
+                    #     new_smiles_cost[individual.smiles] = 9999
+                    # else:
+                    #     new_smiles_cost[individual.smiles] = individual.cost
+                    #Tracking variables
+                    self.SawIndividuals.append(individual)
+            
+            # Saving population in disk if it was required
+            if self.save_pop_every_gen:
+                # Save every save_pop_every_gen and always the last population
+                if self.NumGen % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
+                    full_pickle(self.pop_file_name, (self.NumGen, self.pop))
+
+            # # Update the model
+            # print(f'Updating the current model with the information of generation {self.NumGen}...')
+
+            # self.Predictor.update(
+            #     new_smiles_scoring = new_smiles_cost.copy(),
+            #     receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
+            #     boxcenter = self.costfunc_kwargs['boxcenter'],
+            #     boxsize = self.costfunc_kwargs['boxsize'],
+            #     exhaustiveness = self.costfunc_kwargs['exhaustiveness'],
+            # )
+            # self.Predictor(n_estimators=100, n_jobs=njobs*self.costfunc_ncores, random_state=42, oob_score=True)          
+            # print('Done!')
+            # print(f'The updated model presents a oob_score = {self.Predictor.model.oob_score_}')
+            
+
+            # Show Iteration Information
+            print(f"Generation {self.NumGen}: Best individual: {self.pop[0].smiles}. Best Cost = {self.pop[0].cost}.\n")
+            # plt.scatter(self.NumGen, self.pop[0].cost)
+        
+        # Printing summary information
+        print(f"\n{50*'=+'}\n")
+        print(f'The simulation finished successfully after {self.maxiter} generations with a population of {self.popsize} individuals.')
+        print(f"Initial Structure: {self.InitIndividual.smiles}. Initial Cost: {self.InitIndividual.cost}")
+        print(f"Final Structure: {self.pop[0].smiles}. Final Cost: {self.pop[0].cost}")
+        print(f"\n{50*'=+'}\n")
+
+    def __costfunc__(self, args_list):
+        individual, kwargs = args_list
+        #This is just to use the progress bar on pool.imap
+        return self.costfunc(individual, **kwargs)
+
+    # def crossover(self, individual1, individual2, ncores = 1, probability = 0, MaxRatioOfIncreaseInWt = 0.25):
+    #     # here I have to select some randomness to perform or not the real crossover because I think that we could get far from the solution. It is just a guess.
+    #     # How do I control the size of the new offspring? 
+    #     # Performing a fragmentation in such a way that the offspring is the same in size
+    #     # Here is where more additional information could be used. In order to orient the design of the new offspring. 
+    #     # Then, I should control how perform the mutation  in such a way that we could keep or at least evaluate the offspring generated for crossover
+    #     if random.random() < probability: # 50% of return the same individuals
+    #         fragments1 = fragments(individual1.mol)
+    #         fragments2 = fragments(individual2.mol)
+    #         all_fragments = list(fragments1) + list(fragments2)
+            
+    #         # Initialize offspring smiles; cost
+    #         offsprings = [
+    #                 [None, np.inf],
+    #                 [None, np.inf],
+    #         ]
+    #         for combination in itertools.combinations(all_fragments, 2):
+                
+    #             # Combine the molecules
+    #             try:
+    #                 possible_fragments_smiles = list(link_mols(*combination, db_name=self.crem_db_path, radius = 3, min_atoms=1, max_atoms=6, dist = 2, return_mol=False, ncores=ncores))                
+    #             except:
+    #                 # This is for debugging
+    #                 sm1, sm2 = [Chem.MolToSmiles(c) for c in combination]
+    #                 raise RuntimeError(f'These are the problematic SMILES: {sm1}, {sm2}')
+                
+    #             # Perform a filter based on weight. This control the size of the fragments. For now I will test 25 %. Think in the future work with the mols instead of smiles, I have to convert to mols too many times in this section of the code
+    #             avg_wt  = 0.5*(Descriptors.ExactMolWt(individual1.mol) + Descriptors.ExactMolWt(individual1.mol))
+    #             threshold_wt = (MaxRatioOfIncreaseInWt + 1) * avg_wt
+    #             print(f'We had {len(possible_fragments_smiles)} possible fragments')
+    #             possible_fragments_smiles = list(filter(lambda x: Descriptors.ExactMolWt(Chem.MolFromSmiles(x)) < threshold_wt, possible_fragments_smiles))
+    #             print(f'After the weight filter we have {len(possible_fragments_smiles)} possible fragments')
+
+    #             # In case that it was not possible to link the fragments
+    #             if not possible_fragments_smiles:continue
+
+    #             # Bias the searching to similar molecules
+    #             if self.get_similar:
+    #                 possible_fragments_mols = get_similar_mols(mols = [Chem.MolFromSmiles(smiles) for smiles in possible_fragments_smiles], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
+    #                 possible_fragments_smiles = [Chem.MolToSmiles(mol) for mol in possible_fragments_mols]
+                
+    #             # Here comes the prediction with the model, and get the top two
+    #             temp_offsprings = list(zip(possible_fragments_smiles, self.Predictor.predict(possible_fragments_smiles).tolist()))
+                
+    #             # Merge, Sort and Select
+    #             offsprings = sorted(offsprings + temp_offsprings, key = lambda x:x[1])[:2]
+    #         # Here I should check that exist offsprings (there not None values as smiles). For now I will assume that we always get at least two. See on the future
+    #         return Individual(smiles = offsprings[0][0]), Individual(smiles = offsprings[1][0])
+    #     else:
+    #         return individual1, individual2    
+    
+    # Improve
+
+    def mutate(self, individual):
+        # See the option max_replacment
+        # Or select the mutant based on some criterion
+        # try:
+            # Here i will pick the molecules based on the model.
+        # El problema de seleccionar asi los compuestos es que siempre seleccionamos los mismos. Siempre se esta entrando la misma estructura y terminamos con una pobalcion redundante
+        # Esto tengo que pensarlo mejor
+        # new_mols = list(mutate_mol(Chem.AddHs(individual.mol), self.crem_db_path, radius=3, min_size=1, max_size=8,min_inc=-3, max_inc=3, return_mol=True, ncores = ncores))
+        # new_mols = [Chem.RemoveHs(i[1]) for i in new_mols]
+        # best_mol, score = get_top(new_mols + [individual.mol], self.model)
+        # smiles = Chem.MolToSmiles(best_mol)
+        # mol = best_mol
+        # print(score)
+        # For now I am generating all the mutants and picking only one at random, this is very inefficient, should be better only generate one, but I am afraid that crem generate always the same or not generate any at all.
+        # I think that what first crem does is randomly select on spot and find there all possible mutants. If this spot doesn't generate mutants, then you don't get nothing. But this is a supposition. 
+        try:
+            mutants = list(mutate_mol(individual.mol, self.crem_db_path, **self.mutate_crem_kwargs))
+            # Bias the searching to similar molecules
+            if self.get_similar:
+                mol = get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
+                smiles = Chem.MolToSmiles(mol)
+            else:
+                smiles, mol = random.choice(mutants)
+        except:
+            print('The hard mutation did not work, we returned the same individual')
+            smiles, mol = individual.smiles, individual.mol
+        return Individual(smiles,mol)
+    
+    
+    def roulette_wheel_selection(self, p):
+        c = np.cumsum(p)
+        r = sum(p)*np.random.rand()
+        ind = np.argwhere(r <= c)
+        return ind[0][0]
+    
+    def pickle(self,title, compress = False):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        if compress:
+            compressed_pickle(title, result)
+        else:
+            full_pickle(title, result)
+    
+    def to_dataframe(self):
+        list_of_dictionaries = []
+        for individual in self.SawIndividuals:
+            dictionary = individual.__dict__.copy()
+            del dictionary['mol']
+            list_of_dictionaries.append(dictionary)
+        return pd.DataFrame(list_of_dictionaries)
+#=====================================================================================================================================
+
 
 if __name__ == '__main__':
     pass
