@@ -31,8 +31,8 @@ With the initial SMILES, a random population of `popsize` individuals will be ge
 The default fitness function could be access through:
 
 ```python
-import lead as pb
-cost = pb.Cost
+from lead import fitness
+cost = fitness.Cost
 ```
 A molecule must present several properties to be considered a drug. Some of the must important are: be potent, reach the biological target (good ADME profile) and be real. The last obvious property could be a bottleneck for computer assisted drug design. Because we want to optimize several response variables at the same time; this `cost` function use the concept of desirability functions ([see this paper](https://www.sciencedirect.com/science/article/pii/S0169743911000797)) which optimize several response variables on the hub.
 
@@ -57,7 +57,7 @@ Could be that our receptor presents high flexibility or that we are interested i
 ```python
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from lead import ga, fitness, utils
+from lead import fitness, utils
 import json
 from multiprocessing import cpu_count
 
@@ -71,7 +71,7 @@ with open('data/box.json', 'r') as f:
 with open('data/smi.json', 'r') as f:
     init_smiles = json.load(f)[receptor]
 
-out = ga.GA(
+out = utils.GA(
     smiles=init_smiles,
     maxiter=maxiter,
     popsize=popsize,
@@ -94,7 +94,6 @@ out = ga.GA(
         'exhaustiveness': 8,
         'ncores': int(cpu_count() / njobs),
         'num_modes': 1,
-        #'ref_smiles': init_smiles,
     },
     )
 out(njobs = njobs)
@@ -143,10 +142,10 @@ Could be that for some reason the job is killed. In order to prevent loose all t
 
 Then you just need to initialize the `GA` class and give as population the saved one.
 ```python
-from lead import utils, ga
+from lead import utils
 generation, init_pop = utils.loosen('pop.pkl')
 # Initialize GA
-out = ga.GA(...)
+out = utils.GA(...)
 out.pop = init_pop
 out(njobs = 3)
 ```
