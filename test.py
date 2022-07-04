@@ -15,13 +15,13 @@ TypeOfTest = [
     'multi_receptor',
     'local',
 ]
-TypeOfTest = TypeOfTest[1]
+TypeOfTest = TypeOfTest[0]
 
 if TypeOfTest == 'single_receptor':
 
     receptor = '7e27'#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
-    maxiter = 4
-    popsize = 5
+    maxiter = 2
+    popsize = 3
     njobs = 3
     NumbCalls = 1
 
@@ -83,8 +83,8 @@ if TypeOfTest == 'single_receptor':
 
 elif TypeOfTest == 'multi_receptor':
     receptor = ['7e27_periplasm', '7e27']#7e27'#'6lu7'#'x0161'#'7e27_periplasm'
-    maxiter = 4
-    popsize = 5
+    maxiter = 2
+    popsize = 3
     njobs = 3
     NumbCalls = 1
 
@@ -176,5 +176,5 @@ elif TypeOfTest == 'local':
                 'num_modes': 1,
             },
     )
-    local(njobs = njobs, pick=30)
+    local(njobs = njobs, pick=5)
     print(local.to_dataframe())

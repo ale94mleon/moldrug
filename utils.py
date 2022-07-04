@@ -3,23 +3,14 @@
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdmolops, DataStructs, Lipinski, Descriptors
 from openbabel import openbabel as ob
-
 from crem.crem import mutate_mol, grow_mol
 
 from copy import deepcopy
 from inspect import getfullargspec
 import multiprocessing as mp
-import tempfile, subprocess, os, random, time, shutil, tqdm, warnings
+import tempfile, subprocess, os, random, time, shutil, tqdm, warnings, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
 from datetime import datetime
-import numpy as np
-import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
-
-import bz2
-import pickle
-import _pickle as cPickle
-
-import random, tqdm, shutil
 
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
@@ -27,11 +18,15 @@ RDLogger.DisableLog('rdApp.*')
 # Alias for vina
 vina_executable = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vina')
 
-#=====================================================================================================================================
-#                                   Here are some important functions to work with
-#=====================================================================================================================================
-# Useful as decorator
+######################################################################################################################################
+#                                   Here are some important functions to work with                                                   #
+######################################################################################################################################
 def timeit(method):
+    """Calculate the time of a process. Useful as decorator of functions
+
+    Args:
+        method (function): Any function.
+    """
     def timed(*args, **kw):
         ts = time.time()
         result = method(*args, **kw)
@@ -45,7 +40,21 @@ def timeit(method):
         return result
     return timed
 
-def run(command, shell = True, executable = '/bin/bash', Popen = False):
+def run(command:str, shell:bool = True, executable:str = '/bin/bash', Popen:bool = False):
+    """This function is just a useful wrapper around subprocess.Popen, subprocess.run
+
+    Args:
+        command (str): Any command to execute on Linux
+        shell (bool, optional): keyword of Popen and Run. Defaults to True.
+        executable (str, optional): keyword of Popen and Run. Defaults to '/bin/bash'.
+        Popen (bool, optional): If True it will launch popen if not Run. Defaults to False.
+
+    Raises:
+        RuntimeError: In case of non-zero exit status.
+
+    Returns:
+        object: the processes returned by Popen or Run.
+    """
     if Popen:
         #In this case you could acces the pid as: run.pid
         process = subprocess.Popen(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
@@ -57,8 +66,8 @@ def run(command, shell = True, executable = '/bin/bash', Popen = False):
             raise RuntimeError(process.stderr)
     return process
 
-def obconvert(inpath, outpath):
-    """Convert  molecule using openbabel
+def obconvert(inpath:str, outpath:str):
+    """Convert a molecule using openbabel
 
     Args:
         input (str, path): input molecule.
@@ -74,8 +83,8 @@ def obconvert(inpath, outpath):
     #mol.AddHydrogens()
     obConversion.WriteFile(mol, outpath)
 
-def confgen(smiles, outformat = "pdbqt"):
-    """Create a 3D model from smile to
+def confgen(smiles:str, outformat:str = "pdbqt"):
+    """Create a 3D model from a smiles and return in the specified format.
 
     Args:
         smiles (str): a valid smiles code.
@@ -92,7 +101,15 @@ def confgen(smiles, outformat = "pdbqt"):
         string = o.read()
     return string
 
-def fragments(mol):
+def fragments(mol:Chem.rdchem.Mol):
+    """Create the fragments of the molecule based on the single bonds
+
+    Args:
+        mol (Chem.rdchem.Mol): An RDKit molecule.
+
+    Returns:
+        Chem.rdmolops.GetMolFrags: The fragments. you could cast the result using list and get all the fragments.
+    """
     break_point = int(random.choice(np.where(np.array([b.GetBondType() for b in mol.GetBonds()]) == Chem.rdchem.BondType.SINGLE)[0]))
     # Chem.FragmentOnBonds(mol, break_point) # Could be used to increase randomness give more possible fragments and select two of them
     with Chem.RWMol(mol) as rwmol:
@@ -101,6 +118,14 @@ def fragments(mol):
     return rdmolops.GetMolFrags(rwmol, asMols = True)
 
 def rdkit_numpy_convert(fp):
+    """Convert a list of binary fingerprint to numpy arrays.
+
+    Args:
+        fp (_type_): list of binary fingerprints
+
+    Returns:
+        numpy.array: An array with dimension (number of elements in the list, number of bits on the fingerprint).
+    """
     # fp - list of binary fingerprints
     output = []
     for f in fp:
@@ -109,16 +134,32 @@ def rdkit_numpy_convert(fp):
         output.append(arr)
     return np.asarray(output)
 
-def get_top(ms, model):
-    # ms - list of molecules
-    # model - sklearn model
+def get_top(ms:list, model):
+    """Get the molecule with higher value predicted by the model.
+
+    Args:
+        ms (list): list of molecules
+        model (sklearn model): A model for with the training set was a set of numpy array based on the AllChem.GetMorganFingerprintAsBitVect 
+
+    Returns:
+        _type_: The molecule with the higher predicted value.
+    """
     fps1 = [AllChem.GetMorganFingerprintAsBitVect(m, 2) for m in ms]
     x1 = rdkit_numpy_convert(fps1)
     pred = model.predict(x1)
     i = np.argmax(pred)
     return ms[i], pred[i]
 
-def get_sim(ms, ref_fps):
+def get_sim(ms:list, ref_fps):
+    """Get the molecules with higher similarity to each member of ref_fps.
+
+    Args:
+        ms (list): list of molecules
+        ref_fps (AllChem.GetMorganFingerprintAsBitVect): A list of reference fingerprints
+
+    Returns:
+        list: A list of molecules with the higher similarity with their corresponded ref_fps value.
+    """
     # ms - list of molecules
     # ref_fps - list of fingerprints of reference molecules
     output = []
@@ -155,7 +196,16 @@ def get_similar_mols(mols:list, ref_mol:Chem.rdchem.Mol, pick:int, beta:float = 
             indexes.add(np.argwhere(r <= cumsum)[0][0])
         return [mols[index] for index in indexes]
 
-def lipinski_filter(mol, maxviolation = 2):
+def lipinski_filter(mol:Chem.rdchem.Mol, maxviolation:int = 2):
+    """Implementation of Lipinski filter.
+
+    Args:
+        mol (Chem.rdchem.Mol): An RDKit molecule.
+        maxviolation (int, optional): Maximum number of violations to accept the molecule. Defaults to 2.
+
+    Returns:
+        bool: True if the molecule present less than maxviolation of Number of violation; otherwise False.
+    """
     filter = {
         'NumHAcceptors': {'method':Lipinski.NumHAcceptors,'cutoff':10},
         'NumHDonors': {'method':Lipinski.NumHDonors,'cutoff':5},
@@ -163,7 +213,6 @@ def lipinski_filter(mol, maxviolation = 2):
         'MLogP': {'method':Descriptors.MolLogP,'cutoff':5},
         'NumRotatableBonds': {'method':Lipinski.NumRotatableBonds,'cutoff':10},
         'TPSA': {'method':Chem.MolSurf.TPSA,'cutoff':140},
-
     }
     cont = 0
     for property in filter:
@@ -174,8 +223,16 @@ def lipinski_filter(mol, maxviolation = 2):
             return False
     return True
 
-def lipinski_profile(mol):
-    #https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski
+def lipinski_profile(mol:Chem.rdchem.Mol):
+    """Get several drug-like properties.
+    See: https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski
+
+    Args:
+        mol (Chem.rdchem.Mol): An RDKit molecule.
+
+    Returns:
+        dict: A dictionary with the properties.
+    """
     properties = {
         'NumHAcceptors': {'method':Lipinski.NumHAcceptors,'cutoff':10},
         'NumHDonors': {'method':Lipinski.NumHDonors,'cutoff':5},
@@ -209,12 +266,19 @@ def lipinski_profile(mol):
         #print(f"{property}: {properties[property]['method'](mol)}. cutoff: {properties[property]['cutoff']}")
     return profile
 
-#===================================================================
+#Desirability. doi:10.1016/j.chemolab.2011.04.004; https://www.youtube.com/watch?v=quz4NW0uIYw&list=PL6ebkIZFT4xXiVdpOeKR4o_sKLSY0aQf_&index=3
+def LargerTheBest(Value:float, LowerLimit:float, Target:float, r:float = 1)  -> float:
+    """Desirability function used when larger values are the targets. If Value is higher or equal than the target it will return 1; if it is lower than LowerLimit it will return 0; else a number between 0 and 1.
 
-#                        Desirability
-# doi:10.1016/j.chemolab.2011.04.004; https://www.youtube.com/watch?v=quz4NW0uIYw&list=PL6ebkIZFT4xXiVdpOeKR4o_sKLSY0aQf_&index=3
-#===================================================================
-def LargerTheBest(Value, LowerLimit, Target, r = 1):
+    Args:
+        Value (float): Value to test.
+        LowerLimit (float): Lower value accepted. Lower than this one will return 0.
+        Target (float): The target value. On this value (or higher) the function takes 1 as value.
+        r (float, optional): This is the exponent of the interpolation. Could be used to control the interpolation. Defaults to 1.
+
+    Returns:
+        float: A number between 0 and 1. Been 1 the desireable value to get.
+    """
     if Value < LowerLimit:
         return 0.0
     elif LowerLimit <= Value <= Target:
@@ -222,8 +286,17 @@ def LargerTheBest(Value, LowerLimit, Target, r = 1):
     else:
         return 1.0
 
-def SmallerTheBest(Value, Target, UpperLimit, r = 1):
-    """ Smaller-The-Best (STB
+def SmallerTheBest(Value:float, Target:float, UpperLimit:float, r:float = 1) -> float:
+    """Desirability function used when lower values are the targets. If Value is lower or equal than the target it will return 1; if it is higher than UpperLimit it will return 0; else a number between 0 and 1.
+
+    Args:
+        Value (float): Value to test.
+        Target (float): The target value. On this value (or lower) the function takes 1 as value.
+        UpperLimit (float): Upper value accepted. Higher than this one will return 0.
+        r (float, optional): This is the exponent of the interpolation. Could be used to control the interpolation. Defaults to 1.
+
+    Returns:
+        float: A number between 0 and 1. Been 1 the desireable value to get.
     """
     if Value < Target:
         return 1.0
@@ -232,9 +305,19 @@ def SmallerTheBest(Value, Target, UpperLimit, r = 1):
     else:
         return 0.0
 
-def NominalTheBest(Value, LowerLimit, Target, UpperLimit, r1 = 1, r2 = 1):
-    """ Nominal-The-Best (NTB): the value of the estimated response is
-    expected to achieve a particular target value (T).
+def NominalTheBest(Value:float, LowerLimit:float, Target:float, UpperLimit:float, r1:float = 1, r2:float = 1) -> float:
+    """Desirability function used when a target value is desired. If Value is lower or equal than the LowerLimit it will return 0; as well values higher or equal than  UpperLimit; else a number between 0 and 1.
+
+    Args:
+        Value (float):  Value to test.
+        LowerLimit (float): Lower value accepted. Lower than this one will return 0.
+        Target (float): The target value. On this value the function takes 1 as value.
+        UpperLimit (float): Upper value accepted. Higher than this one will return 0.
+        r1 (float, optional): This is the exponent of the interpolation from LowerLimit to Target. Could be used to control the interpolation. Defaults to 1.
+        r2 (float, optional): This is the exponent of the interpolation from Target to UpperLimit. Could be used to control the interpolation. Defaults to 1.
+
+    Returns:
+        float: A number between 0 and 1. Been 1 the desireable value to get.
     """
     if Value < LowerLimit:
         return 0.0
@@ -244,7 +327,6 @@ def NominalTheBest(Value, LowerLimit, Target, UpperLimit, r1 = 1, r2 = 1):
         return ((UpperLimit-Value)/(UpperLimit-Target))**r2
     else:
         return 0.0
-
 
 # Saving data
 def full_pickle(title:str, data:object):
@@ -257,11 +339,11 @@ def full_pickle(title:str, data:object):
     with open(f'{title}.pkl', 'wb') as pkl:
         pickle.dump(data, pkl)
 
-def loosen(file):
+def loosen(file:str):
     """Unpickle a pickled object.
 
     Args:
-        file (path): The path to the file who store the pickle object.
+        file (str): The path to the file who store the pickle object.
 
     Returns:
         object: The python object.
@@ -280,11 +362,11 @@ def compressed_pickle(title:str, data:object):
     with bz2.BZ2File(f'{title}.pbz2', 'w') as f: 
         cPickle.dump(data, f)   
 
-def decompress_pickle(file):
+def decompress_pickle(file:str):
     """Decompress CPickle objects compressed first with bz2 formats
 
     Args:
-        file (path): This is the cPickle files compressed with bz2.BZ2File. (as a convention with extension .pbz2, but not needed)
+        file (str): This is the cPickle files compressed with bz2.BZ2File. (as a convention with extension .pbz2, but not needed)
 
     Returns:
         object: The python object.
@@ -292,16 +374,17 @@ def decompress_pickle(file):
     data = bz2.BZ2File(file, 'rb')
     data = cPickle.load(data)
     return data
-#=====================================================================================================================================
+######################################################################################################################################
 
 
 
 
-#=====================================================================================================================================
-#                   Classes to work with Vina
-#=====================================================================================================================================
+######################################################################################################################################
+#                                               Classes to work with Vina                                                            #
+######################################################################################################################################
 class Atom:
-    #https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out
+    """This is a simple class to wrap a pdbqt Atom. It is based on https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out.
+    """
     def __init__(self, line):
         self.lineType = "ATOM"
         self.serial = int(line[6:11])
@@ -322,6 +405,8 @@ class Atom:
         return self.__dict__[key]
 
 class Hetatm:
+    """This is a simple class to wrap a pdbqt Hetatm. It is based on https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out.
+    """
     def __init__(self, line):
         self.lineType = "HETATM"
         self.serial = int(line[6:11])
@@ -342,10 +427,14 @@ class Hetatm:
         return self.__dict__[key]
 
 class Remark:
+    """For now usesless
+    """
     def __init__(self, line):
         pass
 
 class CHUNK_VINA_OUT:
+    """This class will be used by VINA_OUT in order to read the pdbqt ouput of a vina docking results.
+    """
     def __init__(self, chunk):
         self.chunk = chunk
         self.atoms = []
@@ -416,8 +505,9 @@ class VINA_OUT:
         return min_chunk
 
 
-class VinaScoringPredictor:
-
+class ScoringPredictor:
+    """This class is used to predict a scoring based on the information of the SMILES.
+    """
     def __init__(self, smiles_scoring:dict, receptor:str, boxcenter:list, boxsize:list, exhaustiveness:int) -> None:
         # Esto puede servir para simplemente buscar en la base de datos por la moelcula, y si esta dar el valor exacto de Vina sin tenr que hacer el calculo
         # Y por supuesto para predecir
@@ -483,19 +573,25 @@ class VinaScoringPredictor:
             compressed_pickle(title, result)
         else:
             full_pickle(title, result) 
-#=====================================================================================================================================
+######################################################################################################################################
 
 
 
 
-#=====================================================================================================================================
-#                   Classes to work lead
-#=====================================================================================================================================
-
-
-# Remove fragments in the future
+######################################################################################################################################
+#                                             Classes to work lead                                                                   #
+######################################################################################################################################
 class Individual:
-
+    """
+    Base class to work with GA, Local and all the fitness fucntions.
+    Individual is a mutable object. It uses the smiles string for '=='
+    operator and the cost attribute for arithmetic operations.
+    Known issue, in case that we would like to use a numpy array of individuals. It is needed to change the ditype of the generatead arrays
+    In order to use other operations, or cast to a list
+    array = np.array([c1,c2])
+    array_2 = array*2
+    array_2 = array_2.astype('float64')
+    """
     def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt = None, cost:float = np.inf) -> None:
         self.smiles = smiles
         
@@ -518,7 +614,77 @@ class Individual:
             self.pdbqt = pdbqt
 
         self.cost = cost
-        
+    
+    def __repr__(self):
+        return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {self.smiles}, cost = {self.cost})"
+
+    def __eq__(self, other: object) -> bool:
+        if self.__class__ is other.__class__:
+            return self.smiles == other.smiles #self.cost == other.cost and
+        else:
+            return False # self.smiles == other
+
+    def __gt__(self, other: object) -> bool:
+        return self.cost > other.cost
+
+    def __ge__(self, other: object) -> bool:
+        return self.cost >= other.cost
+
+    def __lt__(self, other: object) -> bool:
+        return self.cost < other.cost
+
+    def __le__(self, other: object) -> bool:
+        return self.cost <= other.cost
+
+    def __neg__(self) -> float:
+        return -self.cost
+
+    def __abs__(self) -> float:
+        return abs(self.cost)
+
+    def __add__(self, other: object):
+        return self.cost + other
+    def __radd__(self, other: object):
+        return  other  + self.cost
+
+    def __sub__(self, other: object):
+        return self.cost - other
+    def __rsub__(self, other: object):
+        return  other  - self.cost
+
+    def __mul__(self, other: object):
+        return self.cost * other
+    def __rmul__(self, other: object):
+        return  other  * self.cost
+
+    def __truediv__(self, other: object):
+        return self.cost / other
+    def __rtruediv__(self, other: object):
+        return  other  / self.cost
+
+    def __floordiv__(self, other: object):
+        return self.cost // other
+    def __rfloordiv__(self, other: object):
+        return  other  // self.cost
+
+    def __mod__(self, other: object):
+        return self.cost % other
+    def __rmod__(self, other: object):
+        return  other  % self.cost
+
+    def __divmod__(self, other: object):
+        return (self.cost // other, self.cost % other)
+    def __rdivmod__(self, other: object):
+        return  (other  // self.cost, other  % self.cost)
+
+    def __pow__(self, other: object):
+        return self.cost ** other
+    def __rpow__(self, other: object):
+        return  other  ** self.cost
+    
+    def exp(self):
+        return np.exp(self.cost)     
+
     def __copy__(self):
         cls = self.__class__
         result = cls.__new__(cls)
@@ -534,7 +700,6 @@ class Individual:
         return result
 
 class Local:
-
     def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
         # Add check to get if the molecules is with Hs in case that some specification of the where to grow is given
         self.mol = mol
@@ -580,7 +745,6 @@ class Local:
         
         if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
 
-
     def __costfunc__(self, args_list):
         Individual, kwargs = args_list
         #This is just to use the progress bar on pool.imap
@@ -619,7 +783,7 @@ class Local:
 # The size of the ligands increase with the number of generations (if crossover is used even more)
 # How to implement the rationality of where to grow, not just randomness. That could be the "crossover" operation, in fact the grow in a specific direction, based in (for example) the interaction network or the clashing avoid.
 # I have to create a filter of atoms in order that vina doesn't fail because B and atoms like that Vina is not able to handle.
-class GA(object):
+class GA:
     
     def __init__(self, seed_smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}, save_pop_every_gen:int = 0, pop_file_name:int = 'pop') -> None:
         self.InitIndividual = Individual(seed_smiles, idx=0)
@@ -660,7 +824,7 @@ class GA(object):
         self.SawIndividuals = []
     
     @timeit
-    def __call__(self, njobs:int = 1, predictor_model:VinaScoringPredictor = None):
+    def __call__(self, njobs:int = 1, predictor_model:ScoringPredictor = None):
         # Counting the calls 
         self.NumCalls += 1
         # Initialize Population
@@ -726,11 +890,10 @@ class GA(object):
             if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
             
             # Print some information of the initial population
-
-            BestIndividualOfInitPopulation = min(self.pop, key = lambda x:x.cost)
-            print(f"Initial Population: Best individual: {BestIndividualOfInitPopulation.smiles}. Best cost: {BestIndividualOfInitPopulation.cost}")
-            # Getting the info of the first individual (Father/Mother) to print at the end how well performed the method
-            # Because How the population was initialized and because we are using pool.imap (ordered). The Father/Mother is the first Individual of self.pop
+            print(f"Initial Population: Best individual: {min(self.pop)}")
+            # Updating the info of the first individual (parent) to print at the end how well performed the method (cost function)
+            # Because How the population was initialized and because we are using pool.imap (ordered). The parent is the first Individual of self.pop.
+            # We have to use deepcopy because Individual is a mutable object
             self.InitIndividual = deepcopy(self.pop[0])
 
 
@@ -752,7 +915,7 @@ class GA(object):
             #     print('Done!')
             # else:
             #     print('\nCreating the first predicted model...')
-            #     self.Predictor = vina.VinaScoringPredictor(
+            #     self.Predictor = vina.ScoringPredictor(
             #         smiles_scoring = dict(((individual.smiles,individual.vina_score) if individual.vina_score != np.inf else (individual.smiles,9999) for individual in self.SawIndividuals)),
             #         receptor = os.path.basename(self.costfunc_kwargs['receptor_path']).split('.')[0],
             #         boxcenter = self.costfunc_kwargs['boxcenter'],
@@ -770,7 +933,7 @@ class GA(object):
         
         # Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.
         for individual in self.pop:
-            if individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
+            if individual not in self.SawIndividuals:
                 self.SawIndividuals.append(individual)
         
         # Saving population in disk if it was required
@@ -784,8 +947,9 @@ class GA(object):
             self.NumGen += 1
 
             # Probabilities Selections
-            costs = np.array([individual.cost for individual in self.pop])
-            probs = np.exp(-self.beta*costs) / np.sum(np.exp(-self.beta*costs))
+            factors = (-self.beta * np.array(self.pop)).astype('float64')
+            probs = np.exp(factors) / np.exp(factors).sum()
+
 
             popc = []
             for _ in range(self.nc):
@@ -797,7 +961,7 @@ class GA(object):
                 
                 # Save offspring population
                 # I will save only those offsprings that were not seen 
-                if children.smiles not in [individual.smiles for individual in self.SawIndividuals]: popc.append(children)
+                if children not in self.SawIndividuals: popc.append(children)
 
             if popc: # Only if there are new members
                 # Calculating cost of each offspring individual (Doing Docking)
@@ -827,23 +991,20 @@ class GA(object):
                 if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
                 
             # Merge, Sort and Select
-            # This could be improved. The problem is that the population could start to get the same individual, 
-            # The diversity of the population could be controlled in this steep
-            # 
             self.pop += popc
-            self.pop = sorted(self.pop, key=lambda x: x.cost)
+            self.pop = sorted(self.pop)
             self.pop = self.pop[:self.popsize]
 
             # Store Best Cost
             self.bestcost.append(self.pop[0].cost)
 
             # Store Average cost
-            self.avg_cost.append(np.mean(np.array([individual.cost for individual in self.pop])))
+            self.avg_cost.append(np.mean(self.pop))
 
             # Saving tracking variables and getting new ones for the model update
             # new_smiles_cost = dict()
             for individual in popc:
-                if individual.smiles not in [sa.smiles for sa in self.SawIndividuals]:
+                if individual not in self.SawIndividuals:
                     # # New variables
                     # if individual.cost == np.inf:
                     #     new_smiles_cost[individual.smiles] = 9999
@@ -874,14 +1035,15 @@ class GA(object):
             
 
             # Show Iteration Information
-            print(f"Generation {self.NumGen}: Best individual: {self.pop[0].smiles}. Best Cost = {self.pop[0].cost}.\n")
+            print(f"Generation {self.NumGen}: Best Individual: {self.pop[0]}.\n")
             # plt.scatter(self.NumGen, self.pop[0].cost)
         
         # Printing summary information
         print(f"\n{50*'=+'}\n")
-        print(f'The simulation finished successfully after {self.maxiter} generations with a population of {self.popsize} individuals.')
-        print(f"Initial Structure: {self.InitIndividual.smiles}. Initial Cost: {self.InitIndividual.cost}")
-        print(f"Final Structure: {self.pop[0].smiles}. Final Cost: {self.pop[0].cost}")
+        print(f'The simulation finished successfully after {self.maxiter} generations with a population of {self.popsize} individuals. A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.')
+        print(f"Initial Individual: {self.InitIndividual}")
+        print(f"Final Individual: {self.pop[0]}")
+        print(f"The cost fucntion droped in {self.InitIndividual - self.pop[0]} units.")
         print(f"\n{50*'=+'}\n")
 
     def __costfunc__(self, args_list):
@@ -993,16 +1155,39 @@ class GA(object):
             del dictionary['mol']
             list_of_dictionaries.append(dictionary)
         return pd.DataFrame(list_of_dictionaries)
-#=====================================================================================================================================
+######################################################################################################################################
 
 
 if __name__ == '__main__':
-    pass
-    # import pandas as pd
-    # initial_smiles = 'COC(=O)C=1C=CC(=CC1)S(=O)(=O)N'
-    # i = Individual(initial_smiles)
-    # ii = Individual('O=C(Nc1ccon1)c1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1')
-    # # print(Descriptors.MolLogP(Chem.MolFromSmiles('O=C(Nc1ccon1)c1ccc(C(=O)/C=C(\O)C(F)(F)C(F)(F)F)c(O)c1')))
-    # new = i.__dict__.copy()
-    # del new['mol']
-    # print(new.keys())
+    i1 = Individual(smiles = 'CCCO', cost = 10)
+    i2 = Individual(smiles = 'CCC', cost = 2)
+    i3 = Individual(smiles = 'CCCF', cost = 3)
+    i4 = Individual(smiles = 'CCCF', cost = 69)
+    i5 = Individual(smiles = 'CCCCCCF', cost = 69)
+    # print(i1)
+    # print(f"i1 == i2 :{i1 == i2}")
+    # print(f"i1 != i2: {i1 != i2}")
+    # print(f"i1 <= i2: {i1 <= i2}")
+    # print(f"i1 >= i2: {i1 >= i2}")
+    # print(f"i1 < i2: {i1 < i2}")
+    # print(f"i1 > i2: {i1 > i2}")
+    # print(f"i1 is i2: {i1 is i2}")
+    # print(f"i1 + i2: {i2 + i1}")
+    # print(f"i1 * i2: {i1 * i1}")
+    print(f"i1 / i2: { i5//6}")
+    print(-i1)
+    # print(f"np.mean: {np.mean([i1, i2])}")
+    # print(f"bool: {bool(i2)}")
+    # print(f"min {min([i1,i2,i3])}")
+    # print(f"i4 in [] { 'CCCF' in  [i1,i2,i3]}")
+    
+    # for i in [i4, i5, Individual('CClCC')]:
+    #     if i not in [i1,i2,i3]:
+    #         print(i)
+    array1=[i1,i2,i3,i4]
+    array2=[i1,i2,i3,i4]
+    print(sorted(array1), 55555555555)
+    # Probabilities Selections
+    costs = np.array(array1)
+    probs = np.exp((2*costs).astype('float64'))# / np.sum(np.exp(36*costs))
+    print(costs[0])

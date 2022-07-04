@@ -2,15 +2,13 @@
 # -*- coding: utf-8 -*-
 from lead import utils
 from rdkit import Chem
-import numpy as np
 from rdkit.Chem import QED, AllChem, DataStructs
-import sys, os
+import sys, os, numpy as np
 from rdkit.Chem import RDConfig
 sys.path.append(os.path.join(RDConfig.RDContribDir, 'SA_Score'))
 # now you can import sascore!
 import sascorer
 
-# !!! Add a cost function with similarity as a desirability or just as filter.
 
 def __VinaCost(Individual, wd = '.vina_jobs', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, ncores = 1,  num_modes = 1):
     cmd = f"{utils.vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
