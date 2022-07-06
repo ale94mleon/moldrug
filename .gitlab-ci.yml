@@ -1,5 +1,6 @@
 test:
-  image: python:3.10
+  image: conda/miniconda3
   script:
+    - conda install rdkit openbabel 
     - pip install -e .
     - pytest
