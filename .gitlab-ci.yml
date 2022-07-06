@@ -1,0 +1,5 @@
+test:
+  image: python:3.10
+  script:
+    - pip install -e .
+    - pytest
