@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build-linux:
-    runs-on: linux
+    runs-on: Ubuntu 20.04.4 LTS
     strategy:
       max-parallel: 5
 
