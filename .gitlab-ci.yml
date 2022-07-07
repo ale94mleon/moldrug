@@ -10,7 +10,6 @@ build-image:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
     - docker build --no-cache -t "${IMAGE_PATH}" .
-    - docker run -t "${IMAGE_PATH}" vina
     - docker push "${IMAGE_PATH}"
   tags:
     - docker
