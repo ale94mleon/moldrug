@@ -20,6 +20,7 @@ build-image:
 test:
   image: "${IMAGE_PATH}"
   script:
+    - source ~/.anaconda/bin/activate && conda activate lead
     - pip install -e .
     - pytest
   stage: test
