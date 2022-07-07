@@ -1,8 +1,25 @@
-test:
-  image: conda/miniconda3
+variables:
+  IMAGE_PATH: "${CI_REGISTRY_IMAGE}/default:${CI_COMMIT_REF_SLUG}"
+
+stages:
+  - build-image
+  - test
+
+build-image:
+  before_script:
+    - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-    - conda install -y -c conda-forge openbabel
-    - conda install -y -c bioconda autodock-vina
-    - conda install -y -c conda-forge rdkit cython
+    - docker build -t "${IMAGE_PATH}" .
+    - docker run -t "${IMAGE_PATH}" vina
+    - docker push "${IMAGE_PATH}"
+  tags:
+    - docker
+  when: manual
+  stage: build-image
+
+test:
+  image: "${IMAGE_PATH}"
+  script:
     - pip install -e .
     - pytest
+  stage: test
