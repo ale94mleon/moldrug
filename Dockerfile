@@ -18,7 +18,7 @@ WORKDIR /home/user
 RUN wget https://repo.anaconda.com/archive/Anaconda3-2021.05-Linux-x86_64.sh
 RUN bash Anaconda3-2021.05-Linux-x86_64.sh -b -p ~/.anaconda
 
-RUN echo "source ~/.anaconda/bin/activate" >> ~/.bashrc
+RUN echo "source ~/.anaconda/bin/activate && conda activate lead" >> ~/.bashrc
 
 SHELL ["/bin/bash", "-c"]
 
