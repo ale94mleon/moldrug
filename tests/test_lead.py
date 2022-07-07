@@ -1,14 +1,12 @@
-from sklearn.exceptions import DataDimensionalityWarning
 import lead.data as data
-from lead import utils, fitness, home
+from lead import utils, fitness
 from lead.data import receptors, ligands, boxes
-from lead.home import home
-import tempfile, os, gzip, shutil
+import tempfile, os, gzip, shutil, requests
 from multiprocessing import cpu_count
 
 # Creating a temporal directory
 tmp_path = tempfile.TemporaryDirectory()
-
+# Getting receptor a ligand information
 ligand = ligands.r_x0161
 receptor = receptors.r_x0161
 receptor_file = os.path.join(tmp_path.name, 'receptor.pdbqt')
@@ -16,8 +14,11 @@ with open(receptor_file, 'w') as r:
     r.write(receptor)
 box = boxes.r_x0161["A"]
 # Getting the crem data base
+url = "http://www.qsar4u.com/files/cremdb/replacements02_sc2.db.gz"
+r = requests.get(url, allow_redirects=True)
+open(os.path.join(tmp_path,'crem.db.gz'), 'wb').write(r.content)
 
-crem_dbgz_path = '/home/ale/GITLAB/lead/row_data/replacements02_sc2.db.gz'
+crem_dbgz_path = os.path.join(tmp_path,'crem.db.gz')
 crem_db_path = '/home/ale/GITLAB/lead/row_data/replacements02_sc2.db'
 
 with gzip.open(crem_dbgz_path, 'rb') as f_in:

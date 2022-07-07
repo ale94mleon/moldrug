@@ -1,4 +1,4 @@
-![lead logo](data/logo.png)
+![lead logo](row_data/logo.png)
 # Table of content
 1.  [lead](#lead)
     1.  [The idea](#The-idea)
