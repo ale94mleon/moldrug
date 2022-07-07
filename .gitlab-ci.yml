@@ -1,9 +1,8 @@
 test:
   image: conda/miniconda3
   script:
-    - conda install openbabel
-    - conda install -c bioconda autodock-vina
-    - conda config --add channels conda-forge
-    - conda install rdkit cython
+    - conda install -y -c conda-forge openbabel
+    - conda install -y -c bioconda autodock-vina
+    - conda install -y -c conda-forge rdkit cython
     - pip install -e .
     - pytest
