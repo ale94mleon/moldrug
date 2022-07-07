@@ -9,7 +9,7 @@ build-image:
   before_script:
     - docker login -u gitlab-ci-token -p ${CI_JOB_TOKEN} ${CI_REGISTRY}
   script:
-    - docker build --no-cache -t "${IMAGE_PATH}" .
+    - docker build -t "${IMAGE_PATH}" .
     - docker push "${IMAGE_PATH}"
   tags:
     - docker
