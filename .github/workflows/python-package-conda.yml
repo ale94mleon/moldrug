@@ -4,9 +4,9 @@ on: [push]
 
 jobs:
   build-linux:
-    runs-on: Ubuntu 20.04.4 LTS
-    strategy:
-      max-parallel: 5
+    runs-on: ubuntu-20.04
+    # strategy:
+    #   max-parallel: 5
 
     steps:
     - uses: actions/checkout@v3
@@ -28,12 +28,14 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Install conda dependencies
+      run: |
+        conda install -y -c conda-forge rdkit">=2022.0"
+        conda install -y -c conda-forge openbabel">=3.1.0"
+        conda install -y -c bioconda autodock-vina
+    - name: Install conda dependencies
+      run: |
+        pip install -e .[dev]
     - name: Test with pytest
       run: |
-        conda config --add channels conda-forge
-        conda install rdkit cython
-        conda install openbabel
-        conda install -c bioconda autodock-vina
-        pip install -e .
-        conda install pytest
         pytest
