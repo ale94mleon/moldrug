@@ -1,4 +1,4 @@
-![moldrug logo](https://github.com/ale94mleon/moldrug/blob/main/row_data/logo.png)
+![logo](https://github.com/ale94mleon/moldrug/blob/main/row_data/logo.png?raw=true)
 ![Tests](https://github.com/ale94mleon/moldrug/actions/workflows/python-package-conda.yml/badge.svg)
 # Table of content
 1.  [moldrug](#moldrug)
