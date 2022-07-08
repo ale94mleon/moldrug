@@ -1,4 +1,5 @@
 ![lead logo](row_data/logo.png)
+![Tests](https://github.com/ale94mleon/lead/actions/workflows/python-package-conda.yml/badge.svg)
 # Table of content
 1.  [lead](#lead)
     1.  [The idea](#The-idea)

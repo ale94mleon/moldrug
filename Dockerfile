@@ -26,3 +26,6 @@ RUN source ~/.anaconda/bin/activate && conda create -n lead -y && echo "conda ac
 RUN source ~/.anaconda/bin/activate && conda activate lead && conda install -y -c conda-forge rdkit">=2022.0"
 RUN source ~/.anaconda/bin/activate && conda activate lead && conda install -y -c conda-forge openbabel">=3.1.0"
 RUN source ~/.anaconda/bin/activate && conda activate lead && conda install -y -c bioconda autodock-vina
+
+# When lead is release
+# RUN source ~/.anaconda/bin/activate && conda activate lead && pip install lead
