@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import lead, os, sys, inspect, platform
+import druglead, os, sys, inspect, platform
 
 
 def home(dataDir=None, libDir=False):
-    """Return the pathname of the lead root directory (or a data subdirectory).
+    """Return the pathname of the druglead root directory (or a data subdirectory).
     Parameters
     ----------
     dataDir : str
@@ -18,16 +18,16 @@ def home(dataDir=None, libDir=False):
         The directory
     Example
     -------
-    >>> from lead.home import home
+    >>> from druglead.home import home
     >>> home()                                 # doctest: +ELLIPSIS
-    '.../lead'
+    '.../druglead'
     >>> home(dataDir="test-charge")                   # doctest: +ELLIPSIS
     '.../data/test-charge'
     >>> os.path.join(home(dataDir="test-charge"),"H2O.mol2")  # doctest: +ELLIPSIS
     '.../data/test-charge/H2O.mol2'
     """
 
-    homeDir = os.path.dirname(inspect.getfile(lead))
+    homeDir = os.path.dirname(inspect.getfile(druglead))
     try:
         if sys._MEIPASS:
             homeDir = sys._MEIPASS

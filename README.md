@@ -1,7 +1,7 @@
-![lead logo](row_data/logo.png)
-![Tests](https://github.com/ale94mleon/lead/actions/workflows/python-package-conda.yml/badge.svg)
+![druglead logo](row_data/logo.png)
+![Tests](https://github.com/ale94mleon/druglead/actions/workflows/python-package-conda.yml/badge.svg)
 # Table of content
-1.  [lead](#lead)
+1.  [druglead](#druglead)
     1.  [The idea](#The-idea)
     2.  [Fitness functions](#Fitness-functions)
         1.  [Multi Receptor](#Multi-Receptor)
@@ -9,11 +9,22 @@
         1.  [Saving the data](#Saving-the-data)
             1.  [Saving intermediate solution](#Saving-intermediate-solution)
             2.  [Exporting a DataFrame](#Exporting-a-DataFrame)
-    4.  [Global, local and "local-customize" optimization](#Global,-local-and-"local-customize"-optimization)         
+    4.  [Global, local and local-customize optimization](#Global,-local-and-local-customize-optimization)         
 
-# lead
+# druglead
 
-lead is a python package for lead generation and optimization of small molecules. It use a Genetic Algorithm (GA) as searching engine in the chemical space and CReM library ([crem](https://github.com/DrrDom/crem)) as chemical structure generator.
+druglead is a python package for druglead generation and optimization of small molecules. It use a Genetic Algorithm (GA) as searching engine in the chemical space and CReM library ([crem](https://github.com/DrrDom/crem)) as chemical structure generator.
+
+## Installation instruction
+```bash
+conda create -y -n druglead
+conda activate druglead
+conda install -y -c conda-forge rdkit">=2022.0"
+conda install -y -c conda-forge openbabel">=3.1.0"
+conda install -y -c bioconda autodock-vina
+pip install git+https://github.com/ale94mleon/druglead.git@main
+```
+In this way you will have a completely functional druglead environment. It is needed through conda in order to get RDKit and OpenBabel, which have a non tribal installation through pip. 
 
 ## The idea
 
@@ -32,7 +43,7 @@ With the initial SMILES, a random population of `popsize` individuals will be ge
 The default fitness function could be access through:
 
 ```python
-from lead import fitness
+from druglead import fitness
 cost = fitness.Cost
 ```
 A molecule must present several properties to be considered a drug. Some of the must important are: be potent, reach the biological target (good ADME profile) and be real. The last obvious property could be a bottleneck for computer assisted drug design. Because we want to optimize several response variables at the same time; this `cost` function use the concept of desirability functions ([see this paper](https://www.sciencedirect.com/science/article/pii/S0169743911000797)) which optimize several response variables on the hub.
@@ -58,7 +69,7 @@ Could be that our receptor presents high flexibility or that we are interested i
 ```python
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from lead import fitness, utils
+from druglead import fitness, utils
 import json
 from multiprocessing import cpu_count
 
@@ -143,7 +154,7 @@ Could be that for some reason the job is killed. In order to prevent loose all t
 
 Then you just need to initialize the `GA` class and give as population the saved one.
 ```python
-from lead import utils
+from druglead import utils
 generation, init_pop = utils.loosen('pop.pkl')
 # Initialize GA
 out = utils.GA(...)
@@ -159,7 +170,7 @@ dataframe = out.to_dataframe()
 ```
 This basically return the DataFrame of `out.SawIndividuals`. Every row is an `Individual`, and every columns the corresponded attributes. The attribute `mol` is deleted.
 
-## Global, local and "local-customize" optimization
+## Global, local and local-customize optimization
 Walking on the chemical space is done through the method `mutate` of `GA` class tha is just a warper around `mutate_mol` function of [crem](https://github.com/DrrDom/crem) package. Depending on what is the final aim, will be the parameters that we will provided to `mutate` through the variable `mutate_crem_kwargs` in the initialization of `GA`.
 If we know that the input smiles is not optimal, it should be convenient to take wider steeps in the chemical space. This could be accomplished with:
 `min_size=1, max_size=8, min_inc=-5, max_inc=3`. In the other hand, if our interest is explore close to the input smiles, we should be more conservative and use `min_size=0, max_size=1, min_inc=-1, max_inc=1`. In this case the operation will be only: replace or delate one heavy atom, add one or two heavy atoms. In addition we could set `get_similar = True`. This flag doesn't ensure get similar molecules but get the most similar from the generated through the operation `mutate_mol` and a more conservative first population. Also we could add to the cost function the similarity as another response variable.
@@ -168,21 +179,8 @@ As standard, one possibility could be: a first run with wide steeps, and them ca
 
 For the "local-customize" optimization a new class is build in `utils.Local`. This class accept a molecule with the explicit Hs, cost function and parameters for the grow operation of [crem](https://github.com/DrrDom/crem). The results could be access with the attribute `pop` and also have similar method to save the data as `GA`. This class also use parallelization in the `__call__` method. 
  
-
-## Git commands
-```bash
-git config --global init.defaultBranch main
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/ale94mleon/lead.git
-git commit -m "first commit"
-```
-
-
-# Brainstorm
-Here we intend to implement a Genetic Algorithm procedure for the lead optimization of chemical structures. In this way we are actively looking for a solution on the optimization problem.
+## Brainstorm 
+Here we intend to implement a Genetic Algorithm procedure for the druglead optimization of chemical structures. In this way we are actively looking for a solution on the optimization problem.
 
 The general idea is we give a starting ligand-protein complex. From there the ligand will be submitted to successive GA runs. For the GA the cost function could be any desirable property (LogP, affinity, minimum clashes in the binding pocket, etc...). In this first attend will be the Vina Scoring Function. Therefore a full docking without any restraint will be our cost function.
 

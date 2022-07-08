@@ -20,7 +20,7 @@ test:
   image: "${IMAGE_PATH}"
   script:
     - source ~/.anaconda/bin/activate
-    - conda activate lead
+    - conda activate druglead
     - pip install -e .[dev]
     - pytest --junitxml report.xml
   stage: test
