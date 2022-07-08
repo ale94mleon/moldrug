@@ -13,13 +13,21 @@ build-image:
     - docker push "${IMAGE_PATH}"
   tags:
     - docker
-  when: manual
+    - skylake
   stage: build-image
 
 test:
   image: "${IMAGE_PATH}"
   script:
-    - source ~/.anaconda/bin/activate && conda activate lead
+    - source ~/.anaconda/bin/activate
+    - conda activate lead
     - pip install -e .[dev]
-    - pytest
+    - pytest --junitxml report.xml
   stage: test
+  artifacts:
+    paths:
+      - report.xml
+    expire_in: 14 days
+    when: always
+  tags:
+    - skylake
