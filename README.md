@@ -1,4 +1,4 @@
-![druglead logo](row_data/logo.png)
+![druglead logo](https://github.com/ale94mleon/druglead/blob/main/row_data/logo.png)
 ![Tests](https://github.com/ale94mleon/druglead/actions/workflows/python-package-conda.yml/badge.svg)
 # Table of content
 1.  [druglead](#druglead)
