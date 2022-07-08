@@ -18,24 +18,14 @@ jobs:
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
-    - name: Create lead env
-      run: |
-
-        conda create -n lead -y
     - name: Install dependencies
       run: |
-        conda init bash
-        conda activate lead
         conda install -y -c conda-forge rdkit">=2022.0"
         conda install -y -c conda-forge openbabel">=3.1.0"
         conda install -y -c bioconda autodock-vina
     - name: Install lead on developer mode
       run: |
-        conda init bash
-        conda activate lead
         pip install -e .[dev]
     - name: Test with pytest
       run: |
-        conda init bash
-        conda activate lead
         pytest
