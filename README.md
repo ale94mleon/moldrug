@@ -1,5 +1,8 @@
 ![logo](https://github.com/ale94mleon/moldrug/blob/main/row_data/logo.png?raw=true)
+
 ![Tests](https://github.com/ale94mleon/moldrug/actions/workflows/python-package-conda.yml/badge.svg)
+[![PyPI version shields.io](https://img.shields.io/pypi/v/moldrug.svg)](https://pypi.python.org/pypi/moldrug/)
+
 # Table of content
 1.  [moldrug](#moldrug)
     1.  [The idea](#The-idea)
@@ -25,7 +28,7 @@ conda install -y -c bioconda autodock-vina
 # To get the version on developing
 pip install git+https://github.com/ale94mleon/moldrug.git@main
 # To get the last "stable" version. This project is still in beta state.
-pip install git+https://github.com/ale94mleon/moldrug.git@main
+pip install moldrug
 ```
 In this way you will have a completely functional moldrug environment. It is needed through conda in order to get RDKit and OpenBabel, which have a non tribal installation through pip. 
 
