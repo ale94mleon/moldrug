@@ -22,6 +22,9 @@ conda activate moldrug
 conda install -y -c conda-forge rdkit">=2022.0"
 conda install -y -c conda-forge openbabel">=3.1.0"
 conda install -y -c bioconda autodock-vina
+# To get the version on developing
+pip install git+https://github.com/ale94mleon/moldrug.git@main
+# To get the last "stable" version. This project is still in beta state.
 pip install git+https://github.com/ale94mleon/moldrug.git@main
 ```
 In this way you will have a completely functional moldrug environment. It is needed through conda in order to get RDKit and OpenBabel, which have a non tribal installation through pip. 
