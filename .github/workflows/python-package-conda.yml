@@ -21,6 +21,7 @@ jobs:
     - name: Create lead env
       run: |
         conda create -n lead -y
+    - name: Install dependencies
       run: |
         conda activate lead
         conda install -y -c conda-forge rdkit">=2022.0"
