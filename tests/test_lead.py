@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from rdkit import Chem
-from druglead import utils, fitness
-from druglead.data import receptors, ligands, boxes
+from moldrug import utils, fitness
+from moldrug.data import receptors, ligands, boxes
 import tempfile, os, gzip, shutil, requests
 from multiprocessing import cpu_count
 

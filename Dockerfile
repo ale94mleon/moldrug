@@ -21,11 +21,11 @@ RUN bash Anaconda3-2022.05-Linux-x86_64.sh -b -p ~/.anaconda
 SHELL ["/bin/bash", "-c"]
 RUN source ~/.anaconda/bin/activate && conda init bash
 RUN echo "export PATH=\$PATH:/home/user/.anaconda/bin" >> ~/.bashrc && source ~/.bashrc
-RUN source ~/.anaconda/bin/activate && conda create -n druglead -y && echo "conda activate druglead" >> ~/.bashrc
+RUN source ~/.anaconda/bin/activate && conda create -n moldrug -y && echo "conda activate moldrug" >> ~/.bashrc
 
-RUN source ~/.anaconda/bin/activate && conda activate druglead && conda install -y -c conda-forge rdkit">=2022.0"
-RUN source ~/.anaconda/bin/activate && conda activate druglead && conda install -y -c conda-forge openbabel">=3.1.0"
-RUN source ~/.anaconda/bin/activate && conda activate druglead && conda install -y -c bioconda autodock-vina
+RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c conda-forge rdkit">=2022.0"
+RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c conda-forge openbabel">=3.1.0"
+RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c bioconda autodock-vina
 
-# When druglead is release
-# RUN source ~/.anaconda/bin/activate && conda activate druglead && pip install druglead
+# When moldrug is release
+# RUN source ~/.anaconda/bin/activate && conda activate moldrug && pip install moldrug

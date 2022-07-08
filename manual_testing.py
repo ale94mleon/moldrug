@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from druglead import fitness, utils
+from moldrug import fitness, utils
 import json
 from multiprocessing import cpu_count
 import os
@@ -61,7 +61,7 @@ if TypeOfTest == 'single_receptor':
         },
         costfunc = fitness.Cost,#__CostSimilarity,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost, CostMultiReceptors
         costfunc_kwargs = {
-            'receptor_path': f'/home/ale/GITLAB/druglead/data/{receptor}.pdbqt' ,
+            'receptor_path': f'/home/ale/GITLAB/moldrug/data/{receptor}.pdbqt' ,
             'boxcenter' : box[receptor]['A']['boxcenter'] ,
             'boxsize': box[receptor]['A']['boxsize'],
             'exhaustiveness': 8,
@@ -70,7 +70,7 @@ if TypeOfTest == 'single_receptor':
             #'ref_smiles': init_smiles,
         },
         save_pop_every_gen = 20,
-        pop_file_name = f'/home/ale/GITLAB/druglead/pkl/pop',
+        pop_file_name = f'/home/ale/GITLAB/moldrug/pkl/pop',
         )
 
     for i in range(NumbCalls):
@@ -78,7 +78,7 @@ if TypeOfTest == 'single_receptor':
 
     for o in out.pop:
         print(o.smiles, o.cost)
-    out.pickle(f"/home/ale/GITLAB/druglead/pkl/desirability_{receptor}_NumGen_{out.NumGen}_PopSize_{popsize}", compress=True)
+    out.pickle(f"/home/ale/GITLAB/moldrug/pkl/desirability_{receptor}_NumGen_{out.NumGen}_PopSize_{popsize}", compress=True)
     print(out.to_dataframe())
 
 elif TypeOfTest == 'multi_receptor':
@@ -124,7 +124,7 @@ elif TypeOfTest == 'multi_receptor':
         },
         costfunc = fitness.CostMultiReceptors,#__CostSimilarity,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost, CostMultiReceptors
         costfunc_kwargs = {
-            'receptor_path': [f'/home/ale/GITLAB/druglead/data/{r}.pdbqt' for r in receptor],
+            'receptor_path': [f'/home/ale/GITLAB/moldrug/data/{r}.pdbqt' for r in receptor],
             'boxcenter' : [box[r]['A']['boxcenter'] for r in receptor],
             'boxsize': [box[r]['A']['boxsize'] for r in receptor],
             'vina_score_types': ['min', 'min'],
@@ -134,7 +134,7 @@ elif TypeOfTest == 'multi_receptor':
             #'ref_smiles': init_smiles,
         },
         save_pop_every_gen = 20,
-        pop_file_name = f'/home/ale/GITLAB/druglead/pkl/pop',
+        pop_file_name = f'/home/ale/GITLAB/moldrug/pkl/pop',
         )
 
     for i in range(NumbCalls):
@@ -142,7 +142,7 @@ elif TypeOfTest == 'multi_receptor':
 
     for o in out.pop:
         print(o.smiles, o.cost)
-    out.pickle(f"/home/ale/GITLAB/druglead/pkl/desirability_{'_'.join([r for r in receptor])}_NumGen_{out.NumGen}_PopSize_{popsize}", compress=True)
+    out.pickle(f"/home/ale/GITLAB/moldrug/pkl/desirability_{'_'.join([r for r in receptor])}_NumGen_{out.NumGen}_PopSize_{popsize}", compress=True)
     print(out.to_dataframe())
 
 elif TypeOfTest == 'local':
@@ -168,7 +168,7 @@ elif TypeOfTest == 'local':
             },
             costfunc = fitness.Cost,#__CostSimilarity,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost, CostMultiReceptors
             costfunc_kwargs = {
-                'receptor_path': f'/home/ale/GITLAB/druglead/data/{receptor}.pdbqt' ,
+                'receptor_path': f'/home/ale/GITLAB/moldrug/data/{receptor}.pdbqt' ,
                 'boxcenter' : box[receptor]['A']['boxcenter'] ,
                 'boxsize': box[receptor]['A']['boxsize'],
                 'exhaustiveness': 8,
