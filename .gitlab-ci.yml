@@ -21,7 +21,7 @@ test:
   script:
     - source ~/.anaconda/bin/activate
     - conda activate moldrug
-    - pip install -e .[dev]
+    - pip install -e .[test]
     - pytest --junitxml report.xml
   stage: test
   artifacts:
