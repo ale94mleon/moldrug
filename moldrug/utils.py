@@ -589,8 +589,7 @@ class Individual:
     Known issue, in case that we would like to use a numpy array of individuals. It is needed to change the ditype of the generatead arrays
     In order to use other operations, or cast to a list
     array = np.array([c1,c2])
-    array_2 = array*2
-    array_2 = array_2.astype('float64')
+    array_2 = (array*2).astype('float64')
     """
     def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt = None, cost:float = np.inf) -> None:
         self.smiles = smiles
