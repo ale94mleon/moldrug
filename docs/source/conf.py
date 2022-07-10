@@ -28,7 +28,7 @@ release = '0.0.1-beta5'
 
 # -- General configuration ---------------------------------------------------
 
-github_doc_root = 'https://github.com/ale94mleon/moldrug/tree/main/docs/'
+github_doc_root = 'https://github.com/ale94mleon/moldrug/tree/main/docs'
 needs_sphinx = '4.1.2'
 
 # Add any Sphinx extension module names here, as strings. They can be
@@ -39,12 +39,11 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
               'sphinx.ext.napoleon', 'sphinx.ext.autosectionlabel',
               'sphinx_rtd_theme',
               'recommonmark',
-              'IPython.sphinxext.ipython_console_highlighting',
-              'IPython.sphinxext.ipython_directive',
+            #   'IPython.sphinxext.ipython_console_highlighting',
+            #   'IPython.sphinxext.ipython_directive',
               'nbsphinx',
 ]
 
-mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 autosectionlabel_prefix_document = True
 napoleon_google_docstring = False
 
