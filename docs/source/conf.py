@@ -41,7 +41,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
               'recommonmark',
             #   'IPython.sphinxext.ipython_console_highlighting',
             #   'IPython.sphinxext.ipython_directive',
-              'nbsphinx',
+            #   'nbsphinx',
 ]
 
 autosectionlabel_prefix_document = True
