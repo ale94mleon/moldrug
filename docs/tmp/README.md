@@ -1,15 +1,10 @@
 ![logo](https://github.com/ale94mleon/moldrug/blob/main/row_data/logo.png?raw=true)
 
-
+[![Documentation Status](https://readthedocs.org/projects/moldrug/badge/?version=latest)](https://moldrug.readthedocs.io/en/latest/?badge=latest)
 [![PyPi license](https://badgen.net/pypi/license/moldrug/)](https://pypi.python.org/pypi/moldrug/)
-
-
 ![Tests](https://github.com/ale94mleon/moldrug/actions/workflows/python-package-conda.yml/badge.svg)
-
 [![PyPI version shields.io](https://img.shields.io/pypi/v/moldrug.svg)](https://pypi.python.org/pypi/moldrug/)
-
 [![PyPI pyversions](https://img.shields.io/pypi/pyversions/moldrug.svg)](https://pypi.python.org/pypi/moldrug/)
-
 [![Downloads](https://static.pepy.tech/personalized-badge/moldrug?period=month&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/moldrug)
 
 # Table of content
