@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.abspath('./source/'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'moldrug'
+project = 'MolDrug'
 copyright = '2022, Alejandro Martínez León'
 author = 'Alejandro Martínez León'
 

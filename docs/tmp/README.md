@@ -1,52 +1,12 @@
-![logo](https://github.com/ale94mleon/moldrug/blob/main/row_data/logo.png?raw=true)
 
-[![Documentation Status](https://readthedocs.org/projects/moldrug/badge/?version=latest)](https://moldrug.readthedocs.io/en/latest/?badge=latest)
-[![PyPi license](https://badgen.net/pypi/license/moldrug/)](https://pypi.python.org/pypi/moldrug/)
-![Tests](https://github.com/ale94mleon/moldrug/actions/workflows/python-package-conda.yml/badge.svg)
-[![PyPI version shields.io](https://img.shields.io/pypi/v/moldrug.svg)](https://pypi.python.org/pypi/moldrug/)
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/moldrug.svg)](https://pypi.python.org/pypi/moldrug/)
-[![Downloads](https://static.pepy.tech/personalized-badge/moldrug?period=month&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads)](https://pepy.tech/project/moldrug)
-
-# Table of content
-1.  [moldrug](#moldrug)
-    1.  [The idea](#The-idea)
-    2.  [Fitness functions](#Fitness-functions)
-        1.  [Multi Receptor](#Multi-Receptor)
-    3.  [Example of use](#Example-of-use)
-        1.  [Saving the data](#Saving-the-data)
-            1.  [Saving intermediate solution](#Saving-intermediate-solution)
-            2.  [Exporting a DataFrame](#Exporting-a-DataFrame)
-    4.  [Global, local and local-customize optimization](#Global,-local-and-local-customize-optimization)         
-
-# moldrug
-
-moldrug is a python package for moldrug generation and optimization of small molecules. It use a Genetic Algorithm (GA) as searching engine in the chemical space and CReM library ([crem](https://github.com/DrrDom/crem)) as chemical structure generator.
-
-## Installation instruction
-```bash
-conda create -y -n moldrug
-conda activate moldrug
-conda install -y -c conda-forge rdkit">=2022.0"
-conda install -y -c conda-forge openbabel">=3.1.0"
-conda install -y -c bioconda autodock-vina
-# To get the version on developing
-pip install git+https://github.com/ale94mleon/moldrug.git@main
-# To get the last "stable" version. This project is still in beta state.
-pip install moldrug
-```
-In this way you will have a completely functional moldrug environment. It is needed through conda in order to get RDKit and OpenBabel, which have a non tribal installation through pip. 
 
 ## The idea
 
-The idea is simple: we want the best drug for some application. The problem is that it is not simple as it sounds. The chemical space is enormous and the estimation of the fitness is also a term of concern.
 
-Here we address this problem using a GA. The inputs are:
-1. Biological target (pdbqt format).
-2. SMILES string of some known (or guessing) drug.
-3. Definition of the binding pocket.
-4. Definition of the GA running variables.
 
-With the initial SMILES, a random population of `popsize` individuals will be generated through the [crem](https://github.com/DrrDom/crem) operation `mutate_mol`. Every individual will be evaluated through the fitness function. The best individual will be used for crossover and mutation, generating `pc*popsize` offsprings. The offsprings will be merge with the current population, sorted respect to the fitness function and the first `popsize` individuals will be kept for the next generation. This cycle will run for `maxiter` generations.
+
+
+
 
 ## Fitness functions
 

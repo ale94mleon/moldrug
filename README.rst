@@ -8,7 +8,7 @@ MolDrug
 
     * - **Documentation**
       - |docs|
-    * - **CI**
+    * - **CI/CD**
       - |tests|
     * - **Build**
       - |pypi-version|
@@ -27,7 +27,7 @@ MolDrug
 Description
 -----------
 
-**moldrug** is a python package for lead generation and optimization of small molecules. It use a Genetic Algorithm (GA) as searching engine in the chemical space and CReM library `crem <https://github.com/DrrDom/crem>`__ as chemical structure generator.
+**MolDrug** is a python package for lead generation and optimization of small molecules. It use a Genetic Algorithm (GA) as searching engine in the chemical space and CReM library `crem <https://github.com/DrrDom/crem>`__ as chemical structure generator.
 
 Documentation
 -------------
@@ -44,7 +44,7 @@ Discussion
 
 If you have questions on how to use ProLIF, or if you want to give feedback or share ideas and new features, please head to the `GitHub Discussions <https://github.com/ale94mleon/moldrug/discussions>`_.
 
-Citing **moldrug**
+Citing **MolDrug**
 ------------------
 
 Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/source/citation.html>`__ on the documentation.

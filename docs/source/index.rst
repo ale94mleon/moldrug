@@ -6,11 +6,20 @@
 Welcome to moldrug's documentation!
 ===================================
 .. include:: ../../README.rst
+   
 .. toctree::
+   :caption: User guide
    :maxdepth: 2
-   :caption: Contents:
 
+   installation
+   citations
 
+.. toctree::
+   :caption: Documentation
+   :maxdepth: 2
+   :glob:
+
+   api
 
 Indices and tables
 ==================
