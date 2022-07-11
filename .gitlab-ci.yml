@@ -34,6 +34,14 @@ test:
   tags:
     - skylake
 
+pages:
+  script:
+    - pip install -r requirements.txt
+    - sphinx-build -b html docs/source public
+  artifacts:
+    paths:
+      - public
+
 test-conda-package:
   image: "${IMAGE_PATH}"
   script:
