@@ -28,8 +28,8 @@ Description
 -----------
 
 **MolDrug** is a python package for lead generation and optimization of small molecules.
-It use a Genetic Algorithm (GA) as searching engine in the chemical space and CReM library
-`crem <https://github.com/DrrDom/crem>`__ as chemical structure generator.
+It use a Genetic Algorithm (GA) as searching engine in the chemical space and
+`CReM <https://github.com/DrrDom/crem>`__ library as chemical structure generator.
 
 Documentation
 -------------

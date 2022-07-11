@@ -15,6 +15,13 @@ Welcome to moldrug's documentation!
    citations
 
 .. toctree::
+   :caption: Tutorials
+   :maxdepth: 2
+   :numbered:
+
+   notebooks/quickstart
+
+.. toctree::
    :caption: Documentation
    :maxdepth: 2
    :glob:

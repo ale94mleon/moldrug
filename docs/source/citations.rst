@@ -10,7 +10,7 @@ If you use MolDrug in your research, please cite the DOI corresponding to the re
     * - Version
       - Release date
       - DOI
-    * - v0.0.1-beta6
+    * - v0.0.1.beta6
       - 2022-07-10
       - ..  image:: https://zenodo.org/badge/496163299.svg
             :target: https://zenodo.org/badge/latestdoi/496163299

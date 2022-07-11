@@ -1,4 +1,4 @@
-{% set version = "0.0.1.beta6" %}
+{% set version = "0.0.1.beta7" %}
 
 package:
   name: moldrug
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://github.com/ale94mleon/MolDrug/archive/refs/tags/{{ version }}.tar.gz
-  sha256: a79e213a49851ead961e266d7eac106e84ff89c9562f4b52be938d90cedbb861
+#  sha256: a79e213a49851ead961e266d7eac106e84ff89c9562f4b52be938d90cedbb861
 
 build:
   noarch: python
