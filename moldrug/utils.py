@@ -807,9 +807,7 @@ class GA:
             'ncores':1,
         }
         self.mutate_crem_kwargs.update(mutate_crem_kwargs)
-        # We need to return the molecule, so we override the possible user definition respect to this keyword
-        self.mutate_crem_kwargs['return_mol'] = True
-        
+
         # Saving parameters
         self.save_pop_every_gen = save_pop_every_gen
         self.pop_file_name = pop_file_name
@@ -823,6 +821,21 @@ class GA:
     def __call__(self, njobs:int = 1, predictor_model:ScoringPredictor = None):
         # Counting the calls 
         self.NumCalls += 1
+        
+        # Here we will update if needed some parameters for the crem operations that could change between differents calls.
+        # We need to return the molecule, so we override the possible user definition respect to this keyword
+        self.mutate_crem_kwargs['return_mol'] = True
+        
+        # Guess if we need to add explicit hydrogens in the mutate operation
+        self.AddExplicitHs = False
+        if 'min_size' in self.mutate_crem_kwargs:
+            if self.mutate_crem_kwargs['min_size'] == 0:
+                self.AddExplicitHs = True
+        elif 'max_size' in self.mutate_crem_kwargs:
+            if self.mutate_crem_kwargs['max_size'] == 0:
+                self.AddExplicitHs = True
+        
+
         # Initialize Population
         # In case that the populating exist there is not need to initialize.
         if len(self.pop) == 1:
@@ -978,7 +991,7 @@ class GA:
                     individual.idx = i + NumbOfSawIndividuals
                     # The problem here is that we are not being general for other possible Cost functions.
                     args_list.append((individual,kwargs_copy))
-                print(f'\nEvaluating generation {self.NumGen} / {self.maxiter + number_of_previous_generations}:')
+                print(f'Evaluating generation {self.NumGen} / {self.maxiter + number_of_previous_generations}:')
 
                 #!!!! Here I have to see if the smiles are in the self.saw_smiles in order to do not perform the docking and just assign the scoring function
 
@@ -1116,15 +1129,22 @@ class GA:
         # For now I am generating all the mutants and picking only one at random, this is very inefficient, should be better only generate one, but I am afraid that crem generate always the same or not generate any at all.
         # I think that what first crem does is randomly select on spot and find there all possible mutants. If this spot doesn't generate mutants, then you don't get nothing. But this is a supposition. 
         try:
-            mutants = list(mutate_mol(individual.mol, self.crem_db_path, **self.mutate_crem_kwargs))
+            if self.AddExplicitHs:
+                mutants = list(mutate_mol(Chem.AddHs(individual.mol), self.crem_db_path, **self.mutate_crem_kwargs))
+                # Remove the Hs and place a dummy 0 as first element in the tuple.
+                mutants = [(0, Chem.RemoveHs(mutant)) for _, mutant in mutants]
+            else:
+                mutants = list(mutate_mol(individual.mol, self.crem_db_path, **self.mutate_crem_kwargs))
+            
             # Bias the searching to similar molecules
             if self.get_similar:
                 mol = get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
                 smiles = Chem.MolToSmiles(mol)
             else:
-                smiles, mol = random.choice(mutants)
+                _, mol = random.choice(mutants)
+                smiles = Chem.MolToSmiles(mol)
         except:
-            print('The hard mutation did not work, we returned the same individual')
+            print('The mutation did not work, we returned the same individual')
             smiles, mol = individual.smiles, individual.mol
         return Individual(smiles,mol)
     
