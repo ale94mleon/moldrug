@@ -15,9 +15,6 @@ from sklearn.ensemble import RandomForestRegressor
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
 
-# Alias for vina
-vina_executable = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'vina')
-
 ######################################################################################################################################
 #                                   Here are some important functions to work with                                                   #
 ######################################################################################################################################
@@ -760,8 +757,8 @@ class Local:
     
     def to_dataframe(self):
         list_of_dictionaries = []
-        for Individual in self.pop:
-            dictionary = Individual.__dict__.copy()
+        for individual in self.pop:
+            dictionary = individual.__dict__.copy()
             del dictionary['mol']
             list_of_dictionaries.append(dictionary)
         return pd.DataFrame(list_of_dictionaries)       
