@@ -39,9 +39,9 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
               'sphinx.ext.napoleon', 'sphinx.ext.autosectionlabel',
               'sphinx_rtd_theme',
               'recommonmark',
-            #   'IPython.sphinxext.ipython_console_highlighting',
-            #   'IPython.sphinxext.ipython_directive',
-            #   'nbsphinx',
+              'IPython.sphinxext.ipython_console_highlighting',
+              'IPython.sphinxext.ipython_directive',
+              'nbsphinx',
 ]
 
 autosectionlabel_prefix_document = True
@@ -82,3 +82,6 @@ def setup(app):
         'enable_eval_rst': True,
     }, True)
     app.add_transform(AutoStructify)
+
+# Mocking problematic libraries
+autodoc_mock_imports = ['rdkit', 'openbabel']
