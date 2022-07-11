@@ -29,5 +29,18 @@ test:
       - report.xml
     expire_in: 14 days
     when: always
+    reports:
+        junit: report.xml
+  tags:
+    - skylake
+
+test-conda-package:
+  image: "${IMAGE_PATH}"
+  script:
+    - source ~/.anaconda/bin/activate
+    - conda create -n test-conda-package
+    - conda activate test-conda-package
+    - conda install -c ale94mleon moldrug
+  stage: test
   tags:
     - skylake
