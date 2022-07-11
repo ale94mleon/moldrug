@@ -40,7 +40,7 @@ test-conda-package:
     - source ~/.anaconda/bin/activate
     - conda create -n test-conda-package
     - conda activate test-conda-package
-    - conda install -c ale94mleon moldrug
+    - conda install -c conda-forge -c bioconda -c ale94mleon moldrug
   stage: test
   tags:
     - skylake
