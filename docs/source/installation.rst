@@ -5,7 +5,7 @@ Requirements:
 
 * Python 3.8+
 * `RDKit <https://www.rdkit.org/docs/>`_ (2020.03+)
-* `Pandas <https://pandas.pydata.org/>`_ (1.0+)
+* `Pandas <https://pandas.pydata.org/>`_
 * `NumPy <https://numpy.org/>`_
 * `sklearn <https://scikit-learn.org/stable/>`_
 * `tqdm <https://tqdm.github.io/>`_
@@ -14,12 +14,13 @@ Requirements:
 
 We are currently working in a ``conda`` and a ``docker`` container.
 
+
 For now to get a fully functional MolDrug is recommendable the following::
 
-    # create a separate virtual environment
-    conda create -n moldrug
-    # activate it
-    conda activate moldrug
+    $ # create a separate virtual environment
+    $ conda create -n moldrug
+    $ # activate it
+    $ conda activate moldrug
 
 Then simply run the following command to install the dependencies libraries::
 
@@ -27,12 +28,15 @@ Then simply run the following command to install the dependencies libraries::
     conda install -y -c conda-forge openbabel">=3.1.0"
     conda install -y -c bioconda autodock-vina
 
-If you already have them; just skip the last steep. Finally::
+In the future we will consider to use the python modules `vina <https://pypi.org/project/vina/>`_ and `meeko <https://pypi.org/project/meeko/>`_
+. Finally::
 
     # To get the version on developing
     pip install git+https://github.com/ale94mleon/moldrug.git@main
 
-or
+or::
 
     # To get the last "stable" version. This project is still in beta state.
     pip install moldrug
+    
+
