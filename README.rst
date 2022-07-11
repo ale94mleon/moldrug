@@ -56,8 +56,8 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
     :target: https://moldrug.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation
 ..  |tests| image:: https://github.com/ale94mleon/moldrug/actions/workflows/conda.yml/badge.svg
-    :target: https://github.com/ale94mleon/moldrug/actions/workflows/conda.yml/badge.svg
-    :alt: CI/CD
+    :target: https://github.com/ale94mleon/moldrug/actions/workflows/conda.yml/
+    :alt: tests
 ..  |pypi-version|  image:: https://img.shields.io/pypi/v/moldrug.svg
     :target: https://pypi.python.org/pypi/moldrug/
     :alt: pypi-version
