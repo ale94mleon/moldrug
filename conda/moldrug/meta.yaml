@@ -1,0 +1,36 @@
+{% set version = "0.0.1.beta6" %}
+
+package:
+  name: moldrug
+  version: {{ version }}
+
+source:
+  url: https://github.com/ale94mleon/MolDrug/archive/refs/tags/v0.0.1-beta6.tar.gz
+  sha256: 91cf9a5c6beb7d9937f8b3b0ae42d501151887be53577028453ab3e49e2b186c
+
+build:
+  noarch: python
+  number: 0
+  script: python -m pip install --no-deps --ignore-installed .
+
+requirements:
+  host:
+    - python
+    - pip
+  run:
+    - rdkit 2022.*.*
+    - openbabel 3.1.0
+    - autodock-vina
+    - python
+
+test:
+  imports:
+    - moldrug
+
+about:
+  home: https://github.com/ale94mleon/MolDrug
+  license:  Apache-2.0 license
+  summary: 'From molecule to drug'
+  dev_url: https://github.com/ale94mleon/MolDrug
+  doc_url: https://github.com/ale94mleon/MolDrug
+  doc_source_url: https://github.com/ale94mleon/MolDrug/blob/main/README.rst
