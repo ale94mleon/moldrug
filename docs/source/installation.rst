@@ -12,11 +12,23 @@ Requirements:
 * `CReM <https://github.com/DrrDom/crem>`_ (0.2.9+)
 * `OpenBabel <https://openbabel.org/docs/dev/Installation/install.html>`_ (3.1.0+)
 
+.. note::
+
+    If you have OpenBabel and RDKit already installed you could try with ``conda install moldrug``.
+    But if it is not the case or some version conflicts occurred, think about installed in a isoleated enviroment
+    as it will be show in brief.
+    
+
 It is recomendable to install through ``conda``::
 
     $ conda create -n moldrug
     $ conda activate moldrug
     $ conda install -c ale94mleon -c conda-forge -c bioconda moldrug
+
+.. warning::
+
+    Ussually pip has the lates stable version. But we are working to constantlly update the conda packege.
+    Future plans are deployed inside conda-forge.
 
 Another possible way is direclly install from pip. But in this case you must have a correct installation
 of OpenBabel, RDKit and autodock-vina. One posibility is::
@@ -41,4 +53,5 @@ or::
     # To get the last "stable" version. This project is still in beta state.
     pip install moldrug
     
-We are currently working in a ``docker`` container.
+We are currently working in a ``docker`` container. But you could use the `Docker configuration file on GitHub <https://github.com/ale94mleon/MolDrug/blob/main/Dockerfile>`__. 
+and ``pip install moldrug`` inside it.
