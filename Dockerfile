@@ -26,6 +26,3 @@ RUN source ~/.anaconda/bin/activate && conda create -n moldrug -y && echo "conda
 RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c conda-forge rdkit">=2022.0"
 RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c conda-forge openbabel">=3.1.0"
 RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c bioconda autodock-vina
-
-# When moldrug is release
-# RUN source ~/.anaconda/bin/activate && conda activate moldrug && pip install moldrug
