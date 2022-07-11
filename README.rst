@@ -11,7 +11,7 @@ MolDrug
     * - **CI/CD**
       - |tests|
     * - **Build**
-      - |pypi-version|
+      - |pypi-version| |conda|
     * - **Source Code**
       - |github|
     * - **Python Versions**
@@ -61,6 +61,9 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
 ..  |pypi-version|  image:: https://img.shields.io/pypi/v/moldrug.svg
     :target: https://pypi.python.org/pypi/moldrug/
     :alt: pypi-version
+..  |conda|  image:: https://anaconda.org/ale94mleon/moldrug/badges/version.svg
+    :target: https://anaconda.org/ale94mleon/moldrug
+    :alt: conda
 ..  |github|    image:: https://badgen.net/badge/icon/github?icon=github&label
     :target: https://github.com/ale94mleon/moldrug
     :alt: GitHub-Repo

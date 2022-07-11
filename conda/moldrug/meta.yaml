@@ -5,8 +5,8 @@ package:
   version: {{ version }}
 
 source:
-  url: https://github.com/ale94mleon/MolDrug/archive/refs/tags/v0.0.1-beta6.tar.gz
-  sha256: 91cf9a5c6beb7d9937f8b3b0ae42d501151887be53577028453ab3e49e2b186c
+  url: https://github.com/ale94mleon/MolDrug/archive/refs/tags/{{ version }}.tar.gz
+  sha256: a79e213a49851ead961e266d7eac106e84ff89c9562f4b52be938d90cedbb861
 
 build:
   noarch: python
