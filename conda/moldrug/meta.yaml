@@ -1,4 +1,4 @@
-{% set version = "0.0.1.beta7" %}
+{% set version = "0.0.1.beta8" %}
 
 package:
   name: moldrug
@@ -6,7 +6,7 @@ package:
 
 source:
   url: https://github.com/ale94mleon/MolDrug/archive/refs/tags/{{ version }}.tar.gz
-  sha256: 35e7acc5264d04bbe513a51164654578ec8f607ffbdf72f1f43a86db0a7f68b8
+  sha256: 012eb5fe250493ead4aeeb9f7cd795830710d25ee0ac5e0d78f08a9b0b37c9dd
 
 build:
   noarch: python
@@ -22,6 +22,8 @@ requirements:
     - openbabel 3.1.0
     - autodock-vina
     - python
+    - ipykernel
+    - ipython
 
 test:
   imports:
@@ -30,7 +32,7 @@ test:
 about:
   home: https://github.com/ale94mleon/MolDrug
   license:  Apache-2.0 license
-  summary: 'From molecule to drug'
+  summary: 'An in silico tool for the lead generation and optimization on the drug design phase'
   dev_url: https://github.com/ale94mleon/MolDrug
-  doc_url: https://github.com/ale94mleon/MolDrug
-  doc_source_url: https://github.com/ale94mleon/MolDrug/blob/main/README.rst
+  doc_url: https://moldrug.readthedocs.io/en/latest/
+  doc_source_url: https://github.com/ale94mleon/MolDrug/tree/main/docs/source
