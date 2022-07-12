@@ -781,7 +781,7 @@ class Local:
 # I have to create a filter of atoms in order that vina doesn't fail because B and atoms like that Vina is not able to handle.
 class GA:
     
-    def __init__(self, seed_smiles:str, costfunc:object, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}, save_pop_every_gen:int = 0, pop_file_name:int = 'pop') -> None:
+    def __init__(self, seed_smiles:str, costfunc:object, costfunc_kwargs:dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga') -> None:
         self.InitIndividual = Individual(seed_smiles, idx=0)
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
@@ -810,7 +810,7 @@ class GA:
 
         # Saving parameters
         self.save_pop_every_gen = save_pop_every_gen
-        self.pop_file_name = pop_file_name
+        self.deffnm = deffnm
         
         # Tracking parameters
         self.NumCalls = 0
@@ -947,7 +947,7 @@ class GA:
         
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
-            full_pickle(self.pop_file_name, (self.NumGen,self.pop))
+            compressed_pickle(f"{self.deffnm}_pop", (self.NumGen,self.pop))
         
         # Main Loop
         number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
@@ -1026,7 +1026,7 @@ class GA:
             if self.save_pop_every_gen:
                 # Save every save_pop_every_gen and always the last population
                 if self.NumGen % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
-                    full_pickle(self.pop_file_name, (self.NumGen, self.pop))
+                    compressed_pickle(f"{self.deffnm}_pop", (self.NumGen, self.pop))
 
             # # Update the model
             # print(f'Updating the current model with the information of generation {self.NumGen}...')
@@ -1155,7 +1155,7 @@ class GA:
         ind = np.argwhere(r <= c)
         return ind[0][0]
     
-    def pickle(self,title, compress = False):
+    def pickle(self, title, compress = False):
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
