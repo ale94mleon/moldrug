@@ -20,6 +20,8 @@ Welcome to moldrug's documentation!
    :numbered:
 
    notebooks/quickstart
+   notebooks/how_to
+
 
 .. toctree::
    :caption: Documentation
@@ -27,6 +29,7 @@ Welcome to moldrug's documentation!
    :glob:
 
    api
+   modules/*
 
 Indices and tables
 ==================
