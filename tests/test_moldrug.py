@@ -30,11 +30,7 @@ with gzip.open(crem_dbgz_path, 'rb') as f_in:
 
 
 
-def test_single_receptor():
-    maxiter = 1
-    popsize = 2
-    njobs = 2
-    NumbCalls = 1
+def test_single_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
 
     """For a local optimization we could use
         min_size=1, max_size=1, min_inc=-1, max_inc=1
@@ -76,7 +72,7 @@ def test_single_receptor():
             'num_modes': 1,
         },
         save_pop_every_gen = 20,
-        pop_file_name = os.path.join(tmp_path.name, 'pop_test_single_receptor')
+        deffnm = os.path.join(tmp_path.name, 'test_single_receptor')
         )
 
     for _ in range(NumbCalls):
@@ -87,12 +83,7 @@ def test_single_receptor():
     out.pickle(os.path.join(tmp_path.name, f"result_test_single_receptor_NumGen_{out.NumGen}_PopSize_{popsize}"), compress=True)
     print(out.to_dataframe())
 
-def test_multi_receptor():
-    maxiter = 1
-    popsize = 2
-    njobs = 3
-    NumbCalls = 1
-
+def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     out = utils.GA(
         seed_smiles=ligands.r_x0161,
         maxiter=maxiter,
@@ -119,7 +110,7 @@ def test_multi_receptor():
             'num_modes': 1,
         },
         save_pop_every_gen = 20,
-        pop_file_name = os.path.join(tmp_path.name, 'pop_test_multi_receptor')
+        deffnm = os.path.join(tmp_path.name, 'test_multi_receptor')
         )
 
     for _ in range(NumbCalls):
@@ -130,8 +121,7 @@ def test_multi_receptor():
     out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGen_{out.NumGen}_PopSize_{popsize}"), compress=True)
     print(out.to_dataframe())
 
-def test_local():
-    njobs = 2
+def test_local(njobs = 3, pick = 2):
     local = utils.Local(
         mol = Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161)),
         crem_db_path = crem_db_path,
@@ -151,5 +141,8 @@ def test_local():
             'num_modes': 1,
         },
     )
-    local(njobs = njobs, pick=2)
+    local(njobs = njobs, pick=pick)
     print(local.to_dataframe())
+
+if __name__ == '__main__':
+    test_single_receptor(maxiter = 5, popsize = 5, njobs = 5, NumbCalls = 2)
