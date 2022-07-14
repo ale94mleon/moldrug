@@ -19,3 +19,15 @@ Valid `anaconda upload` command, with correct paths, is printed in the terminal 
 make html
 sphinx-build -b html source/. public
 ```
+
+## Docker image
+
+```bash
+docker build -t 4moldrug . && docker run -it 4moldrug
+docker images
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+docker rmi $(docker images -a -q)
+docker logout
+docker login
+ ```
