@@ -1,16 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from rdkit import Chem
-from rdkit.Chem import AllChem, rdmolops, DataStructs, Lipinski, Descriptors
-from openbabel import openbabel as ob
+from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors
+from meeko import MoleculePreparation, PDBQTMolecule
 from crem.crem import mutate_mol, grow_mol
 
 from copy import deepcopy
 from inspect import getfullargspec
 import multiprocessing as mp
-import tempfile, subprocess, os, random, time, shutil, tqdm, warnings, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
-from datetime import datetime
-from sklearn.ensemble import RandomForestRegressor
+import tempfile, subprocess, random, time, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
+
 
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
@@ -63,89 +62,23 @@ def run(command:str, shell:bool = True, executable:str = '/bin/bash', Popen:bool
             raise RuntimeError(process.stderr)
     return process
 
-def obconvert(inpath:str, outpath:str):
-    """Convert a molecule using openbabel
 
-    Args:
-        input (str, path): input molecule.
-        output (str, path): must have the extension of the molecule.
-    """
-    in_ext = os.path.basename(inpath).split('.')[-1]
-    out_ext = os.path.basename(outpath).split('.')[-1]
-
-    obConversion = ob.OBConversion()
-    obConversion.SetInAndOutFormats(in_ext, out_ext)
-    mol = ob.OBMol()
-    obConversion.ReadFile(mol, inpath)   # Open Babel will uncompressed automatically
-    #mol.AddHydrogens()
-    obConversion.WriteFile(mol, outpath)
-
-def confgen(smiles:str, outformat:str = "pdbqt"):
-    """Create a 3D model from a smiles and return in the specified format.
+def confgen(smiles:str, return_mol:bool = False):
+    """Create a 3D model from a smiles and return a pdbqt string and, a mol if asked.
 
     Args:
         smiles (str): a valid smiles code.
-        outformat (str, optional): The output molecule extension. Defaults to "pdbqt".
     """
-    molin = tempfile.NamedTemporaryFile(suffix='.mol')
-    molout = tempfile.NamedTemporaryFile(suffix=f'.{outformat}')
     mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
     AllChem.EmbedMolecule(mol)
     AllChem.MMFFOptimizeMolecule(mol)
-    Chem.MolToMolFile(mol, molin.name)
-    obconvert(molin.name, molout.name)
-    with open(molout.name, 'r') as o:
-        string = o.read()
-    return string
-
-def fragments(mol:Chem.rdchem.Mol):
-    """Create the fragments of the molecule based on the single bonds
-
-    Args:
-        mol (Chem.rdchem.Mol): An RDKit molecule.
-
-    Returns:
-        Chem.rdmolops.GetMolFrags: The fragments. you could cast the result using list and get all the fragments.
-    """
-    break_point = int(random.choice(np.where(np.array([b.GetBondType() for b in mol.GetBonds()]) == Chem.rdchem.BondType.SINGLE)[0]))
-    # Chem.FragmentOnBonds(mol, break_point) # Could be used to increase randomness give more possible fragments and select two of them
-    with Chem.RWMol(mol) as rwmol:
-        b = rwmol.GetBondWithIdx(break_point)
-        rwmol.RemoveBond(b.GetBeginAtomIdx(), b.GetEndAtomIdx())
-    return rdmolops.GetMolFrags(rwmol, asMols = True)
-
-def rdkit_numpy_convert(fp):
-    """Convert a list of binary fingerprint to numpy arrays.
-
-    Args:
-        fp (_type_): list of binary fingerprints
-
-    Returns:
-        numpy.array: An array with dimension (number of elements in the list, number of bits on the fingerprint).
-    """
-    # fp - list of binary fingerprints
-    output = []
-    for f in fp:
-        arr = np.zeros((1,))
-        DataStructs.ConvertToNumpyArray(f, arr)
-        output.append(arr)
-    return np.asarray(output)
-
-def get_top(ms:list, model):
-    """Get the molecule with higher value predicted by the model.
-
-    Args:
-        ms (list): list of molecules
-        model (sklearn model): A model for with the training set was a set of numpy array based on the AllChem.GetMorganFingerprintAsBitVect 
-
-    Returns:
-        _type_: The molecule with the higher predicted value.
-    """
-    fps1 = [AllChem.GetMorganFingerprintAsBitVect(m, 2) for m in ms]
-    x1 = rdkit_numpy_convert(fps1)
-    pred = model.predict(x1)
-    i = np.argmax(pred)
-    return ms[i], pred[i]
+    preparator = MoleculePreparation()
+    preparator.prepare(mol)
+    pdbqt_string = preparator.write_pdbqt_string()
+    if return_mol:
+        return (pdbqt_string, mol)
+    else:
+        return pdbqt_string
 
 def get_sim(ms:list, ref_fps):
     """Get the molecules with higher similarity to each member of ref_fps.
@@ -371,6 +304,18 @@ def decompress_pickle(file:str):
     data = bz2.BZ2File(file, 'rb')
     data = cPickle.load(data)
     return data
+
+def make_sdf(individuals:list, sdf = 'out.sdf'):
+
+    pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
+    with Chem.SDWriter(sdf) as w:
+        for individual in individuals:
+            with open(pdbqt_tmp.name, 'w') as f:
+                f.write(individual.pdbqt)
+            pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
+            mol = pdbqt_mol.export_rdkit_mol()
+            mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
+            w.write(mol)
 ######################################################################################################################################
 
 
@@ -501,86 +446,17 @@ class VINA_OUT:
         if write: min_chunk.write("best_energy.pdbqt")
         return min_chunk
 
-
-class ScoringPredictor:
-    """This class is used to predict a scoring based on the information of the SMILES.
-    """
-    def __init__(self, smiles_scoring:dict, receptor:str, boxcenter:list, boxsize:list, exhaustiveness:int) -> None:
-        # Esto puede servir para simplemente buscar en la base de datos por la moelcula, y si esta dar el valor exacto de Vina sin tenr que hacer el calculo
-        # Y por supuesto para predecir
-        # La prediccion en la parte del "crossover" y el si esta la moelcuela para el caclulo real
-        self.lastupdate = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.smiles_scoring = smiles_scoring
-        # This are control variables to save for future use
-        self.receptor = receptor
-        self.boxcenter = boxcenter
-        self.boxsize = boxsize
-        self.exhaustiveness = exhaustiveness
-        self.bfp = rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in self.smiles_scoring])
-        self.model = None
-
-    
-    def __call__(self, **keywords):
-        # n_estimators=100, n_jobs=njobs*self.costfunc_keywords['vina_cpus'], random_state=42, oob_score=True
-        self.model = RandomForestRegressor(**keywords)
-        self.model.fit(self.bfp, list(self.smiles_scoring.values()))
-    
-    def update(self, new_smiles_scoring:dict, receptor:str, boxcenter:list, boxsize:list, exhaustiveness:int) -> None:
-        # Control that the new introduced data belongs to the same model
-        assert self.receptor == receptor, f"The original object was constructed with the receptor {self.receptor} and you introduced {receptor}. Consider to generate a new object."
-        assert self.boxcenter == boxcenter, f"The original object was constructed with the boxcenter {self.boxcenter} and you introduced {boxcenter}. Consider to generate a new object."
-        assert self.boxsize == boxsize, f"The original object was constructed with the boxsize {self.boxsize} and you introduced {boxsize}. Consider to generate a new object."
-        assert self.exhaustiveness == exhaustiveness, f"The original object was constructed with the exhaustiveness {self.exhaustiveness} and you introduced {exhaustiveness}. Consider to generate a new object."
-        
-        # Update the date 
-        self.lastupdate = datetime.now().strftime
-        
-        # Look for new structures
-        smiles_scoring2use = dict()
-        for sm_sc in new_smiles_scoring:
-            if sm_sc not in self.smiles_scoring:
-                smiles_scoring2use[sm_sc] = new_smiles_scoring[sm_sc]
-        if smiles_scoring2use:
-            self.smiles_scoring.update(smiles_scoring2use)
-
-            self.bfp = np.vstack((self.bfp, rdkit_numpy_convert([AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles_scoring2use])))
-            self.model = None
-            print(f"{len(smiles_scoring2use)} new structures will be incorporate to the model.")
-        else:
-            print("The introduced smiles are already in the data base. No need to update.")
-
-    def predict(self, smiles:list):
-        if self.model and smiles:
-            if type(smiles) == str: smiles = [smiles]
-            fps = [AllChem.GetMorganFingerprintAsBitVect(Chem.MolFromSmiles(s), 2) for s in smiles]
-            return self.model.predict(rdkit_numpy_convert(fps))
-        else:
-            if not self.model:
-                warnings.warn('There are not model on this object, please call it (__call__) to create it in order to get a prediction.  If you update the class, you must call the class again in order to create a new model based on the updated information, right now was set to None" Right now you just got None!')
-                return None
-            if not smiles:
-                warnings.warn('You did not provide a smiles. You will just get None as prediction')
-                return None
-    
-    def pickle(self,title, compress = False):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        if compress:
-            compressed_pickle(title, result)
-        else:
-            full_pickle(title, result) 
 ######################################################################################################################################
 
 
 
 
 ######################################################################################################################################
-#                                             Classes to work moldrug                                                                   #
+#                                             Classes to work with moldrug                                                                   #
 ######################################################################################################################################
 class Individual:
     """
-    Base class to work with GA, Local and all the fitness fucntions.
+    Base class to work with GA, Local and all the fitness functions.
     Individual is a mutable object. It uses the smiles string for '=='
     operator and the cost attribute for arithmetic operations.
     Known issue, in case that we would like to use a numpy array of individuals. It is needed to change the ditype of the generatead arrays
@@ -603,7 +479,9 @@ class Individual:
         
         if not pdbqt:
             try:
-                self.pdbqt = confgen(smiles, outformat = 'pdbqt')
+                self.pdbqt, mol3D = confgen(smiles, return_mol=True)
+                if not mol:
+                    self.mol = Chem.RemoveHs(mol3D)
             except:
                 self.pdbqt = None
         else:
@@ -818,7 +696,7 @@ class GA:
         self.SawIndividuals = []
     
     @timeit
-    def __call__(self, njobs:int = 1, predictor_model:ScoringPredictor = None):
+    def __call__(self, njobs:int = 1):
         # Counting the calls 
         self.NumCalls += 1
         
@@ -948,6 +826,7 @@ class GA:
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
             compressed_pickle(f"{self.deffnm}_pop", (self.NumGen,self.pop))
+            make_sdf(self.pop, sdf=f"{self.deffnm}_pop.sdf")
         
         # Main Loop
         number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
@@ -1027,6 +906,7 @@ class GA:
                 # Save every save_pop_every_gen and always the last population
                 if self.NumGen % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
                     compressed_pickle(f"{self.deffnm}_pop", (self.NumGen, self.pop))
+                    make_sdf(self.pop, sdf=f"{self.deffnm}_pop.sdf")
 
             # # Update the model
             # print(f'Updating the current model with the information of generation {self.NumGen}...')
@@ -1201,6 +1081,8 @@ if __name__ == '__main__':
     #     if i not in [i1,i2,i3]:
     #         print(i)
     array1=[i1,i2,i3,i4]
+    array1[0].pdbqt
+    print(make_sdf(array1))
     array2=[i1,i2,i3,i4]
     print(sorted(array1), 55555555555)
     # Probabilities Selections
