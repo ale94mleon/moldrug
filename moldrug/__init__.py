@@ -51,5 +51,7 @@ def run():
     Results(Config['njobs'])
     # Save final data
     Results.pickle(f"{InitArgs['deffnm']}_result", compress=True)
+    # Saving final sdf file
+    utils.make_sdf(Results.pop, sdf = f"{InitArgs['deffnm']}_pop.sdf")
     print(Results.to_dataframe())
  
