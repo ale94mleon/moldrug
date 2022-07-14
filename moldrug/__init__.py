@@ -4,8 +4,9 @@
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
+from ast import arg
 from moldrug._version import __version__, __version_tuple__, version, version_tuple
-import yaml, argparse, os, inspect
+import yaml, argparse, os, inspect, importlib
 
 
 def run():
@@ -16,21 +17,29 @@ def run():
     parser.add_argument(
         help='The configuration yaml file',
         dest='yaml_file',
-        type=str,
-    )
+        type=str)
     parser.add_argument(
         '-v', '--version',
         action='version',
-        version='%(prog)s {version}'.format(version=__version__))   
+        version='%(prog)s {version}'.format(version=__version__))
+    parser.add_argument('-f', '--fitness',
+                        help="The path to the user-custom fitness module; inside of which the given custom cost function must be implemented. "\
+                            "See the docs for how to do it properly. E.g. my/awesome/fitness_module.py."\
+                            "By default will look in the moldrug.fitness module.",
+                        dest='fitness',
+                        default=None,
+                        type=str)
     args = parser.parse_args()
     
     with open(args.yaml_file, 'r') as c:
         Config = yaml.safe_load(c)
-    try:
-        from moldrug import fitness
+    if args.fitness:
+        spec=importlib.util.spec_from_file_location('fitness', args.fitness)
+        fitness = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fitness)
         Cost = dict(inspect.getmembers(fitness))[Config['costfunc']]
-    except:
-        from . import fitness
+    else:
+        from moldrug import fitness
         Cost = dict(inspect.getmembers(fitness))[Config['costfunc']]
     
     if Config['type'].lower() == 'ga':
