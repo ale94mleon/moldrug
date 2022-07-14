@@ -22,6 +22,7 @@ requirements:
     - openbabel 3.1.0
     - autodock-vina
     - python
+    - pyyaml
     - ipykernel
     - ipython
 
