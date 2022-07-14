@@ -1,6 +1,11 @@
 [build-system]
 requires = [
     "setuptools >= 54",
-    "wheel"
+    "wheel",
+    "setuptools_scm[toml]>=6.2"
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+
+write_to = "moldrug/_version.py"

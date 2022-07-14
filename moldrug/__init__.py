@@ -4,9 +4,9 @@
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
-__version__ = "0.0.1.beta8"
-
+from moldrug._version import __version__, __version_tuple__, version, version_tuple
 import yaml, argparse, os, inspect
+
 
 def run():
     from moldrug import utils
@@ -16,9 +16,14 @@ def run():
     parser.add_argument(
         help='The configuration yaml file',
         dest='yaml_file',
-        type=str
+        type=str,
     )
+    parser.add_argument(
+        '-v', '--version',
+        action='version',
+        version='%(prog)s {version}'.format(version=__version__))   
     args = parser.parse_args()
+    
     with open(args.yaml_file, 'r') as c:
         Config = yaml.safe_load(c)
     try:
