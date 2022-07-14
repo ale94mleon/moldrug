@@ -316,6 +316,15 @@ def make_sdf(individuals:list, sdf = 'out.sdf'):
             mol = pdbqt_mol.export_rdkit_mol()
             mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
             w.write(mol)
+
+def import_sascorer():
+    # In order to import sascorer from RDConfig.RDContribDir
+    from rdkit.Chem import QED, RDConfig
+    import os, importlib, numpy as np
+    spec=importlib.util.spec_from_file_location('sascorer', os.path.join(RDConfig.RDContribDir, 'SA_Score', 'sascorer.py'))
+    sascorer = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(sascorer)
+    return sascorer
 ######################################################################################################################################
 
 

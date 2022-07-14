@@ -1,14 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from moldrug import utils
-from rdkit.Chem import QED, RDConfig
-import os, importlib, numpy as np
-# In order to import sascorer from RDConfig.RDContribDir
-spec=importlib.util.spec_from_file_location('sascorer', os.path.join(RDConfig.RDContribDir, 'SA_Score', 'sascorer.py'))
-sascorer = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(sascorer)
+from rdkit.Chem import QED
+import os, numpy as np
+
 
 def Cost(Individual, wd = '.vina_jobs', vina_executable = 'vina', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, ncores = 1,  num_modes = 1):
+    """_summary_
+
+    Args:
+        Individual (_type_): _description_
+        wd (str, optional): _description_. Defaults to '.vina_jobs'.
+        vina_executable (str, optional): _description_. Defaults to 'vina'.
+        receptor_path (_type_, optional): _description_. Defaults to None.
+        boxcenter (_type_, optional): _description_. Defaults to None.
+        boxsize (_type_, optional): _description_. Defaults to None.
+        exhaustiveness (int, optional): _description_. Defaults to 8.
+        ncores (int, optional): _description_. Defaults to 1.
+        num_modes (int, optional): _description_. Defaults to 1.
+
+    Returns:
+        _type_: _description_
+    """
+    sascorer = utils.import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
     Individual.qed = QED.weights_mean(Individual.mol)
@@ -73,6 +87,7 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
     Returns:
         Individual: A modified Individual instance with the added attributes: qed, sa_score, pdbqt, vina_score and cost
     """
+    sascorer = utils.import_sascorer()
     Individual.qed = QED.weights_mean(Individual.mol)
     
     # Getting synthetic accessibility score
