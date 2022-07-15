@@ -1,0 +1,20 @@
+# Main dependencies
+tqdm >= 4.64.0
+numpy >= 1.22.0
+pandas
+pyyaml
+meeko
+scipy
+six
+rdkit
+crem >= 0.2.9
+# # Test dependencies
+# requests==2.28.1
+# pytest==7.1.2
+# Docs dependencies
+recommonmark
+sphinx
+nbsphinx
+sphinx-rtd-theme
+ipython
+ipython-genutils
