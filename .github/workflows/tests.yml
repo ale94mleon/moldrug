@@ -21,7 +21,6 @@ jobs:
     - name: Install dependencies
       run: |
         conda install -y -c conda-forge rdkit">=2022.0"
-        conda install -y -c conda-forge openbabel">=3.1.0"
         conda install -y -c bioconda autodock-vina
     - name: Install moldrug on test mode
       run: |
