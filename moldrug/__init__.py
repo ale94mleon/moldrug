@@ -4,10 +4,8 @@
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
-from ast import arg
-from moldrug._version import __version__, __version_tuple__, version, version_tuple
+from moldrug._version import __version__, __version_tuple__
 import yaml, argparse, os, inspect, importlib
-
 
 def run():
     from moldrug import utils
