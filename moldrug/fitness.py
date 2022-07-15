@@ -144,6 +144,4 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
     Individual.cost = 1 - D
     return Individual
 if __name__ == '__main__':
-    import inspect
-    print(inspect.getargspec(Cost).args)
     pass
