@@ -47,7 +47,7 @@ extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
 
 mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 autosectionlabel_prefix_document = True
-napoleon_google_docstring = False
+napoleon_google_docstring = True
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
