@@ -19,8 +19,8 @@ Welcome to moldrug's documentation!
    :maxdepth: 2
    :numbered:
 
-   source/notebooks/quickstart
-   source/notebooks/how_to
+   notebooks/quickstart
+   notebooks/how_to
 
 
 .. toctree::
