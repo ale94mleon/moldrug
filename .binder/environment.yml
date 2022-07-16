@@ -9,11 +9,12 @@ dependencies:
   - ipython
   - ipywidgets
   - pip
-  - python==3.10.*
+  - python==3.9.*
   - rdkit
   - nbsphinx==0.8.7
   - sphinx==4.1.2
   - tqdm
+  - autodock-vina
   - pip:
     - numpy
     - pandas

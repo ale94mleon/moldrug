@@ -24,5 +24,4 @@ RUN echo "export PATH=\$PATH:/home/user/.anaconda/bin" >> ~/.bashrc && source ~/
 RUN source ~/.anaconda/bin/activate && conda create -n moldrug -y && echo "conda activate moldrug" >> ~/.bashrc
 
 RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c conda-forge rdkit">=2022.0"
-RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c conda-forge openbabel">=3.1.0"
 RUN source ~/.anaconda/bin/activate && conda activate moldrug && conda install -y -c bioconda autodock-vina
