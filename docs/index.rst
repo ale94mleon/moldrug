@@ -22,7 +22,6 @@ Welcome to moldrug's documentation!
    notebooks/quickstart
    notebooks/how_to
 
-
 .. toctree::
    :caption: Documentation
    :maxdepth: 2
