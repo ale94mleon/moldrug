@@ -5,14 +5,14 @@
 
 Welcome to moldrug's documentation!
 ===================================
-.. include:: ../README.rst
+.. include:: ../../README.rst
    
 .. toctree::
    :caption: User guide
    :maxdepth: 2
 
-   source/installation
-   source/citations
+   installation
+   citations
 
 .. toctree::
    :caption: Tutorials
@@ -27,8 +27,8 @@ Welcome to moldrug's documentation!
    :maxdepth: 2
    :glob:
 
-   source/api
-   source/modules/*
+   api
+   modules/*
 
 Indices and tables
 ==================
