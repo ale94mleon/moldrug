@@ -1,0 +1,323 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Fitness &mdash; MolDrug  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Utils" href="utils.html" />
+    <link rel="prev" title="Summary" href="../api.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> MolDrug
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../citations.html">Citation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/quickstart.html">1. Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/how_to.html">2. How-to</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../api.html">Summary</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">Utils</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">MolDrug</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Fitness</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/source/modules/fitness.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="module-moldrug.fitness">
+<span id="fitness"></span><h1>Fitness<a class="headerlink" href="#module-moldrug.fitness" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="moldrug.fitness.Cost">
+<span class="sig-prename descclassname"><span class="pre">moldrug.fitness.</span></span><span class="sig-name descname"><span class="pre">Cost</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Individual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="utils.html#moldrug.utils.Individual" title="moldrug.utils.Individual"><span class="pre">Individual</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">wd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.vina_jobs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vina_executable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'vina'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receptor_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxcenter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exhaustiveness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_modes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/moldrug/fitness.html#Cost"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moldrug.fitness.Cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is the main Cost function of the module</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Individual</strong> (<a class="reference internal" href="utils.html#moldrug.utils.Individual" title="moldrug.utils.Individual"><em>utils.Individual</em></a>) – A Individual with the pdbqt attribute</p></li>
+<li><p><strong>wd</strong> (<em>str</em><em>, </em><em>optional</em>) – The working directory to execute the docking jobs, by default ‘.vina_jobs’</p></li>
+<li><p><strong>vina_executable</strong> (<em>str</em><em>, </em><em>optional</em>) – This is the name of the vina executable, could be a path to the binary object (x, y, z),  by default ‘vina’</p></li>
+<li><p><strong>receptor_path</strong> (<em>str</em><em>, </em><em>optional</em>) – Where the receptor.pdbqt is located, by default None</p></li>
+<li><p><strong>boxcenter</strong> (<em>list</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – A list of three floats with the definition of the center of the box for docking, by default None</p></li>
+<li><p><strong>boxsize</strong> (<em>list</em><em>[</em><em>float</em><em>]</em><em>, </em><em>optional</em>) – A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None</p></li>
+<li><p><strong>exhaustiveness</strong> (<em>int</em><em>, </em><em>optional</em>) – Parameter of vina that controls the accuracy of the searching on Vina, by default 8</p></li>
+<li><p><strong>ncores</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of cpus to use in Vina, by default 1</p></li>
+<li><p><strong>num_modes</strong> (<em>int</em><em>, </em><em>optional</em>) – How many modes should Vina export, by default 1</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A new instance of the original Individual with the the new attributes: pdbqt, qed, vina_score, sa_score and cost</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="utils.html#moldrug.utils.Individual" title="moldrug.utils.Individual">utils.Individual</a></p>
+</dd>
+</dl>
+<p class="rubric">Example</p>
+<div class="highlight-ipython notranslate"><div class="highlight"><pre><span></span><span class="gp">In [1]: </span><span class="kn">from</span> <span class="nn">moldrug</span> <span class="kn">import</span> <span class="n">utils</span><span class="p">,</span> <span class="n">fitness</span>
+
+<span class="gp">In [2]: </span><span class="kn">import</span> <span class="nn">tempfile</span><span class="o">,</span> <span class="nn">os</span>
+
+<span class="gp">In [3]: </span><span class="kn">from</span> <span class="nn">moldrug.data</span> <span class="kn">import</span> <span class="n">ligands</span><span class="p">,</span> <span class="n">boxes</span><span class="p">,</span> <span class="n">receptors</span>
+
+<span class="gp">In [4]: </span><span class="n">tmp_path</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span>
+
+<span class="gp">In [5]: </span><span class="n">ligand_smiles</span> <span class="o">=</span> <span class="n">ligands</span><span class="o">.</span><span class="n">r_x0161</span>
+
+<span class="gp">In [6]: </span><span class="n">I</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">Individual</span><span class="p">(</span><span class="n">ligand_smiles</span><span class="p">)</span>
+
+<span class="gp">In [7]: </span><span class="n">receptor_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="s1">&#39;receptor.pdbqt&#39;</span><span class="p">)</span>
+
+<span class="gp">In [8]: </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">receptor_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">r</span><span class="p">:</span> <span class="n">r</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">receptors</span><span class="o">.</span><span class="n">r_x0161</span><span class="p">)</span>
+
+<span class="gp">In [9]: </span><span class="n">box</span> <span class="o">=</span> <span class="n">boxes</span><span class="o">.</span><span class="n">r_x0161</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">]</span>
+
+<span class="gp">In [10]: </span><span class="n">NewI</span> <span class="o">=</span> <span class="n">fitness</span><span class="o">.</span><span class="n">Cost</span><span class="p">(</span><span class="n">Individual</span> <span class="o">=</span> <span class="n">I</span><span class="p">,</span><span class="n">wd</span> <span class="o">=</span> <span class="n">tmp_path</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">receptor_path</span> <span class="o">=</span> <span class="n">receptor_path</span><span class="p">,</span><span class="n">boxcenter</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="s1">&#39;boxcenter&#39;</span><span class="p">],</span><span class="n">boxsize</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="s1">&#39;boxsize&#39;</span><span class="p">],</span><span class="n">exhaustiveness</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span><span class="n">ncores</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span>
+
+<span class="gp">In [11]: </span><span class="nb">print</span><span class="p">(</span><span class="n">NewI</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="n">NewI</span><span class="o">.</span><span class="n">vina_score</span><span class="p">,</span> <span class="n">NewI</span><span class="o">.</span><span class="n">qed</span><span class="p">,</span> <span class="n">NewI</span><span class="o">.</span><span class="n">sa_score</span><span class="p">)</span>
+<span class="go">1.0 -5.1 0.7097425790327138 1.5359575087690605</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="moldrug.fitness.CostMultiReceptors">
+<span class="sig-prename descclassname"><span class="pre">moldrug.fitness.</span></span><span class="sig-name descname"><span class="pre">CostMultiReceptors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Individual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="utils.html#moldrug.utils.Individual" title="moldrug.utils.Individual"><span class="pre">Individual</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">wd</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'.vina_jobs'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vina_executable</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'vina'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">receptor_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxcenter</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vina_score_types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boxsize</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exhaustiveness</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ncores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_modes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/moldrug/fitness.html#CostMultiReceptors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#moldrug.fitness.CostMultiReceptors" title="Permalink to this definition">¶</a></dt>
+<dd><p>A fitness function that add multiple receptor on the responses variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>Individual</strong> (<a class="reference internal" href="utils.html#moldrug.utils.Individual" title="moldrug.utils.Individual"><em>utils.Individual</em></a>) – An Individual Instance</p></li>
+<li><p><strong>wd</strong> (<em>str</em><em>, </em><em>optional</em>) – The path were all the vina jobs will be executed. Defaults to ‘.vina_jobs’.</p></li>
+<li><p><strong>receptor_path</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of paths of the corresponded pdbqt files. Defaults to None.</p></li>
+<li><p><strong>boxcenter</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of list with the values x, y, z of the center. Defaults to None.</p></li>
+<li><p><strong>vina_score_type</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of strings: ‘min’ or ‘max’. For example if we are using two receptors: the first one we are looking for a minimum of the vina scoring function and in the other one a maximum (we are looking for specificity) then you should provided [‘min’, ‘max’]. Defaults to None.</p></li>
+<li><p><strong>boxsize</strong> (<em>list</em><em>, </em><em>optional</em>) – A list of list with the values x, y, z of the for the size. Defaults to None.. Defaults to None.</p></li>
+<li><p><strong>exhaustiveness</strong> (<em>int</em><em>, </em><em>optional</em>) – The exhaustiveness of Vina. Defaults to 8.</p></li>
+<li><p><strong>ncores</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of cores to use on Vina. Defaults to 1.</p></li>
+<li><p><strong>num_modes</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of modes to return from the Vina simulation. Defaults to 1.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A modified Individual instance with the added attributes: qed, sa_score, pdbqt, vina_score and cost</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="utils.html#moldrug.utils.Individual" title="moldrug.utils.Individual">Individual</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="utils.html" class="btn btn-neutral float-right" title="Utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../api.html" class="btn btn-neutral float-left" title="Summary" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, Alejandro Martínez León
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

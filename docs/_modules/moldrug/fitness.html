@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>moldrug.fitness &mdash; MolDrug  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> MolDrug
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/citations.html">Citation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/quickstart.html">1. Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/how_to.html">2. How-to</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/api.html">Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules/fitness.html">Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules/utils.html">Utils</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">MolDrug</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>moldrug.fitness</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for moldrug.fitness</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">moldrug</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">QED</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+
+<div class="viewcode-block" id="Cost"><a class="viewcode-back" href="../../source/modules/fitness.html#moldrug.fitness.Cost">[docs]</a><span class="k">def</span> <span class="nf">Cost</span><span class="p">(</span><span class="n">Individual</span><span class="p">:</span><span class="n">utils</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">wd</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.vina_jobs&#39;</span><span class="p">,</span> <span class="n">vina_executable</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;vina&#39;</span><span class="p">,</span> <span class="n">receptor_path</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boxcenter</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boxsize</span><span class="p">:</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exhaustiveness</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">ncores</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>  <span class="n">num_modes</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is the main Cost function of the module</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Individual : utils.Individual</span>
+<span class="sd">        A Individual with the pdbqt attribute</span>
+<span class="sd">    wd : str, optional</span>
+<span class="sd">        The working directory to execute the docking jobs, by default &#39;.vina_jobs&#39;</span>
+<span class="sd">    vina_executable : str, optional</span>
+<span class="sd">        This is the name of the vina executable, could be a path to the binary object (x, y, z),  by default &#39;vina&#39;</span>
+<span class="sd">    receptor_path : str, optional</span>
+<span class="sd">        Where the receptor.pdbqt is located, by default None</span>
+<span class="sd">    boxcenter : list[float], optional</span>
+<span class="sd">        A list of three floats with the definition of the center of the box for docking, by default None</span>
+<span class="sd">    boxsize : list[float], optional</span>
+<span class="sd">        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None</span>
+<span class="sd">    exhaustiveness : int, optional</span>
+<span class="sd">        Parameter of vina that controls the accuracy of the searching on Vina, by default 8</span>
+<span class="sd">    ncores : int, optional</span>
+<span class="sd">        Number of cpus to use in Vina, by default 1</span>
+<span class="sd">    num_modes : int, optional</span>
+<span class="sd">        How many modes should Vina export, by default 1</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    utils.Individual</span>
+<span class="sd">        A new instance of the original Individual with the the new attributes: pdbqt, qed, vina_score, sa_score and cost</span>
+<span class="sd">    </span>
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    .. ipython:: python</span>
+<span class="sd">        :okwarning:</span>
+<span class="sd">        :okexcept:</span>
+
+<span class="sd">        from moldrug import utils, fitness</span>
+<span class="sd">        import tempfile, os</span>
+<span class="sd">        from moldrug.data import ligands, boxes, receptors</span>
+<span class="sd">        tmp_path = tempfile.TemporaryDirectory()</span>
+<span class="sd">        ligand_smiles = ligands.r_x0161</span>
+<span class="sd">        I = utils.Individual(ligand_smiles)</span>
+<span class="sd">        receptor_path = os.path.join(tmp_path.name,&#39;receptor.pdbqt&#39;)</span>
+<span class="sd">        with open(receptor_path, &#39;w&#39;) as r: r.write(receptors.r_x0161)</span>
+<span class="sd">        box = boxes.r_x0161[&#39;A&#39;]</span>
+<span class="sd">        NewI = fitness.Cost(Individual = I,wd = tmp_path.name,receptor_path = receptor_path,boxcenter = box[&#39;boxcenter&#39;],boxsize = box[&#39;boxsize&#39;],exhaustiveness = 4,ncores = 4)</span>
+<span class="sd">        print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sascorer</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">import_sascorer</span><span class="p">()</span>
+    <span class="c1"># multicriteria optimization,Optimization of Several Response Variables</span>
+    <span class="c1"># Getting estimate of drug-likness</span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">qed</span> <span class="o">=</span> <span class="n">QED</span><span class="o">.</span><span class="n">weights_mean</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+    
+    <span class="c1"># Getting synthetic accessibility score</span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">sa_score</span> <span class="o">=</span> <span class="n">sascorer</span><span class="o">.</span><span class="n">calculateScore</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+    
+    <span class="c1"># Getting Vina score</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">vina_executable</span><span class="si">}</span><span class="s2"> --receptor </span><span class="si">{</span><span class="n">receptor_path</span><span class="si">}</span><span class="s2"> --ligand </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s1">.pdbqt&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>\
+        <span class="sa">f</span><span class="s2">&quot;--center_x </span><span class="si">{</span><span class="n">boxcenter</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> --center_y </span><span class="si">{</span><span class="n">boxcenter</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> --center_z </span><span class="si">{</span><span class="n">boxcenter</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>\
+        <span class="sa">f</span><span class="s2">&quot;--size_x </span><span class="si">{</span><span class="n">boxsize</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> --size_y </span><span class="si">{</span><span class="n">boxsize</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> --size_z </span><span class="si">{</span><span class="n">boxsize</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>\
+        <span class="sa">f</span><span class="s2">&quot;--out </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s1">_out.pdbqt&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> --cpu </span><span class="si">{</span><span class="n">ncores</span><span class="si">}</span><span class="s2"> --exhaustiveness </span><span class="si">{</span><span class="n">exhaustiveness</span><span class="si">}</span><span class="s2"> --num_modes </span><span class="si">{</span><span class="n">num_modes</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="c1">#print(cmd)</span>
+    <span class="c1"># Creating the ligand pdbqt</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s1">.pdbqt&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
+        <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">pdbqt</span><span class="p">)</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+    <span class="c1"># Getting the information</span>
+    <span class="n">best_energy</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">VINA_OUT</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s1">_out.pdbqt&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">BestEnergy</span><span class="p">()</span>
+    <span class="c1"># Changing the xyz conformation by the conformation of the binding pose</span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">pdbqt</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">best_energy</span><span class="o">.</span><span class="n">chunk</span><span class="p">)</span>
+
+    <span class="c1"># Getting the Scoring function of Vina</span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">vina_score</span> <span class="o">=</span> <span class="n">best_energy</span><span class="o">.</span><span class="n">freeEnergy</span>
+
+    <span class="c1"># Adding the cost using all the information of qed, sas and vina_cost</span>
+
+
+    <span class="c1"># Construct the desirability</span>
+    <span class="c1"># Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible. </span>
+    <span class="n">w_qed</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">d_qed</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LargerTheBest</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">qed</span><span class="p">,</span> <span class="n">LowerLimit</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">Target</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Synthetic accessibility score (ranges from 1 to 10). We would like to have 3 or lower and beyond 7 we assume that is not good.</span>
+    <span class="n">w_sa_score</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">d_sa_score</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">SmallerTheBest</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">sa_score</span><span class="p">,</span> <span class="n">Target</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">UpperLimit</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Vina. In this case is difficult to create a desirability because the range, we will use as target -12 upperlimit -6.</span>
+    <span class="n">w_vina_score</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">d_vina_score</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">SmallerTheBest</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">vina_score</span><span class="p">,</span> <span class="n">Target</span> <span class="o">=</span> <span class="o">-</span><span class="mi">12</span><span class="p">,</span> <span class="n">UpperLimit</span><span class="o">=-</span><span class="mi">6</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Average </span>
+    <span class="c1">#D = (w_qed*d_qed + w_sa_score*d_sa_score + w_vina_score*d_vina_score) / (w_qed + w_sa_score + w_vina_score)</span>
+    <span class="c1"># Geometric mean</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="p">(</span><span class="n">d_qed</span><span class="o">**</span><span class="n">w_qed</span> <span class="o">*</span> <span class="n">d_sa_score</span><span class="o">**</span><span class="n">w_sa_score</span> <span class="o">*</span> <span class="n">d_vina_score</span><span class="o">**</span><span class="n">w_vina_score</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">w_qed</span> <span class="o">+</span> <span class="n">w_sa_score</span> <span class="o">+</span> <span class="n">w_vina_score</span><span class="p">))</span>
+    <span class="c1"># And because we are minimizing we have to return </span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">D</span>
+    <span class="k">return</span> <span class="n">Individual</span></div>
+
+<div class="viewcode-block" id="CostMultiReceptors"><a class="viewcode-back" href="../../source/modules/fitness.html#moldrug.fitness.CostMultiReceptors">[docs]</a><span class="k">def</span> <span class="nf">CostMultiReceptors</span><span class="p">(</span><span class="n">Individual</span><span class="p">:</span><span class="n">utils</span><span class="o">.</span><span class="n">Individual</span><span class="p">,</span> <span class="n">wd</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;.vina_jobs&#39;</span><span class="p">,</span> <span class="n">vina_executable</span> <span class="o">=</span> <span class="s1">&#39;vina&#39;</span><span class="p">,</span> <span class="n">receptor_path</span><span class="p">:</span><span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boxcenter</span><span class="p">:</span><span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">vina_score_types</span><span class="p">:</span><span class="nb">list</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">boxsize</span><span class="p">:</span><span class="nb">list</span> <span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">exhaustiveness</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="n">ncores</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>  <span class="n">num_modes</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A fitness function that add multiple receptor on the responses variables.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Individual (utils.Individual): An Individual Instance</span>
+<span class="sd">        wd (str, optional): The path were all the vina jobs will be executed. Defaults to &#39;.vina_jobs&#39;.</span>
+<span class="sd">        receptor_path (list, optional): A list of paths of the corresponded pdbqt files. Defaults to None.</span>
+<span class="sd">        boxcenter (list, optional): A list of list with the values x, y, z of the center. Defaults to None.</span>
+<span class="sd">        vina_score_type (list, optional): A list of strings: &#39;min&#39; or &#39;max&#39;. For example if we are using two receptors: the first one we are looking for a minimum of the vina scoring function and in the other one a maximum (we are looking for specificity) then you should provided [&#39;min&#39;, &#39;max&#39;]. Defaults to None.</span>
+<span class="sd">        boxsize (list, optional): A list of list with the values x, y, z of the for the size. Defaults to None.. Defaults to None.</span>
+<span class="sd">        exhaustiveness (int, optional): The exhaustiveness of Vina. Defaults to 8.</span>
+<span class="sd">        ncores (int, optional): Number of cores to use on Vina. Defaults to 1.</span>
+<span class="sd">        num_modes (int, optional): Number of modes to return from the Vina simulation. Defaults to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Individual: A modified Individual instance with the added attributes: qed, sa_score, pdbqt, vina_score and cost</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sascorer</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">import_sascorer</span><span class="p">()</span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">qed</span> <span class="o">=</span> <span class="n">QED</span><span class="o">.</span><span class="n">weights_mean</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+    
+    <span class="c1"># Getting synthetic accessibility score</span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">sa_score</span> <span class="o">=</span> <span class="n">sascorer</span><span class="o">.</span><span class="n">calculateScore</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+    
+    <span class="c1"># Getting Vina score</span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">vina_pdbqts</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">vina_scores</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">receptor_path</span><span class="p">)):</span>
+        <span class="n">cmd</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">vina_executable</span><span class="si">}</span><span class="s2"> --receptor </span><span class="si">{</span><span class="n">receptor_path</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2"> --ligand </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">.pdbqt&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> &quot;</span>\
+            <span class="sa">f</span><span class="s2">&quot;--center_x </span><span class="si">{</span><span class="n">boxcenter</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> --center_y </span><span class="si">{</span><span class="n">boxcenter</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> --center_z </span><span class="si">{</span><span class="n">boxcenter</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>\
+            <span class="sa">f</span><span class="s2">&quot;--size_x </span><span class="si">{</span><span class="n">boxsize</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> --size_y </span><span class="si">{</span><span class="n">boxsize</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> --size_z </span><span class="si">{</span><span class="n">boxsize</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span><span class="si">}</span><span class="s2"> &quot;</span>\
+            <span class="sa">f</span><span class="s2">&quot;--out </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">_out.pdbqt&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2"> --cpu </span><span class="si">{</span><span class="n">ncores</span><span class="si">}</span><span class="s2"> --exhaustiveness </span><span class="si">{</span><span class="n">exhaustiveness</span><span class="si">}</span><span class="s2"> --num_modes </span><span class="si">{</span><span class="n">num_modes</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="c1">#print(cmd)</span>
+        <span class="c1"># Creating the ligand pdbqt</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">.pdbqt&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">l</span><span class="p">:</span>
+            <span class="n">l</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">pdbqt</span><span class="p">)</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
+
+        <span class="c1"># Getting the information</span>
+        <span class="n">best_energy</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">VINA_OUT</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">wd</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">Individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s1">_out.pdbqt&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">BestEnergy</span><span class="p">()</span>
+        <span class="c1"># Changing the xyz conformation by the conformation of the binding pose</span>
+        <span class="n">Individual</span><span class="o">.</span><span class="n">vina_pdbqts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">best_energy</span><span class="o">.</span><span class="n">chunk</span><span class="p">))</span>
+
+        <span class="c1"># Getting the Scoring function of Vina</span>
+        <span class="n">Individual</span><span class="o">.</span><span class="n">vina_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">best_energy</span><span class="o">.</span><span class="n">freeEnergy</span><span class="p">)</span>
+
+    <span class="c1"># Adding the cost using all the information of qed, sas and vina_cost</span>
+
+
+    <span class="c1"># Construct the desirability</span>
+    <span class="c1"># Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible. </span>
+    <span class="n">w_qed</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">d_qed</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">LargerTheBest</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">qed</span><span class="p">,</span> <span class="n">LowerLimit</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">Target</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Synthetic accessibility score (ranges from 1 to 10). We would like to have 3 or lower and beyond 7 we assume that is not good.</span>
+    <span class="n">w_sa_score</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">d_sa_score</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">SmallerTheBest</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">sa_score</span><span class="p">,</span> <span class="n">Target</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="n">UpperLimit</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Vina. In this case is difficult to create a desirability because the range, we will use as target -12 upperlimit -6.</span>
+    <span class="n">w_vina_scores</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vina_score_types</span><span class="p">)</span><span class="o">*</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">d_vina_scores</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">vina_score</span><span class="p">,</span> <span class="n">vina_score_type</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Individual</span><span class="o">.</span><span class="n">vina_scores</span><span class="p">,</span> <span class="n">vina_score_types</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">vina_score_type</span> <span class="o">==</span> <span class="s1">&#39;min&#39;</span><span class="p">:</span>
+            <span class="n">d_vina_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">SmallerTheBest</span><span class="p">(</span><span class="n">vina_score</span><span class="p">,</span> <span class="n">Target</span> <span class="o">=</span> <span class="o">-</span><span class="mi">12</span><span class="p">,</span> <span class="n">UpperLimit</span><span class="o">=-</span><span class="mi">6</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">vina_score_type</span> <span class="o">==</span> <span class="s1">&#39;max&#39;</span><span class="p">:</span>
+            <span class="n">d_vina_scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">utils</span><span class="o">.</span><span class="n">LargerTheBest</span><span class="p">(</span><span class="n">vina_score</span><span class="p">,</span> <span class="n">LowerLimit</span> <span class="o">=</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="n">Target</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># I have to check first if the list vina_score_types only contains min and max strings</span>
+            <span class="k">pass</span>
+    <span class="c1"># Average </span>
+    <span class="c1">#D = (w_qed*d_qed + w_sa_score*d_sa_score + sum([w_vina_score*d_vina_score for w_vina_score, d_vina_score in zip(w_vina_scores, d_vina_scores)])) / (w_qed + w_sa_score + sum(w_vina_scores))</span>
+    <span class="c1"># Geometric mean</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="p">(</span><span class="n">d_qed</span><span class="o">**</span><span class="n">w_qed</span> <span class="o">*</span> <span class="n">d_sa_score</span><span class="o">**</span><span class="n">w_sa_score</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">([</span><span class="n">d_vina_score</span><span class="o">**</span><span class="n">w_vina_score</span> <span class="k">for</span> <span class="n">d_vina_score</span><span class="p">,</span> <span class="n">w_vina_score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">d_vina_scores</span><span class="p">,</span> <span class="n">w_vina_scores</span><span class="p">)]))</span><span class="o">**</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">w_qed</span> <span class="o">+</span> <span class="n">w_sa_score</span> <span class="o">+</span> <span class="nb">sum</span><span class="p">(</span><span class="n">w_vina_scores</span><span class="p">)))</span>
+    <span class="c1"># And because we are minimizing we have to return </span>
+    <span class="n">Individual</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">D</span>
+    <span class="k">return</span> <span class="n">Individual</span></div>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, Alejandro Martínez León
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

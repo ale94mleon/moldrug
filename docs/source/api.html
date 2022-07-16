@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Summary &mdash; MolDrug  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Fitness" href="modules/fitness.html" />
+    <link rel="prev" title="2. How-to" href="../notebooks/how_to.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> MolDrug
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="citations.html">Citation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/quickstart.html">1. Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks/how_to.html">2. How-to</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Summary</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#input-data">Input data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-idea">The idea</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#fitness-functions">Fitness functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#multi-receptor">Multi Receptor</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="modules/fitness.html">Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="modules/utils.html">Utils</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">MolDrug</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Summary</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/source/api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="summary">
+<h1>Summary<a class="headerlink" href="#summary" title="Permalink to this heading">¶</a></h1>
+<section id="input-data">
+<h2>Input data<a class="headerlink" href="#input-data" title="Permalink to this heading">¶</a></h2>
+<p>Currently, MolDrug only accepts valids RDKit SMILES and valids pdbqt files that
+will be procesed by Vina.</p>
+</section>
+<section id="the-idea">
+<h2>The idea<a class="headerlink" href="#the-idea" title="Permalink to this heading">¶</a></h2>
+<p>The idea is simple: we want the best drug for some application. The problem is
+that it is not as simple as it sounds. The chemical space is enormous and the estimation
+of the fitness is also a term of concern.</p>
+<p>Here we address this problem using a GA. The inputs are:</p>
+<ol class="arabic simple">
+<li><p>Biological target (pdbqt format).</p></li>
+<li><p>SMILES string of some known (or guessing) drug.</p></li>
+<li><p>Definition of the binding pocket.</p></li>
+<li><p>Definition of the GA running variables.</p></li>
+</ol>
+<p>With the initial SMILES, a random population of <code class="docutils literal notranslate"><span class="pre">popsize</span></code>
+individuals will be generated through the <a class="reference external" href="https://github.com/DrrDom/crem">CReM</a>
+operation <code class="docutils literal notranslate"><span class="pre">mutate_mol</span></code>. Every individual will be evaluated through the fitness function.
+The best individual will be used for crossover and mutation, generating <code class="docutils literal notranslate"><span class="pre">pc*popsize</span></code> offsprings.
+The offsprings will be merge with the current population, sorted respect to the fitness function
+and the first <code class="docutils literal notranslate"><span class="pre">popsize</span></code> individuals will be kept for the next generation.
+This cycle will run for <code class="docutils literal notranslate"><span class="pre">maxiter</span></code> generations.</p>
+</section>
+<section id="fitness-functions">
+<h2>Fitness functions<a class="headerlink" href="#fitness-functions" title="Permalink to this heading">¶</a></h2>
+<p>The default fitness function could be access through.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">moldrug</span> <span class="kn">import</span> <span class="n">fitness</span>
+<span class="n">cost</span> <span class="o">=</span> <span class="n">fitness</span><span class="o">.</span><span class="n">Cost</span>
+</pre></div>
+</div>
+<p>A molecule must present several properties to be considered a drug. Some of the must important are:
+be potent, reach the biological target (good ADME profile) and be real. The last obvious property could
+be a bottleneck for computer assisted drug design. Because we want to optimize several response variables
+at the same time; this <code class="docutils literal notranslate"><span class="pre">cost</span></code> function use the concept of <a class="reference external" href="https://www.sciencedirect.com/science/article/pii/S0169743911000797">desirability functions</a>
+which optimize several response variables on the hub.</p>
+<p>The following are the response variables:</p>
+<ol class="arabic simple">
+<li><p><a class="reference external" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/">Vina Scoring Function.</a></p></li>
+<li><p><a class="reference external" href="https://www.nature.com/articles/nchem.1243">Quantitative Estimation of Drug-likeness.</a></p></li>
+<li><p><a class="reference external" href="https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)">Synthetic accessibility.</a></p></li>
+</ol>
+<p>For each of this response variables we create their corresponded Derringer-Suich desirability functions.
+And them we combine them as a geometric mean:</p>
+<div class="math notranslate nohighlight">
+\[D = {\left[\prod_{i = 1}^{3} d_i^{w_i}\right]}^{\frac{1}{\sum_i w_i}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(w_i\)</span> are the weights of each variable; and <span class="math notranslate nohighlight">\(d_i\)</span> the desirability functions.
+Each individual <span class="math notranslate nohighlight">\(d_i\)</span> ranges from 0 to 1 and therefore also <span class="math notranslate nohighlight">\(D\)</span>.
+Because we are looking for the minimum, the function <cite>cost</cite> return <span class="math notranslate nohighlight">\(1 - D\)</span>.</p>
+</section>
+<section id="multi-receptor">
+<h2>Multi Receptor<a class="headerlink" href="#multi-receptor" title="Permalink to this heading">¶</a></h2>
+<p>Could be that our receptor presents high flexibility or that we are interested in generate specific
+small molecules. In this case could be convenient to add more than one receptor to the cost function.
+In the <code class="docutils literal notranslate"><span class="pre">fitness</span></code> module the cost function <code class="docutils literal notranslate"><span class="pre">CostMultiReceptors</span></code> tries to reach this goal. For the case
+of flexibility, we could perform docking in an ensemble of protein structures, and just keep the lower
+scoring rather that included all of them in the final desirability function.</p>
+</section>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="modules/fitness.html" class="btn btn-neutral float-right" title="Fitness" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../notebooks/how_to.html" class="btn btn-neutral float-left" title="2. How-to" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, Alejandro Martínez León
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

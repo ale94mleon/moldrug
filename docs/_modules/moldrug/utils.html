@@ -1,0 +1,1131 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>moldrug.utils &mdash; MolDrug  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> MolDrug
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption" role="heading"><span class="caption-text">User guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/citations.html">Citation</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/quickstart.html">1. Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../notebooks/how_to.html">2. How-to</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../source/api.html">Summary</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules/fitness.html">Fitness</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../source/modules/utils.html">Utils</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">MolDrug</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>moldrug.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for moldrug.utils</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">Chem</span>
+<span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">AllChem</span><span class="p">,</span> <span class="n">DataStructs</span><span class="p">,</span> <span class="n">Lipinski</span><span class="p">,</span> <span class="n">Descriptors</span>
+<span class="kn">from</span> <span class="nn">meeko</span> <span class="kn">import</span> <span class="n">MoleculePreparation</span><span class="p">,</span> <span class="n">PDBQTMolecule</span>
+<span class="kn">from</span> <span class="nn">crem.crem</span> <span class="kn">import</span> <span class="n">mutate_mol</span><span class="p">,</span> <span class="n">grow_mol</span>
+
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span> <span class="nn">inspect</span> <span class="kn">import</span> <span class="n">getfullargspec</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span> <span class="k">as</span> <span class="nn">mp</span>
+<span class="kn">import</span> <span class="nn">tempfile</span><span class="o">,</span> <span class="nn">subprocess</span><span class="o">,</span> <span class="nn">random</span><span class="o">,</span> <span class="nn">time</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">tqdm</span><span class="o">,</span> <span class="nn">bz2</span><span class="o">,</span> <span class="nn">pickle</span><span class="o">,</span> <span class="nn">_pickle</span> <span class="k">as</span> <span class="nn">cPickle</span><span class="o">,</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span><span class="o">,</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+
+<span class="kn">from</span> <span class="nn">rdkit</span> <span class="kn">import</span> <span class="n">RDLogger</span>
+<span class="n">RDLogger</span><span class="o">.</span><span class="n">DisableLog</span><span class="p">(</span><span class="s1">&#39;rdApp.*&#39;</span><span class="p">)</span> 
+
+<span class="c1">######################################################################################################################################</span>
+<span class="c1">#                                   Here are some important functions to work with                                                   #</span>
+<span class="c1">######################################################################################################################################</span>
+<div class="viewcode-block" id="timeit"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.timeit">[docs]</a><span class="k">def</span> <span class="nf">timeit</span><span class="p">(</span><span class="n">method</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calculate the time of a process. Useful as decorator of functions</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        method (function): Any function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">timed</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">):</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">method</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kw</span><span class="p">)</span>
+        <span class="n">te</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;log_time&#39;</span> <span class="ow">in</span> <span class="n">kw</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">kw</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_name&#39;</span><span class="p">,</span> <span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+            <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;log_time&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%r</span><span class="s1">  </span><span class="si">%2.2f</span><span class="s1"> ms&#39;</span> <span class="o">%</span> \
+                  <span class="p">(</span><span class="n">method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="p">(</span><span class="n">te</span> <span class="o">-</span> <span class="n">ts</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">return</span> <span class="n">timed</span></div>
+
+<div class="viewcode-block" id="run"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.run">[docs]</a><span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="n">command</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">shell</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">executable</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">Popen</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function is just a useful wrapper around subprocess.Popen, subprocess.run</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        command (str): Any command to execute on Linux</span>
+<span class="sd">        shell (bool, optional): keyword of Popen and Run. Defaults to True.</span>
+<span class="sd">        executable (str, optional): keyword of Popen and Run. Defaults to &#39;/bin/bash&#39;.</span>
+<span class="sd">        Popen (bool, optional): If True it will launch popen if not Run. Defaults to False.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        RuntimeError: In case of non-zero exit status.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        object: the processes returned by Popen or Run.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">Popen</span><span class="p">:</span>
+        <span class="c1">#In this case you could acces the pid as: run.pid</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">shell</span> <span class="o">=</span> <span class="n">shell</span><span class="p">,</span> <span class="n">executable</span> <span class="o">=</span> <span class="n">executable</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">shell</span> <span class="o">=</span> <span class="n">shell</span><span class="p">,</span> <span class="n">executable</span> <span class="o">=</span> <span class="n">executable</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">text</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">returncode</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">returncode</span>
+        <span class="k">if</span> <span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Command </span><span class="si">{</span><span class="n">command</span><span class="si">}</span><span class="s1"> returned non-zero exit status </span><span class="si">{</span><span class="n">returncode</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">process</span></div>
+
+
+<div class="viewcode-block" id="confgen"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.confgen">[docs]</a><span class="k">def</span> <span class="nf">confgen</span><span class="p">(</span><span class="n">smiles</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">return_mol</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a 3D model from a smiles and return a pdbqt string and, a mol if asked.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        smiles (str): a valid smiles code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+    <span class="n">AllChem</span><span class="o">.</span><span class="n">EmbedMolecule</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="n">AllChem</span><span class="o">.</span><span class="n">MMFFOptimizeMolecule</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="n">preparator</span> <span class="o">=</span> <span class="n">MoleculePreparation</span><span class="p">()</span>
+    <span class="n">preparator</span><span class="o">.</span><span class="n">prepare</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="n">pdbqt_string</span> <span class="o">=</span> <span class="n">preparator</span><span class="o">.</span><span class="n">write_pdbqt_string</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">return_mol</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">pdbqt_string</span><span class="p">,</span> <span class="n">mol</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">pdbqt_string</span></div>
+
+<div class="viewcode-block" id="get_sim"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.get_sim">[docs]</a><span class="k">def</span> <span class="nf">get_sim</span><span class="p">(</span><span class="n">ms</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">ref_fps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get the molecules with higher similarity to each member of ref_fps.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        ms (list): list of molecules</span>
+<span class="sd">        ref_fps (AllChem.GetMorganFingerprintAsBitVect): A list of reference fingerprints</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: A list of molecules with the higher similarity with their corresponded ref_fps value.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ms - list of molecules</span>
+    <span class="c1"># ref_fps - list of fingerprints of reference molecules</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">fps1</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">ms</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">fp</span> <span class="ow">in</span> <span class="n">fps1</span><span class="p">:</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">DataStructs</span><span class="o">.</span><span class="n">BulkTanimotoSimilarity</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">ref_fps</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+        <span class="n">output</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">v</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="get_similar_mols"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.get_similar_mols">[docs]</a><span class="k">def</span> <span class="nf">get_similar_mols</span><span class="p">(</span><span class="n">mols</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">ref_mol</span><span class="p">:</span><span class="n">Chem</span><span class="o">.</span><span class="n">rdchem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">pick</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mf">0.01</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Pick the similar molecules from mols respect to ref_mol using a roulette wheel selection strategy.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mols (list): the list of molecules from where pick molecules will be chosen</span>
+<span class="sd">        ref_mol (Chem.rdchem.Mol): The reference molecule</span>
+<span class="sd">        pick (int): Number of molecules to pick from mols</span>
+<span class="sd">        beta (float, optional): Selection threshold. Defaults to 0.01.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        list: A list of picked molecules.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">pick</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mols</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">mols</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ref_fp</span> <span class="o">=</span> <span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span><span class="n">ref_mol</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">fps</span> <span class="o">=</span> <span class="p">[</span><span class="n">AllChem</span><span class="o">.</span><span class="n">GetMorganFingerprintAsBitVect</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">mols</span><span class="p">]</span>
+        <span class="n">similarities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">DataStructs</span><span class="o">.</span><span class="n">BulkTanimotoSimilarity</span><span class="p">(</span><span class="n">ref_fp</span><span class="p">,</span> <span class="n">fps</span><span class="p">))</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">beta</span><span class="o">*</span><span class="n">similarities</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">beta</span><span class="o">*</span><span class="n">similarities</span><span class="p">))</span>
+        <span class="n">cumsum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span>
+        <span class="n">indexes</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">indexes</span><span class="p">)</span> <span class="o">!=</span> <span class="n">pick</span><span class="p">:</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+            <span class="n">indexes</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">r</span> <span class="o">&lt;=</span> <span class="n">cumsum</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">mols</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">indexes</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="lipinski_filter"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.lipinski_filter">[docs]</a><span class="k">def</span> <span class="nf">lipinski_filter</span><span class="p">(</span><span class="n">mol</span><span class="p">:</span><span class="n">Chem</span><span class="o">.</span><span class="n">rdchem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">maxviolation</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Implementation of Lipinski filter.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mol (Chem.rdchem.Mol): An RDKit molecule.</span>
+<span class="sd">        maxviolation (int, optional): Maximum number of violations to accept the molecule. Defaults to 2.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if the molecule present less than maxviolation of Number of violation; otherwise False.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">filter</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;NumHAcceptors&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumHAcceptors</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">},</span>
+        <span class="s1">&#39;NumHDonors&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumHDonors</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">},</span>
+        <span class="s1">&#39;wt&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">MolWt</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">500</span><span class="p">},</span>
+        <span class="s1">&#39;MLogP&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">MolLogP</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">},</span>
+        <span class="s1">&#39;NumRotatableBonds&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumRotatableBonds</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">},</span>
+        <span class="s1">&#39;TPSA&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolSurf</span><span class="o">.</span><span class="n">TPSA</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">140</span><span class="p">},</span>
+    <span class="p">}</span>
+    <span class="n">cont</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="nb">filter</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="nb">filter</span><span class="p">[</span><span class="nb">property</span><span class="p">][</span><span class="s1">&#39;method&#39;</span><span class="p">](</span><span class="n">mol</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">filter</span><span class="p">[</span><span class="nb">property</span><span class="p">][</span><span class="s1">&#39;cutoff&#39;</span><span class="p">]:</span>
+            <span class="n">cont</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">cont</span> <span class="o">&gt;=</span> <span class="n">maxviolation</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="lipinski_profile"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.lipinski_profile">[docs]</a><span class="k">def</span> <span class="nf">lipinski_profile</span><span class="p">(</span><span class="n">mol</span><span class="p">:</span><span class="n">Chem</span><span class="o">.</span><span class="n">rdchem</span><span class="o">.</span><span class="n">Mol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Get several drug-like properties.</span>
+<span class="sd">    See: https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mol (Chem.rdchem.Mol): An RDKit molecule.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary with the properties.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;NumHAcceptors&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumHAcceptors</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">},</span>
+        <span class="s1">&#39;NumHDonors&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumHDonors</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">},</span>
+        <span class="s1">&#39;wt&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">MolWt</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">500</span><span class="p">},</span>
+        <span class="s1">&#39;MLogP&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Descriptors</span><span class="o">.</span><span class="n">MolLogP</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">5</span><span class="p">},</span>
+        <span class="s1">&#39;NumRotatableBonds&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumRotatableBonds</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">},</span>
+        <span class="s1">&#39;TPSA&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolSurf</span><span class="o">.</span><span class="n">TPSA</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">140</span><span class="p">)},</span>
+
+        <span class="s1">&#39;FractionCSP3&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">FractionCSP3</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;HeavyAtomCount&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">HeavyAtomCount</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span> 
+        <span class="s1">&#39;NHOHCount&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NHOHCount</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NOCount&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NOCount</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;HeavyAtomCount&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">HeavyAtomCount</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NHOHCount&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NHOHCount</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NOCount&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NOCount</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumAliphaticCarbocycles&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumAliphaticCarbocycles</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumAliphaticHeterocycles&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumAliphaticHeterocycles</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumAliphaticRings&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumAliphaticRings</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumAromaticCarbocycles&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumAromaticCarbocycles</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumAromaticHeterocycles&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumAromaticHeterocycles</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumAromaticRings&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumAromaticRings</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumHeteroatoms&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumHeteroatoms</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumSaturatedCarbocycles&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumSaturatedCarbocycles</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumSaturatedHeterocycles&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumSaturatedHeterocycles</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;NumSaturatedRings&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">NumSaturatedRings</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+        <span class="s1">&#39;RingCount&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;method&#39;</span><span class="p">:</span><span class="n">Lipinski</span><span class="o">.</span><span class="n">RingCount</span><span class="p">,</span><span class="s1">&#39;cutoff&#39;</span><span class="p">:</span><span class="kc">None</span><span class="p">},</span>
+    <span class="p">}</span>
+    <span class="n">profile</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="nb">property</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="n">profile</span><span class="p">[</span><span class="nb">property</span><span class="p">]</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="nb">property</span><span class="p">][</span><span class="s1">&#39;method&#39;</span><span class="p">](</span><span class="n">mol</span><span class="p">)</span>
+        <span class="c1">#print(f&quot;{property}: {properties[property][&#39;method&#39;](mol)}. cutoff: {properties[property][&#39;cutoff&#39;]}&quot;)</span>
+    <span class="k">return</span> <span class="n">profile</span></div>
+
+<span class="c1">#Desirability. doi:10.1016/j.chemolab.2011.04.004; https://www.youtube.com/watch?v=quz4NW0uIYw&amp;list=PL6ebkIZFT4xXiVdpOeKR4o_sKLSY0aQf_&amp;index=3</span>
+<div class="viewcode-block" id="LargerTheBest"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.LargerTheBest">[docs]</a><span class="k">def</span> <span class="nf">LargerTheBest</span><span class="p">(</span><span class="n">Value</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">LowerLimit</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">Target</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Desirability function used when larger values are the targets. If Value is higher or equal than the target it will return 1; if it is lower than LowerLimit it will return 0; else a number between 0 and 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Value (float): Value to test.</span>
+<span class="sd">        LowerLimit (float): Lower value accepted. Lower than this one will return 0.</span>
+<span class="sd">        Target (float): The target value. On this value (or higher) the function takes 1 as value.</span>
+<span class="sd">        r (float, optional): This is the exponent of the interpolation. Could be used to control the interpolation. Defaults to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: A number between 0 and 1. Been 1 the desireable value to get.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">Value</span> <span class="o">&lt;</span> <span class="n">LowerLimit</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">elif</span> <span class="n">LowerLimit</span> <span class="o">&lt;=</span> <span class="n">Value</span> <span class="o">&lt;=</span> <span class="n">Target</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">Value</span> <span class="o">-</span><span class="n">LowerLimit</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">Target</span><span class="o">-</span><span class="n">LowerLimit</span><span class="p">))</span><span class="o">**</span><span class="n">r</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">1.0</span></div>
+
+<div class="viewcode-block" id="SmallerTheBest"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.SmallerTheBest">[docs]</a><span class="k">def</span> <span class="nf">SmallerTheBest</span><span class="p">(</span><span class="n">Value</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">Target</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">UpperLimit</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">r</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Desirability function used when lower values are the targets. If Value is lower or equal than the target it will return 1; if it is higher than UpperLimit it will return 0; else a number between 0 and 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Value (float): Value to test.</span>
+<span class="sd">        Target (float): The target value. On this value (or lower) the function takes 1 as value.</span>
+<span class="sd">        UpperLimit (float): Upper value accepted. Higher than this one will return 0.</span>
+<span class="sd">        r (float, optional): This is the exponent of the interpolation. Could be used to control the interpolation. Defaults to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: A number between 0 and 1. Been 1 the desireable value to get.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">Value</span> <span class="o">&lt;</span> <span class="n">Target</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="n">Target</span> <span class="o">&lt;=</span> <span class="n">Value</span> <span class="o">&lt;=</span> <span class="n">UpperLimit</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">UpperLimit</span><span class="o">-</span><span class="n">Value</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">UpperLimit</span><span class="o">-</span><span class="n">Target</span><span class="p">))</span><span class="o">**</span><span class="n">r</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span></div>
+
+<div class="viewcode-block" id="NominalTheBest"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.NominalTheBest">[docs]</a><span class="k">def</span> <span class="nf">NominalTheBest</span><span class="p">(</span><span class="n">Value</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">LowerLimit</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">Target</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">UpperLimit</span><span class="p">:</span><span class="nb">float</span><span class="p">,</span> <span class="n">r1</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">r2</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Desirability function used when a target value is desired. If Value is lower or equal than the LowerLimit it will return 0; as well values higher or equal than  UpperLimit; else a number between 0 and 1.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        Value (float):  Value to test.</span>
+<span class="sd">        LowerLimit (float): Lower value accepted. Lower than this one will return 0.</span>
+<span class="sd">        Target (float): The target value. On this value the function takes 1 as value.</span>
+<span class="sd">        UpperLimit (float): Upper value accepted. Higher than this one will return 0.</span>
+<span class="sd">        r1 (float, optional): This is the exponent of the interpolation from LowerLimit to Target. Could be used to control the interpolation. Defaults to 1.</span>
+<span class="sd">        r2 (float, optional): This is the exponent of the interpolation from Target to UpperLimit. Could be used to control the interpolation. Defaults to 1.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: A number between 0 and 1. Been 1 the desireable value to get.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">Value</span> <span class="o">&lt;</span> <span class="n">LowerLimit</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="k">elif</span> <span class="n">LowerLimit</span> <span class="o">&lt;=</span> <span class="n">Value</span> <span class="o">&lt;=</span> <span class="n">Target</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">Value</span> <span class="o">-</span><span class="n">LowerLimit</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">Target</span><span class="o">-</span><span class="n">LowerLimit</span><span class="p">))</span><span class="o">**</span><span class="n">r1</span>
+    <span class="k">elif</span> <span class="n">Target</span> <span class="o">&lt;=</span> <span class="n">Value</span> <span class="o">&lt;=</span> <span class="n">UpperLimit</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">((</span><span class="n">UpperLimit</span><span class="o">-</span><span class="n">Value</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">UpperLimit</span><span class="o">-</span><span class="n">Target</span><span class="p">))</span><span class="o">**</span><span class="n">r2</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">0.0</span></div>
+
+<span class="c1"># Saving data</span>
+<div class="viewcode-block" id="full_pickle"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.full_pickle">[docs]</a><span class="k">def</span> <span class="nf">full_pickle</span><span class="p">(</span><span class="n">title</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Normal pickle.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        title (str): name of the file without extension, .pkl will be added by default.</span>
+<span class="sd">        data (object): Any serializable python object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s1">.pkl&#39;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pkl</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pkl</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="loosen"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.loosen">[docs]</a><span class="k">def</span> <span class="nf">loosen</span><span class="p">(</span><span class="n">file</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Unpickle a pickled object.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file (str): The path to the file who store the pickle object.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        object: The python object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pkl</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">pkl</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="compressed_pickle"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.compressed_pickle">[docs]</a><span class="k">def</span> <span class="nf">compressed_pickle</span><span class="p">(</span><span class="n">title</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compress python object. First cPickle it and then bz2.BZ2File compressed it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        title (str): Name of the file without extensions, .pbz2 will be added by default</span>
+<span class="sd">        data (object): Any serializable python object</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">bz2</span><span class="o">.</span><span class="n">BZ2File</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">title</span><span class="si">}</span><span class="s1">.pbz2&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span> 
+        <span class="n">cPickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>   </div>
+
+<div class="viewcode-block" id="decompress_pickle"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.decompress_pickle">[docs]</a><span class="k">def</span> <span class="nf">decompress_pickle</span><span class="p">(</span><span class="n">file</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decompress CPickle objects compressed first with bz2 formats</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        file (str): This is the cPickle files compressed with bz2.BZ2File. (as a convention with extension .pbz2, but not needed)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        object: The python object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">bz2</span><span class="o">.</span><span class="n">BZ2File</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">cPickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+<span class="k">def</span> <span class="nf">make_sdf</span><span class="p">(</span><span class="n">individuals</span><span class="p">:</span><span class="nb">list</span><span class="p">,</span> <span class="n">sdf</span> <span class="o">=</span> <span class="s1">&#39;out.sdf&#39;</span><span class="p">):</span>
+
+    <span class="n">pdbqt_tmp</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">NamedTemporaryFile</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.pdbqt&#39;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">Chem</span><span class="o">.</span><span class="n">SDWriter</span><span class="p">(</span><span class="n">sdf</span><span class="p">)</span> <span class="k">as</span> <span class="n">w</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="n">individuals</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pdbqt_tmp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">individual</span><span class="o">.</span><span class="n">pdbqt</span><span class="p">)</span>
+            <span class="n">pdbqt_mol</span> <span class="o">=</span> <span class="n">PDBQTMolecule</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">pdbqt_tmp</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">skip_typing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">mol</span> <span class="o">=</span> <span class="n">pdbqt_mol</span><span class="o">.</span><span class="n">export_rdkit_mol</span><span class="p">()</span>
+            <span class="n">mol</span><span class="o">.</span><span class="n">SetProp</span><span class="p">(</span><span class="s2">&quot;_Name&quot;</span><span class="p">,</span><span class="sa">f</span><span class="s2">&quot;idx :: </span><span class="si">{</span><span class="n">individual</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s2">, smiles :: </span><span class="si">{</span><span class="n">individual</span><span class="o">.</span><span class="n">smiles</span><span class="si">}</span><span class="s2">, cost :: </span><span class="si">{</span><span class="n">individual</span><span class="o">.</span><span class="n">cost</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">w</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">import_sascorer</span><span class="p">():</span>
+    <span class="c1"># In order to import sascorer from RDConfig.RDContribDir</span>
+    <span class="kn">from</span> <span class="nn">rdkit.Chem</span> <span class="kn">import</span> <span class="n">RDConfig</span>
+    <span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">importlib.util</span> <span class="k">as</span> <span class="nn">importlib_util</span>
+    <span class="n">spec</span><span class="o">=</span><span class="n">importlib_util</span><span class="o">.</span><span class="n">spec_from_file_location</span><span class="p">(</span><span class="s1">&#39;sascorer&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">RDConfig</span><span class="o">.</span><span class="n">RDContribDir</span><span class="p">,</span> <span class="s1">&#39;SA_Score&#39;</span><span class="p">,</span> <span class="s1">&#39;sascorer.py&#39;</span><span class="p">))</span>
+    <span class="n">sascorer</span> <span class="o">=</span> <span class="n">importlib_util</span><span class="o">.</span><span class="n">module_from_spec</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+    <span class="n">spec</span><span class="o">.</span><span class="n">loader</span><span class="o">.</span><span class="n">exec_module</span><span class="p">(</span><span class="n">sascorer</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sascorer</span>
+<span class="c1">######################################################################################################################################</span>
+
+
+
+
+<span class="c1">######################################################################################################################################</span>
+<span class="c1">#                                               Classes to work with Vina                                                            #</span>
+<span class="c1">######################################################################################################################################</span>
+<div class="viewcode-block" id="Atom"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.Atom">[docs]</a><span class="k">class</span> <span class="nc">Atom</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;This is a simple class to wrap a pdbqt Atom. It is based on https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineType</span> <span class="o">=</span> <span class="s2">&quot;ATOM&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serial</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">11</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">altLoc</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resName</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">21</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chainID</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resSeq</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">22</span><span class="p">:</span><span class="mi">26</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iCode</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">occupancy</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">54</span><span class="p">:</span><span class="mi">60</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempFactor</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">60</span><span class="p">:</span><span class="mi">66</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partialChrg</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">66</span><span class="p">:</span><span class="mi">76</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atomType</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">78</span><span class="p">:</span><span class="mi">80</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Hetatm"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.Hetatm">[docs]</a><span class="k">class</span> <span class="nc">Hetatm</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;This is a simple class to wrap a pdbqt Hetatm. It is based on https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lineType</span> <span class="o">=</span> <span class="s2">&quot;HETATM&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">serial</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">6</span><span class="p">:</span><span class="mi">11</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">altLoc</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">16</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resName</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">17</span><span class="p">:</span><span class="mi">21</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chainID</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">resSeq</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">22</span><span class="p">:</span><span class="mi">26</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iCode</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">26</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">occupancy</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">54</span><span class="p">:</span><span class="mi">60</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tempFactor</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">60</span><span class="p">:</span><span class="mi">66</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">partialChrg</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">66</span><span class="p">:</span><span class="mi">76</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atomType</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">78</span><span class="p">:</span><span class="mi">80</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Remark"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.Remark">[docs]</a><span class="k">class</span> <span class="nc">Remark</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;For now useless</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="CHUNK_VINA_OUT"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.CHUNK_VINA_OUT">[docs]</a><span class="k">class</span> <span class="nc">CHUNK_VINA_OUT</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;This class will be used by VINA_OUT in order to read the pdbqt ouput of a vina docking results.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chunk</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunk</span> <span class="o">=</span> <span class="n">chunk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freeEnergy</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RMSD1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">RMSD2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chunk</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;MODEL&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">run</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;REMARK VINA RESULT:&quot;</span><span class="p">):</span>
+                    <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">freeEnergy</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">RMSD1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">RMSD2</span><span class="p">)</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">number</span><span class="p">)</span> <span class="k">for</span> <span class="n">number</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+                    
+            <span class="k">elif</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;ATOM&quot;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Atom</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+<div class="viewcode-block" id="CHUNK_VINA_OUT.get_atoms"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.CHUNK_VINA_OUT.get_atoms">[docs]</a>    <span class="k">def</span> <span class="nf">get_atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a list of all atoms.</span>
+
+<span class="sd">        If to_dict is True, each atom is represented as a dictionary.</span>
+<span class="sd">        Otherwise, a list of Atom objects is returned.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="vm">__dict__</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">atoms</span><span class="p">]</span></div>
+        
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Run_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="si">}</span><span class="s2">.pdbqt&quot;</span><span class="p">,</span><span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunk</span><span class="p">)</span>            </div>
+
+<div class="viewcode-block" id="VINA_OUT"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.VINA_OUT">[docs]</a><span class="k">class</span> <span class="nc">VINA_OUT</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    To access the chunks you need to take into account that </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file</span> <span class="o">=</span> <span class="n">file</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">input_file</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">input_file</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">lines</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;MODEL&quot;</span><span class="p">):</span>
+                <span class="n">j</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="n">tmp_chunk</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">while</span> <span class="p">(</span><span class="ow">not</span> <span class="n">lines</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;ENDMDL&quot;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="n">j</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">lines</span><span class="p">)):</span>
+                    <span class="n">tmp_chunk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lines</span><span class="p">[</span><span class="n">j</span><span class="p">])</span>
+                    <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">tmp_chunk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;ENDMDL</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CHUNK_VINA_OUT</span><span class="p">(</span><span class="n">tmp_chunk</span><span class="p">))</span>
+
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            
+    <span class="k">def</span> <span class="nf">BestEnergy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">min_chunk</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">chunks</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">freeEnergy</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">write</span><span class="p">:</span> <span class="n">min_chunk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;best_energy.pdbqt&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">min_chunk</span></div>
+
+<span class="c1">######################################################################################################################################</span>
+
+
+
+
+<span class="c1">######################################################################################################################################</span>
+<span class="c1">#                                             Classes to work with moldrug                                                                   #</span>
+<span class="c1">######################################################################################################################################</span>
+<div class="viewcode-block" id="Individual"><a class="viewcode-back" href="../../source/modules/utils.html#moldrug.utils.Individual">[docs]</a><span class="k">class</span> <span class="nc">Individual</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class to work with GA, Local and all the fitness functions.</span>
+<span class="sd">    Individual is a mutable object. It uses the smiles string for &#39;==&#39;</span>
+<span class="sd">    operator and the cost attribute for arithmetic operations.</span>
+<span class="sd">    Known issue, in case that we would like to use a numpy array of individuals. It is needed to change the ditype of the generated arrays</span>
+<span class="sd">    In order to use other operations, or cast to a list</span>
+<span class="sd">    array = np.array([c1,c2])</span>
+<span class="sd">    array_2 = (array*2).astype(&#39;float64&#39;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">smiles</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span><span class="n">Chem</span><span class="o">.</span><span class="n">rdchem</span><span class="o">.</span><span class="n">Mol</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">idx</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pdbqt</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">cost</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">smiles</span> <span class="o">=</span> <span class="n">smiles</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mol</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolFromSmiles</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">mol</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">pdbqt</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pdbqt</span><span class="p">,</span> <span class="n">mol3D</span> <span class="o">=</span> <span class="n">confgen</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">return_mol</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">mol</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">mol3D</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pdbqt</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pdbqt</span> <span class="o">=</span> <span class="n">pdbqt</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">cost</span>
+    
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">(idx = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">idx</span><span class="si">}</span><span class="s2">, smiles = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">smiles</span><span class="si">}</span><span class="s2">, cost = </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">smiles</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">smiles</span> <span class="c1">#self.cost == other.cost and</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span> <span class="c1"># self.smiles == other</span>
+
+    <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">&gt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__abs__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">+</span> <span class="n">other</span>
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="n">other</span>  <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">-</span> <span class="n">other</span>
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="n">other</span>  <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">*</span> <span class="n">other</span>
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="n">other</span>  <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">/</span> <span class="n">other</span>
+    <span class="k">def</span> <span class="fm">__rtruediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="n">other</span>  <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__floordiv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">//</span> <span class="n">other</span>
+    <span class="k">def</span> <span class="fm">__rfloordiv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="n">other</span>  <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__mod__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">%</span> <span class="n">other</span>
+    <span class="k">def</span> <span class="fm">__rmod__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="n">other</span>  <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span>
+
+    <span class="k">def</span> <span class="fm">__divmod__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">//</span> <span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">%</span> <span class="n">other</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__rdivmod__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="p">(</span><span class="n">other</span>  <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="n">other</span>  <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">**</span> <span class="n">other</span>
+    <span class="k">def</span> <span class="fm">__rpow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="nb">object</span><span class="p">):</span>
+        <span class="k">return</span>  <span class="n">other</span>  <span class="o">**</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span>
+    
+    <span class="k">def</span> <span class="nf">exp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>     
+
+    <span class="k">def</span> <span class="nf">__copy__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">__deepcopy__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">memo</span><span class="p">):</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">memo</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)]</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">memo</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+<span class="k">class</span> <span class="nc">Local</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">:</span><span class="n">Chem</span><span class="o">.</span><span class="n">rdchem</span><span class="o">.</span><span class="n">Mol</span><span class="p">,</span> <span class="n">crem_db_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">costfunc</span><span class="p">:</span><span class="nb">object</span><span class="p">,</span> <span class="n">grow_crem_kwargs</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">costfunc_kwargs</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{})</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Add check to get if the molecules is with Hs in case that some specification of the where to grow is given</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">mol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">crem_db_path</span> <span class="o">=</span> <span class="n">crem_db_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grow_crem_kwargs</span> <span class="o">=</span> <span class="n">grow_crem_kwargs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grow_crem_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;return_mol&#39;</span><span class="p">:</span><span class="kc">True</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span> <span class="o">=</span> <span class="n">costfunc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">costfunc_kwargs</span> <span class="o">=</span> <span class="n">costfunc_kwargs</span>
+        
+        <span class="n">MolNonHs</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop</span> <span class="o">=</span> <span class="p">[</span><span class="n">Individual</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">MolNonHs</span><span class="p">),</span> <span class="n">MolNonHs</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)]</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">njobs</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pick</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">new_mols</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">grow_mol</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">crem_db_path</span><span class="p">,</span>
+            <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">grow_crem_kwargs</span>
+            <span class="p">))</span>
+        <span class="k">if</span> <span class="n">pick</span><span class="p">:</span>
+            <span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">new_mols</span><span class="p">)</span>
+            <span class="n">new_mols</span> <span class="o">=</span> <span class="n">new_mols</span><span class="p">[:</span><span class="n">pick</span><span class="p">]</span>
+            <span class="n">new_mols</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">new_mols</span><span class="p">]</span>
+
+        <span class="n">idx0</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">new_mols</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Individual</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span> <span class="n">mol</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">idx0</span> <span class="o">+</span> <span class="n">i</span><span class="p">))</span>
+        
+        <span class="c1"># Calculating cost of each individual</span>
+        <span class="c1"># Creating the arguments</span>
+        <span class="n">args_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Make a copy of the self.costfunc_kwargs</span>
+        <span class="n">kwargs_copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">costfunc_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;wd&#39;</span> <span class="ow">in</span> <span class="n">getfullargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="n">costfunc_jobs</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;costfunc&#39;</span><span class="p">)</span>
+            <span class="n">kwargs_copy</span><span class="p">[</span><span class="s1">&#39;wd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">costfunc_jobs</span><span class="o">.</span><span class="n">name</span>
+        
+        <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">:</span>
+            <span class="n">args_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">individual</span><span class="p">,</span> <span class="n">kwargs_copy</span><span class="p">))</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Calculating cost function...&#39;</span><span class="p">)</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">njobs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop</span> <span class="o">=</span> <span class="p">[</span><span class="n">individual</span> <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__costfunc__</span><span class="p">,</span> <span class="n">args_list</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">))]</span>
+        <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="s1">&#39;wd&#39;</span> <span class="ow">in</span> <span class="n">getfullargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">:</span> <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">costfunc_jobs</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__costfunc__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args_list</span><span class="p">):</span>
+        <span class="n">Individual</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">args_list</span>
+        <span class="c1">#This is just to use the progress bar on pool.imap</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span><span class="p">(</span><span class="n">Individual</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            
+    <span class="k">def</span> <span class="nf">pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">title</span><span class="p">,</span> <span class="n">compress</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+            <span class="n">compressed_pickle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">full_pickle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">list_of_dictionaries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">:</span>
+            <span class="n">dictionary</span> <span class="o">=</span> <span class="n">individual</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">del</span> <span class="n">dictionary</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span>
+            <span class="n">list_of_dictionaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dictionary</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">list_of_dictionaries</span><span class="p">)</span>       
+
+<span class="k">class</span> <span class="nc">GA</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed_smiles</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">costfunc</span><span class="p">:</span><span class="nb">object</span><span class="p">,</span> <span class="n">costfunc_kwargs</span><span class="p">:</span><span class="nb">dict</span><span class="p">,</span> <span class="n">crem_db_path</span><span class="p">:</span><span class="nb">str</span><span class="p">,</span> <span class="n">maxiter</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">popsize</span><span class="p">:</span><span class="nb">int</span><span class="p">,</span> <span class="n">beta</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span> <span class="n">pc</span><span class="p">:</span><span class="nb">float</span> <span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">get_similar</span><span class="p">:</span><span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">mutate_crem_kwargs</span><span class="p">:</span><span class="nb">dict</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">save_pop_every_gen</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">deffnm</span><span class="p">:</span><span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;ga&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span> <span class="o">=</span> <span class="n">Individual</span><span class="p">(</span><span class="n">seed_smiles</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span> <span class="o">=</span> <span class="n">costfunc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">crem_db_path</span> <span class="o">=</span> <span class="n">crem_db_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pop</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span> <span class="o">=</span> <span class="n">maxiter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">popsize</span> <span class="o">=</span> <span class="n">popsize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">=</span> <span class="n">beta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">costfunc_kwargs</span> <span class="o">=</span> <span class="n">costfunc_kwargs</span>
+        <span class="k">if</span> <span class="s1">&#39;ncores&#39;</span> <span class="ow">in</span> <span class="n">costfunc_kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">costfunc_ncores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">costfunc_kwargs</span><span class="p">[</span><span class="s1">&#39;ncores&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">costfunc_ncores</span> <span class="o">=</span> <span class="mi">1</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">nc</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">pc</span><span class="o">*</span><span class="n">popsize</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_similar</span> <span class="o">=</span> <span class="n">get_similar</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;radius&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;min_size&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
+            <span class="s1">&#39;max_size&#39;</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span>
+            <span class="s1">&#39;min_inc&#39;</span><span class="p">:</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span>
+            <span class="s1">&#39;max_inc&#39;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span>
+            <span class="s1">&#39;ncores&#39;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mutate_crem_kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Saving parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_pop_every_gen</span> <span class="o">=</span> <span class="n">save_pop_every_gen</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">deffnm</span> <span class="o">=</span> <span class="n">deffnm</span>
+        
+        <span class="c1"># Tracking parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NumCalls</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NumGen</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="nd">@timeit</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">njobs</span><span class="p">:</span><span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="c1"># Counting the calls </span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NumCalls</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="c1"># Here we will update if needed some parameters for the crem operations that could change between differents calls.</span>
+        <span class="c1"># We need to return the molecule, so we override the possible user definition respect to this keyword</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">[</span><span class="s1">&#39;return_mol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        
+        <span class="c1"># Guess if we need to add explicit hydrogens in the mutate operation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">AddExplicitHs</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="s1">&#39;min_size&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">[</span><span class="s1">&#39;min_size&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">AddExplicitHs</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="s1">&#39;max_size&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">[</span><span class="s1">&#39;max_size&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">AddExplicitHs</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Initialize Population</span>
+        <span class="c1"># In case that the populating exist there is not need to initialize.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_similar</span><span class="p">:</span>
+                <span class="c1"># Bias the searching to similar molecules</span>
+                <span class="n">GenInitStructs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">grow_mol</span><span class="p">(</span>
+                        <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span><span class="o">.</span><span class="n">mol</span><span class="p">),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">crem_db_path</span><span class="p">,</span>
+                        <span class="n">radius</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                        <span class="n">min_atoms</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_atoms</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span>
+                        <span class="n">return_mol</span><span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+                        <span class="n">ncores</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">[</span><span class="s1">&#39;ncores&#39;</span><span class="p">]</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">GenInitStructs</span> <span class="o">=</span> <span class="n">get_similar_mols</span><span class="p">(</span><span class="n">mols</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">item</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">GenInitStructs</span><span class="p">],</span> <span class="n">ref_mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">pick</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+                
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">GenInitStructs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+                    <span class="n">mutate_mol</span><span class="p">(</span>
+                        <span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span><span class="o">.</span><span class="n">mol</span><span class="p">),</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">crem_db_path</span><span class="p">,</span>
+                        <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="n">GenInitStructs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">mol</span><span class="p">)</span> <span class="ow">in</span> <span class="n">GenInitStructs</span><span class="p">]</span>
+                       
+            <span class="c1"># Checking for possible scenarios</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">GenInitStructs</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;The initial population has repeated elements&#39;</span><span class="p">)</span>
+                <span class="c1"># temporal solution</span>
+                <span class="n">GenInitStructs</span> <span class="o">+=</span>  <span class="n">random</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">GenInitStructs</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">popsize</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">GenInitStructs</span><span class="p">)</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">pass</span><span class="c1"># I am not sure how to deal with this</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">GenInitStructs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="c1">#Selected random sample from the generation </span>
+                <span class="n">GenInitStructs</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">GenInitStructs</span><span class="p">,</span> <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">popsize</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Everything is ok!</span>
+                <span class="k">pass</span> 
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">mol</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">GenInitStructs</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Individual</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">),</span> <span class="n">mol</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span><span class="c1"># 0 is the InitIndividual</span>
+            
+            <span class="c1"># Calculating cost of each individual</span>
+            <span class="c1"># Creating the arguments</span>
+            <span class="n">args_list</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># Make a copy of the self.costfunc_kwargs</span>
+            <span class="n">kwargs_copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">costfunc_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">if</span> <span class="s1">&#39;wd&#39;</span> <span class="ow">in</span> <span class="n">getfullargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="n">costfunc_jobs</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;costfunc&#39;</span><span class="p">)</span>
+                <span class="n">kwargs_copy</span><span class="p">[</span><span class="s1">&#39;wd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">costfunc_jobs</span><span class="o">.</span><span class="n">name</span>
+            
+            <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">:</span>
+                <span class="n">args_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">individual</span><span class="p">,</span> <span class="n">kwargs_copy</span><span class="p">))</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">Creating the first population with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="si">}</span><span class="s1"> members:&#39;</span><span class="p">)</span>
+            <span class="n">pool</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">njobs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop</span> <span class="o">=</span> <span class="p">[</span><span class="n">individual</span> <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__costfunc__</span><span class="p">,</span> <span class="n">args_list</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">))]</span>
+            <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            
+            <span class="k">if</span> <span class="s1">&#39;wd&#39;</span> <span class="ow">in</span> <span class="n">getfullargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">:</span> <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">costfunc_jobs</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            
+            <span class="c1"># Print some information of the initial population</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial Population: Best individual: </span><span class="si">{</span><span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Updating the info of the first individual (parent) to print at the end how well performed the method (cost function)</span>
+            <span class="c1"># Because How the population was initialized and because we are using pool.imap (ordered). The parent is the first Individual of self.pop.</span>
+            <span class="c1"># We have to use deepcopy because Individual is a mutable object</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            
+            <span class="c1"># Best Cost of Iterations</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bestcost</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_cost</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.</span>
+        <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">individual</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual</span><span class="p">)</span>
+        
+        <span class="c1"># Saving population in disk if it was required</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_pop_every_gen</span><span class="p">:</span>
+            <span class="n">compressed_pickle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">deffnm</span><span class="si">}</span><span class="s2">_pop&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NumGen</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">))</span>
+            <span class="n">make_sdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">,</span> <span class="n">sdf</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">deffnm</span><span class="si">}</span><span class="s2">_pop.sdf&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Main Loop</span>
+        <span class="n">number_of_previous_generations</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bestcost</span><span class="p">)</span> <span class="c1"># Another control variable. In case that the __call__ method is used more than ones.</span>
+        <span class="k">for</span> <span class="nb">iter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span><span class="p">):</span>
+            <span class="c1"># Saving Number of Generations</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">NumGen</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># Probabilities Selections</span>
+            <span class="n">factors</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">beta</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;float64&#39;</span><span class="p">)</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+            <span class="n">popc</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">nc</span><span class="p">):</span>
+                <span class="c1"># Perform Roulette Wheel Selection</span>
+                <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">roulette_wheel_selection</span><span class="p">(</span><span class="n">probs</span><span class="p">)]</span>
+
+                <span class="c1"># Perform Mutation (this mutation is some kind of crossover but with CReM library)</span>
+                <span class="n">children</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mutate</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+                
+                <span class="c1"># Save offspring population</span>
+                <span class="c1"># I will save only those offsprings that were not seen </span>
+                <span class="k">if</span> <span class="n">children</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span><span class="p">:</span> <span class="n">popc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">children</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">popc</span><span class="p">:</span> <span class="c1"># Only if there are new members</span>
+                <span class="c1"># Calculating cost of each offspring individual (Doing Docking)</span>
+                <span class="n">pool</span> <span class="o">=</span> <span class="n">mp</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">njobs</span><span class="p">)</span>
+                <span class="c1"># Creating the arguments</span>
+                <span class="n">args_list</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="c1"># Make a copy of the self.costfunc_kwargs</span>
+                <span class="n">kwargs_copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">costfunc_kwargs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s1">&#39;wd&#39;</span> <span class="ow">in</span> <span class="n">getfullargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                    <span class="n">costfunc_jobs</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;costfunc&#39;</span><span class="p">)</span>
+                    <span class="n">kwargs_copy</span><span class="p">[</span><span class="s1">&#39;wd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">costfunc_jobs</span><span class="o">.</span><span class="n">name</span>
+                
+                <span class="n">NumbOfSawIndividuals</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span><span class="p">)</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">individual</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">popc</span><span class="p">):</span>
+                    <span class="c1"># Add idx label to each individual</span>
+                    <span class="n">individual</span><span class="o">.</span><span class="n">idx</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="n">NumbOfSawIndividuals</span>
+                    <span class="c1"># The problem here is that we are not being general for other possible Cost functions.</span>
+                    <span class="n">args_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">individual</span><span class="p">,</span><span class="n">kwargs_copy</span><span class="p">))</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Evaluating generation </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NumGen</span><span class="si">}</span><span class="s1"> / </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span> <span class="o">+</span> <span class="n">number_of_previous_generations</span><span class="si">}</span><span class="s1">:&#39;</span><span class="p">)</span>
+                
+                <span class="c1"># Calculating cost fucntion in parallel</span>
+                <span class="n">popc</span> <span class="o">=</span> <span class="p">[</span><span class="n">individual</span> <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="o">.</span><span class="n">tqdm</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__costfunc__</span><span class="p">,</span> <span class="n">args_list</span><span class="p">),</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">args_list</span><span class="p">))]</span>  
+                <span class="n">pool</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="k">if</span> <span class="s1">&#39;wd&#39;</span> <span class="ow">in</span> <span class="n">getfullargspec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">:</span> <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">costfunc_jobs</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                
+            <span class="c1"># Merge, Sort and Select</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop</span> <span class="o">+=</span> <span class="n">popc</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pop</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="p">]</span>
+
+            <span class="c1"># Store Best Cost</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">bestcost</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+
+            <span class="c1"># Store Average cost</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">avg_cost</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">))</span>
+
+            <span class="c1"># Saving tracking variables and getting new ones for the model update</span>
+            <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="n">popc</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">individual</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span><span class="p">:</span>
+                    <span class="c1">#Tracking variables</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual</span><span class="p">)</span>
+            
+            <span class="c1"># Saving population in disk if it was required</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_pop_every_gen</span><span class="p">:</span>
+                <span class="c1"># Save every save_pop_every_gen and always the last population</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">NumGen</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_pop_every_gen</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">iter</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span><span class="p">:</span>
+                    <span class="n">compressed_pickle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">deffnm</span><span class="si">}</span><span class="s2">_pop&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">NumGen</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">))</span>
+                    <span class="n">make_sdf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">,</span> <span class="n">sdf</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">deffnm</span><span class="si">}</span><span class="s2">_pop.sdf&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Show Iteration Information</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Generation </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">NumGen</span><span class="si">}</span><span class="s2">: Best Individual: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        
+        <span class="c1"># Printing summary information</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="mi">50</span><span class="o">*</span><span class="s1">&#39;=+&#39;</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The simulation finished successfully after </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span><span class="si">}</span><span class="s1"> generations with a population of </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">popsize</span><span class="si">}</span><span class="s1"> individuals. A total number of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span><span class="p">)</span><span class="si">}</span><span class="s1"> Individuals were seen during the simulation.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Initial Individual: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Final Individual: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The cost fucntion droped in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">pop</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> units.&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="mi">50</span><span class="o">*</span><span class="s1">&#39;=+&#39;</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__costfunc__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args_list</span><span class="p">):</span>
+        <span class="n">individual</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">args_list</span>
+        <span class="c1">#This is just to use the progress bar on pool.imap</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">costfunc</span><span class="p">(</span><span class="n">individual</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  
+    
+    <span class="k">def</span> <span class="nf">mutate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">individual</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">AddExplicitHs</span><span class="p">:</span>
+                <span class="n">mutants</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mutate_mol</span><span class="p">(</span><span class="n">Chem</span><span class="o">.</span><span class="n">AddHs</span><span class="p">(</span><span class="n">individual</span><span class="o">.</span><span class="n">mol</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">crem_db_path</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">))</span>
+                <span class="c1"># Remove the Hs and place a dummy 0 as first element in the tuple.</span>
+                <span class="n">mutants</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Chem</span><span class="o">.</span><span class="n">RemoveHs</span><span class="p">(</span><span class="n">mutant</span><span class="p">))</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">mutant</span> <span class="ow">in</span> <span class="n">mutants</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mutants</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mutate_mol</span><span class="p">(</span><span class="n">individual</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">crem_db_path</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">mutate_crem_kwargs</span><span class="p">))</span>
+            
+            <span class="c1"># Bias the searching to similar molecules</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_similar</span><span class="p">:</span>
+                <span class="n">mol</span> <span class="o">=</span> <span class="n">get_similar_mols</span><span class="p">(</span><span class="n">mols</span> <span class="o">=</span> <span class="p">[</span><span class="n">mol</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">mol</span> <span class="ow">in</span> <span class="n">mutants</span><span class="p">],</span> <span class="n">ref_mol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">InitIndividual</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">pick</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">mol</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">mutants</span><span class="p">)</span>
+                <span class="n">smiles</span> <span class="o">=</span> <span class="n">Chem</span><span class="o">.</span><span class="n">MolToSmiles</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;The mutation did not work, we returned the same individual&#39;</span><span class="p">)</span>
+            <span class="n">smiles</span><span class="p">,</span> <span class="n">mol</span> <span class="o">=</span> <span class="n">individual</span><span class="o">.</span><span class="n">smiles</span><span class="p">,</span> <span class="n">individual</span><span class="o">.</span><span class="n">mol</span>
+        <span class="k">return</span> <span class="n">Individual</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span><span class="n">mol</span><span class="p">)</span>
+    
+    
+    <span class="k">def</span> <span class="nf">roulette_wheel_selection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span>
+        <span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">r</span> <span class="o">&lt;=</span> <span class="n">c</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ind</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    
+    <span class="k">def</span> <span class="nf">pickle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">compress</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="n">result</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">compress</span><span class="p">:</span>
+            <span class="n">compressed_pickle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">full_pickle</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">to_dataframe</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">list_of_dictionaries</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">individual</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">SawIndividuals</span><span class="p">:</span>
+            <span class="n">dictionary</span> <span class="o">=</span> <span class="n">individual</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="k">del</span> <span class="n">dictionary</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">]</span>
+            <span class="n">list_of_dictionaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dictionary</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">list_of_dictionaries</span><span class="p">)</span>
+<span class="c1">######################################################################################################################################</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">Individual</span><span class="p">(</span><span class="s1">&#39;CCCCOCCC&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+    <span class="k">pass</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2022, Alejandro Martínez León
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
