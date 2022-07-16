@@ -13,8 +13,6 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('./source/'))
-sys.path.insert(0, os.path.abspath('./source/notebooks/'))
 from recommonmark.transform import AutoStructify
 from jupyter_client import kernelspec
 
@@ -73,6 +71,12 @@ pygments_style = 'sphinx'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = [] #['_static']
 
+intersphinx_mapping = {'https://docs.python.org/3/': None,
+                       'https://numpy.org/doc/stable/': None,
+                       'https://crem.readthedocs.io/en/latest/': None,
+                       'https://www.rdkit.org/docs/': None,
+                       'https://pandas.pydata.org/docs/': None,
+                       }
 
 # app setup hook
 def setup(app):
