@@ -5,7 +5,7 @@
     Source Code: https://github.com/ale94mleon/moldrug
 """
 from moldrug._version import __version__, __version_tuple__
-import yaml, argparse, os, inspect, importlib
+import yaml, argparse, inspect, importlib
 
 def run():
     from moldrug import utils

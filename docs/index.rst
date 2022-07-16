@@ -5,22 +5,22 @@
 
 Welcome to moldrug's documentation!
 ===================================
-.. include:: ../../README.rst
+.. include:: ../README.rst
    
 .. toctree::
    :caption: User guide
    :maxdepth: 2
 
-   installation
-   citations
+   source/installation
+   source/citations
 
 .. toctree::
    :caption: Tutorials
    :maxdepth: 2
    :numbered:
 
-   notebooks/quickstart
-   notebooks/how_to
+   source/notebooks/quickstart
+   source/notebooks/how_to
 
 
 .. toctree::
@@ -28,8 +28,8 @@ Welcome to moldrug's documentation!
    :maxdepth: 2
    :glob:
 
-   api
-   modules/*
+   source/api
+   source/modules/*
 
 Indices and tables
 ==================

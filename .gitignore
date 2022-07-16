@@ -9,6 +9,7 @@ nohup.out
 
 *.ipynb
 pkl
+tmp
 
 build
 dist

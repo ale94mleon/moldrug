@@ -922,4 +922,6 @@ class GA:
 
 
 if __name__ == '__main__':
+    i = Individual('CCCCOCCC')
+    print(i.mol)
     pass

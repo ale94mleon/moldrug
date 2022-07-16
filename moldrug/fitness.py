@@ -5,22 +5,60 @@ from rdkit.Chem import QED
 import os, numpy as np
 
 
-def Cost(Individual, wd = '.vina_jobs', vina_executable = 'vina', receptor_path = None, boxcenter = None, boxsize =None, exhaustiveness = 8, ncores = 1,  num_modes = 1):
-    """_summary_
 
-    Args:
-        Individual (_type_): _description_
-        wd (str, optional): _description_. Defaults to '.vina_jobs'.
-        vina_executable (str, optional): _description_. Defaults to 'vina'.
-        receptor_path (_type_, optional): _description_. Defaults to None.
-        boxcenter (_type_, optional): _description_. Defaults to None.
-        boxsize (_type_, optional): _description_. Defaults to None.
-        exhaustiveness (int, optional): _description_. Defaults to 8.
-        ncores (int, optional): _description_. Defaults to 1.
-        num_modes (int, optional): _description_. Defaults to 1.
+def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str = 'vina', receptor_path:str = None, boxcenter:list[float] = None, boxsize:list[float] =None, exhaustiveness:int = 8, ncores:int = 1,  num_modes:int = 1):
+    """This is the main Cost function of the module
 
-    Returns:
-        _type_: _description_
+    Parameters
+    ----------
+    Individual : utils.Individual
+        A Individual with the pdbqt attribute
+    wd : str, optional
+        The working directory to execute the docking jobs, by default '.vina_jobs'
+    vina_executable : str, optional
+        This is the name of the vina executable, could be a path to the binary object (x, y, z),  by default 'vina'
+    receptor_path : str, optional
+        Where the receptor.pdbqt is located, by default None
+    boxcenter : list[float], optional
+        A list of three floats with the definition of the center of the box for docking, by default None
+    boxsize : list[float], optional
+        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+    exhaustiveness : int, optional
+        Parameter of vina that controls the accuracy of the searching on Vina, by default 8
+    ncores : int, optional
+        Number of cpus to use in Vina, by default 1
+    num_modes : int, optional
+        How many modes should Vina export, by default 1
+
+    Returns
+    -------
+    utils.Individual
+        A new instance of the original Individual with the the new attributes: pdbqt, qed, vina_score, sa_score and cost
+    
+    Example
+    -------
+    .. ipython:: python
+        :okwarning:
+        :okexcept:
+
+        from moldrug import utils, fitness
+        import tempfile, os
+        from moldrug.data import ligands, boxes, receptors
+        tmp_path = tempfile.TemporaryDirectory()
+        ligand_smiles = ligands.r_x0161
+        I = utils.Individual(ligand_smiles)
+        print(type(I))
+        print(ligand_smiles)
+        print(I.mol)
+        print(I.pdbqt)
+        receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
+        with open(receptor_path, 'w') as r: r.write(receptors.r_x0161)
+        box = boxes.r_x0161['A']
+        NewI = fitness.Cost(Individual = I,wd = tmp_path.name,receptor_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
+        print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
+
+
+
     """
     sascorer = utils.import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
