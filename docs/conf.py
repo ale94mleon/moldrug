@@ -24,8 +24,8 @@ project = 'MolDrug'
 copyright = '2022, Alejandro Martínez León'
 author = 'Alejandro Martínez León'
 
-# The full version, including alpha/beta/rc tags
-release = '0.0.1-beta5'
+# # The full version, including alpha/beta/rc tags
+# release = '0.0.1-beta5'
 
 
 # -- General configuration ---------------------------------------------------
@@ -39,12 +39,13 @@ needs_sphinx = '4.1.2'
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
               'sphinx.ext.mathjax', 'sphinx.ext.viewcode',
               'sphinx.ext.napoleon', 'sphinx.ext.autosectionlabel',
-              'sphinx_rtd_theme','recommonmark',
+              'sphinx_rtd_theme', 'recommonmark',
               'IPython.sphinxext.ipython_console_highlighting',
               'IPython.sphinxext.ipython_directive',
               'nbsphinx',
 ]
 
+mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 autosectionlabel_prefix_document = True
 napoleon_google_docstring = False
 
@@ -70,7 +71,7 @@ pygments_style = 'sphinx'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = [] #['_static']
 
 
 # app setup hook
@@ -83,6 +84,3 @@ def setup(app):
         'enable_eval_rst': True,
     }, True)
     app.add_transform(AutoStructify)
-
-# Mocking problematic libraries
-autodoc_mock_imports = ['rdkit', 'openbabel']

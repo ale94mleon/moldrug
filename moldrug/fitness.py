@@ -47,18 +47,11 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
         tmp_path = tempfile.TemporaryDirectory()
         ligand_smiles = ligands.r_x0161
         I = utils.Individual(ligand_smiles)
-        print(type(I))
-        print(ligand_smiles)
-        print(I.mol)
-        print(I.pdbqt)
         receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
         with open(receptor_path, 'w') as r: r.write(receptors.r_x0161)
         box = boxes.r_x0161['A']
         NewI = fitness.Cost(Individual = I,wd = tmp_path.name,receptor_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
-
-
-
     """
     sascorer = utils.import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
