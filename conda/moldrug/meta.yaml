@@ -1,4 +1,4 @@
-{% set data = load_setup_py_data() %}
+{% set data = load_setup_py_data(setup_file = 'setup.py', from_recipe_dir=True, recipe_dir='../') %}
 
 package:
   name: moldrug
@@ -10,7 +10,7 @@ source:
 build:
 build:
   number: 0
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  script: python setup.py install --single-version-externally-managed
 
 requirements:
   host:
@@ -18,10 +18,8 @@ requirements:
     - pip
   run:
     - rdkit 2022.*.*
-    - openbabel 3.1.0
     - autodock-vina
     - python
-    - pyyaml
     - ipykernel
     - ipython
 
