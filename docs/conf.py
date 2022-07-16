@@ -13,6 +13,8 @@
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('./source/'))
+sys.path.insert(0, os.path.abspath('./notebooks/'))
 from recommonmark.transform import AutoStructify
 from jupyter_client import kernelspec
 

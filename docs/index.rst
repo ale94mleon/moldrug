@@ -11,8 +11,8 @@ Welcome to moldrug's documentation!
    :caption: User guide
    :maxdepth: 2
 
-   installation
-   citations
+   source/installation
+   source/citations
 
 .. toctree::
    :caption: Tutorials
@@ -27,8 +27,8 @@ Welcome to moldrug's documentation!
    :maxdepth: 2
    :glob:
 
-   api
-   modules/*
+   source/api
+   source/modules/*
 
 Indices and tables
 ==================
