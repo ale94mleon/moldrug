@@ -63,10 +63,10 @@ def run(command:str, shell:bool = True, executable:str = '/bin/bash', Popen:bool
         In case of non-zero exit status on the provided command.
     """
     if Popen:
-        #In this case you could acces the pid as: run.pid
+        #In this case you could access the pid as: run.pid
         process = subprocess.Popen(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
     else:
-        process = subprocess.Popen(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+        process = subprocess.run(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
         returncode = process.returncode
         if returncode != 0:
             print(f'Command {command} returned non-zero exit status {returncode}')

@@ -28,8 +28,6 @@ with gzip.open(crem_dbgz_path, 'rb') as f_in:
         shutil.copyfileobj(f_in, f_out)
 
 
-
-
 def test_single_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
 
     """For a local optimization we could use
