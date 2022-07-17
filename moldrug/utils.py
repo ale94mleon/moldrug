@@ -670,9 +670,9 @@ class Individual:
 
 def make_sdf(individuals:list[Individual], sdf = 'out.sdf'):
     """This function create a sdf file from a list of Individuals based on their pdbqt (or pdbqts) attribute
-    !!! pdbqts is not implemented yet
+    !!! pdbqts is not implemented yet. It will return the conformations of pdbqt (not the desired behavior.)
     This assume that the cost fucntion update hte pdbqt attribute after the docking with the conformations obtained
-    NA in the case of muultiple receptor a new attribute named pdbqts is addded and it is only a list of pdbqt valid string.
+    In in the case of multiple receptor a new attribute named pdbqts is added and it is only a list of pdbqt valid string.
 
     Parameters
     ----------
