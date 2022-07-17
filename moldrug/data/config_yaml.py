@@ -3,7 +3,7 @@
 r_x0161 = """
 main:
   type: GA
-  njobs: 3
+  njobs: 2
   seed_smiles: COC(=O)C=1C=CC(=CC1)S(=O)(=O)N
   costfunc: Cost
   costfunc_kwargs:
@@ -18,11 +18,11 @@ main:
       - 22.5
       - 22.5
     exhaustiveness: 4
-    ncores: 4
+    ncores: 6
     num_modes: 1
   crem_db_path: /home/ale/GITLAB/bi_crem_database/replacements02_sc2.5.db
-  maxiter: 10
-  popsize: 10
+  maxiter: 2
+  popsize: 2
   beta: 0.001
   pc: 1
   get_similar: False

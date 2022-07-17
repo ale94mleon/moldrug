@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from rdkit import Chem
 from moldrug import utils, fitness
-from moldrug.data import receptors, ligands, boxes
+from moldrug.data import receptors, ligands, boxes, config_yaml
 import tempfile, os, gzip, shutil, requests
 from multiprocessing import cpu_count
 
