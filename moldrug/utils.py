@@ -10,7 +10,6 @@ from inspect import getfullargspec
 import multiprocessing as mp
 import tempfile, subprocess, random, time, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
 
-
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
 
@@ -685,24 +684,27 @@ def make_sdf(individuals:list[Individual], sdf_name = 'out'):
     -------
     .. ipython:: python
 
+        import tempfile, os
         from moldrug import utils
+        # Create some temporal dir
+        tmp_path = tempfile.TemporaryDirectory()
         # Creating two individuals
         I1 = utils.Individual('CCCCl')
         I2 = utils.Individual('CCOCCCF')
         # Creating the pdbqts attribute with the pdbqt attribute (this is just a silly example)
         I1.pdbqts = [I1.pdbqt, I1.pdbqt]
         I2.pdbqts = [I2.pdbqt, I2.pdbqt]
-        utils.make_sdf([I1, I2])
+        utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
         # Two files were created
         # In the other hand, if the attribute pdbqts is not present, only one file is going to be created
         # Delete the pdbqts attribute
         delattr(I1, 'pdbqts')
         delattr(I2, 'pdbqts')
-        utils.make_sdf([I1, I2])
+        utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
         # Only one file will be created if the pdbqts has not len in some of the individuals or they presents different lens as well. In this case the pdbqts will be completely ignored and pdbqt attribute will be used for the construction of the sdf file
         I1.pdbqts = [I1.pdbqt, I1.pdbqt, I1.pdbqt]
         I2.pdbqts = [I2.pdbqt, I2.pdbqt]
-        utils.make_sdf([I1, I2])
+        utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
     """
     pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
     
@@ -1090,7 +1092,6 @@ class GA:
             list_of_dictionaries.append(dictionary)
         return pd.DataFrame(list_of_dictionaries)
 ######################################################################################################################################
-
 
 if __name__ == '__main__':
     i = Individual('CCCCOCCC')
