@@ -98,7 +98,7 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
     return Individual
 
 def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str = 'vina', receptor_paths:list[str] = None, vina_score_types:list[str] = None, boxcenters:list[float] = None, boxsizes:list[float] =None, exhaustiveness:int = 8, ncores:int = 1,  num_modes:int = 1):
-    """This function is similar to `fitness.Cost` but it will add the possibility to work with more than one receptor.
+    """This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility to work with more than one receptor.
 
     Parameters
     ----------
@@ -111,7 +111,7 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
     receptor_paths : list[str], optional
         A list of location of the receptors pdbqt files, by default None
     vina_score_types : list[str], optional
-        This is a list with the keywords 'min' and/or 'max'. E.g. If two receptor were provided and for the firsone we would like to find a minimum in the vina scoring function and for the other one a maximum (selectivity for the first receptor); we must provided the list: ['min', 'max'], by default None
+        This is a list with the keywords 'min' and/or 'max'. E.g. If two receptor were provided and for the first one we would like to find a minimum in the vina scoring function and for the other one a maximum (selectivity for the first receptor); we must provided the list: ['min', 'max'], by default None
     boxcenters : list[float], optional
         A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
     boxsizes : list[float], optional

@@ -17,11 +17,13 @@ RDLogger.DisableLog('rdApp.*')
 ######################################################################################################################################
 #                                   Here are some important functions to work with                                                   #
 ######################################################################################################################################
-def timeit(method):
+def timeit(method:object):
     """Calculate the time of a process. Useful as decorator of functions
 
-    Args:
-        method (function): Any function.
+    Parameters
+    ----------
+    method : object
+        A python function
     """
     def timed(*args, **kw):
         ts = time.time()
@@ -39,35 +41,52 @@ def timeit(method):
 def run(command:str, shell:bool = True, executable:str = '/bin/bash', Popen:bool = False):
     """This function is just a useful wrapper around subprocess.Popen, subprocess.run
 
-    Args:
-        command (str): Any command to execute on Linux
-        shell (bool, optional): keyword of Popen and Run. Defaults to True.
-        executable (str, optional): keyword of Popen and Run. Defaults to '/bin/bash'.
-        Popen (bool, optional): If True it will launch popen if not Run. Defaults to False.
+    Parameters
+    ----------
+    command : str
+        Any command to execute.
+    shell : bool, optional
+        keyword of ``subprocess.Popen`` and ``subprocess.Popen``, by default True
+    executable : str, optional
+        keyword of ``subprocess.Popen`` and ``subprocess.Popen``, by default '/bin/bash'
+    Popen : bool, optional
+        If True it will launch popen if not Run, by default False
 
-    Raises:
-        RuntimeError: In case of non-zero exit status.
+    Returns
+    -------
+    object
+        The processes returned by Popen or Run.
 
-    Returns:
-        object: the processes returned by Popen or Run.
+    Raises
+    ------
+    RuntimeError
+        In case of non-zero exit status on the provided command.
     """
     if Popen:
         #In this case you could acces the pid as: run.pid
         process = subprocess.Popen(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
     else:
-        process = subprocess.run(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+        process = subprocess.Popen(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
         returncode = process.returncode
         if returncode != 0:
             print(f'Command {command} returned non-zero exit status {returncode}')
             raise RuntimeError(process.stderr)
     return process
 
-
 def confgen(smiles:str, return_mol:bool = False):
-    """Create a 3D model from a smiles and return a pdbqt string and, a mol if asked.
+    """Create a 3D model from a smiles and return a pdbqt string and, a mol if ``return_mol = True``.
 
-    Args:
-        smiles (str): a valid smiles code.
+    Parameters
+    ----------
+    smiles : str
+        A valid SMILES string.
+    return_mol : bool, optional
+        If true the function will also return the ``rdkit.Chem.rdchem.Mol``, by default False
+
+    Returns
+    -------
+    tuple or str
+        If ``return_mol = True`` it will return a tuple ``(str[pdbqt], Chem.rdchem.Mol)``, if not only a ``str`` that represents the pdbqt. 
     """
     mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
     AllChem.EmbedMolecule(mol)
@@ -80,18 +99,21 @@ def confgen(smiles:str, return_mol:bool = False):
     else:
         return pdbqt_string
 
-def get_sim(ms:list, ref_fps):
+def get_sim(ms:list[Chem.rdchem.Mol], ref_fps:list):
     """Get the molecules with higher similarity to each member of ref_fps.
 
-    Args:
-        ms (list): list of molecules
-        ref_fps (AllChem.GetMorganFingerprintAsBitVect): A list of reference fingerprints
+    Parameters
+    ----------
+    ms : list[Chem.rdchem.Mol]
+        List of molecules
+    ref_fps : list[AllChem.GetMorganFingerprintAsBitVect(mol, 2)]
+        A list of reference fingerprints
 
-    Returns:
-        list: A list of molecules with the higher similarity with their corresponded ref_fps value.
+    Returns
+    -------
+    list[Chem.rdchem.Mol]
+        A list of molecules with the higher similarity with their corresponded ref_fps value.
     """
-    # ms - list of molecules
-    # ref_fps - list of fingerprints of reference molecules
     output = []
     fps1 = [AllChem.GetMorganFingerprintAsBitVect(m, 2) for m in ms]
     for fp in fps1:
@@ -103,14 +125,21 @@ def get_sim(ms:list, ref_fps):
 def get_similar_mols(mols:list, ref_mol:Chem.rdchem.Mol, pick:int, beta:float = 0.01):
     """Pick the similar molecules from mols respect to ref_mol using a roulette wheel selection strategy.
 
-    Args:
-        mols (list): the list of molecules from where pick molecules will be chosen
-        ref_mol (Chem.rdchem.Mol): The reference molecule
-        pick (int): Number of molecules to pick from mols
-        beta (float, optional): Selection threshold. Defaults to 0.01.
+    Parameters
+    ----------
+    mols : list
+        The list of molecules from where to pick molecules.
+    ref_mol : Chem.rdchem.Mol
+        The reference molecule
+    pick : int
+        Number of molecules to pick from mols
+    beta : float, optional
+        Selection threshold, by default 0.01
 
-    Returns:
-        list: A list of picked molecules.
+    Returns
+    -------
+    list
+        A list of picked molecules.
     """
     if pick >= len(mols):
         return mols
@@ -129,12 +158,17 @@ def get_similar_mols(mols:list, ref_mol:Chem.rdchem.Mol, pick:int, beta:float = 
 def lipinski_filter(mol:Chem.rdchem.Mol, maxviolation:int = 2):
     """Implementation of Lipinski filter.
 
-    Args:
-        mol (Chem.rdchem.Mol): An RDKit molecule.
-        maxviolation (int, optional): Maximum number of violations to accept the molecule. Defaults to 2.
+    Parameters
+    ----------
+    mol : Chem.rdchem.Mol
+        An RDKit molecule.
+    maxviolation : int, optional
+        Maximum number of violations. Above this value the function return False, by default 2
 
-    Returns:
-        bool: True if the molecule present less than maxviolation of Number of violation; otherwise False.
+    Returns
+    -------
+    bool
+        True if the molecule present less than maxviolation violations; otherwise False.
     """
     filter = {
         'NumHAcceptors': {'method':Lipinski.NumHAcceptors,'cutoff':10},
@@ -154,14 +188,17 @@ def lipinski_filter(mol:Chem.rdchem.Mol, maxviolation:int = 2):
     return True
 
 def lipinski_profile(mol:Chem.rdchem.Mol):
-    """Get several drug-like properties.
-    See: https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski
+    """See: https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski
 
-    Args:
-        mol (Chem.rdchem.Mol): An RDKit molecule.
+    Parameters
+    ----------
+    mol : Chem.rdchem.Mol
+        An RDKit molecule.
 
-    Returns:
-        dict: A dictionary with the properties.
+    Returns
+    -------
+    dict
+        A dictionary with molecular properties.
     """
     properties = {
         'NumHAcceptors': {'method':Lipinski.NumHAcceptors,'cutoff':10},
@@ -200,14 +237,21 @@ def lipinski_profile(mol:Chem.rdchem.Mol):
 def LargerTheBest(Value:float, LowerLimit:float, Target:float, r:float = 1)  -> float:
     """Desirability function used when larger values are the targets. If Value is higher or equal than the target it will return 1; if it is lower than LowerLimit it will return 0; else a number between 0 and 1.
 
-    Args:
-        Value (float): Value to test.
-        LowerLimit (float): Lower value accepted. Lower than this one will return 0.
-        Target (float): The target value. On this value (or higher) the function takes 1 as value.
-        r (float, optional): This is the exponent of the interpolation. Could be used to control the interpolation. Defaults to 1.
+    Parameters
+    ----------
+    Value : float
+        Value to test.
+    LowerLimit : float
+        Lower value accepted. Lower than this one will return 0.
+    Target : float
+        The target value. On this value (or higher) the function takes 1 as value.
+    r : float, optional
+        This is the exponent of the interpolation. Could be used to control the interpolation, by default 1
 
-    Returns:
-        float: A number between 0 and 1. Been 1 the desireable value to get.
+    Returns
+    -------
+    float
+        A number between 0 and 1. Been 1 the desireable value to get.
     """
     if Value < LowerLimit:
         return 0.0
@@ -219,14 +263,21 @@ def LargerTheBest(Value:float, LowerLimit:float, Target:float, r:float = 1)  -> 
 def SmallerTheBest(Value:float, Target:float, UpperLimit:float, r:float = 1) -> float:
     """Desirability function used when lower values are the targets. If Value is lower or equal than the target it will return 1; if it is higher than UpperLimit it will return 0; else a number between 0 and 1.
 
-    Args:
-        Value (float): Value to test.
-        Target (float): The target value. On this value (or lower) the function takes 1 as value.
-        UpperLimit (float): Upper value accepted. Higher than this one will return 0.
-        r (float, optional): This is the exponent of the interpolation. Could be used to control the interpolation. Defaults to 1.
+    Parameters
+    ----------
+    Value : float
+        Value to test.
+    Target : float
+        The target value. On this value (or lower) the function takes 1 as value.
+    UpperLimit : float
+        Upper value accepted. Higher than this one will return 0.
+    r : float, optional
+        This is the exponent of the interpolation. Could be used to control the interpolation, by default 1
 
-    Returns:
-        float: A number between 0 and 1. Been 1 the desireable value to get.
+    Returns
+    -------
+    float
+        A number between 0 and 1. Been 1 the desireable value to get.
     """
     if Value < Target:
         return 1.0
@@ -238,16 +289,25 @@ def SmallerTheBest(Value:float, Target:float, UpperLimit:float, r:float = 1) -> 
 def NominalTheBest(Value:float, LowerLimit:float, Target:float, UpperLimit:float, r1:float = 1, r2:float = 1) -> float:
     """Desirability function used when a target value is desired. If Value is lower or equal than the LowerLimit it will return 0; as well values higher or equal than  UpperLimit; else a number between 0 and 1.
 
-    Args:
-        Value (float):  Value to test.
-        LowerLimit (float): Lower value accepted. Lower than this one will return 0.
-        Target (float): The target value. On this value the function takes 1 as value.
-        UpperLimit (float): Upper value accepted. Higher than this one will return 0.
-        r1 (float, optional): This is the exponent of the interpolation from LowerLimit to Target. Could be used to control the interpolation. Defaults to 1.
-        r2 (float, optional): This is the exponent of the interpolation from Target to UpperLimit. Could be used to control the interpolation. Defaults to 1.
+    Parameters
+    ----------
+    Value : float
+        Value to test.
+    LowerLimit : float
+        Lower value accepted. Lower than this one will return 0.
+    Target : float
+        The target value. On this value the function takes 1 as value.
+    UpperLimit : float
+        Upper value accepted. Higher than this one will return 0.
+    r1 : float, optional
+        This is the exponent of the interpolation from LowerLimit to Target. Could be used to control the interpolation, by default 1
+    r2 : float, optional
+        This is the exponent of the interpolation from Target to UpperLimit. Could be used to control the interpolation, by default 1
 
-    Returns:
-        float: A number between 0 and 1. Been 1 the desireable value to get.
+    Returns
+    -------
+    float
+        A number between 0 and 1. Been 1 the desireable value to get.
     """
     if Value < LowerLimit:
         return 0.0
@@ -262,21 +322,28 @@ def NominalTheBest(Value:float, LowerLimit:float, Target:float, UpperLimit:float
 def full_pickle(title:str, data:object):
     """Normal pickle.
 
-    Args:
-        title (str): name of the file without extension, .pkl will be added by default.
-        data (object): Any serializable python object
+    Parameters
+    ----------
+    title : str
+        Name of the file without extension, .pkl will be added by default.
+    data : object
+        Any serializable python object
     """
     with open(f'{title}.pkl', 'wb') as pkl:
         pickle.dump(data, pkl)
-
+    
 def loosen(file:str):
     """Unpickle a pickled object.
 
-    Args:
-        file (str): The path to the file who store the pickle object.
+    Parameters
+    ----------
+    file : str
+        The path to the file who store the pickle object.
 
-    Returns:
-        object: The python object.
+    Returns
+    -------
+    object
+        The python object.
     """
     with open(file, 'rb') as pkl:
         data = pickle.load(pkl)
@@ -285,9 +352,12 @@ def loosen(file:str):
 def compressed_pickle(title:str, data:object):
     """Compress python object. First cPickle it and then bz2.BZ2File compressed it.
 
-    Args:
-        title (str): Name of the file without extensions, .pbz2 will be added by default
-        data (object): Any serializable python object
+    Parameters
+    ----------
+    title : str
+         Name of the file without extensions, .pbz2 will be added by default
+    data : object
+        Any serializable python object
     """
     with bz2.BZ2File(f'{title}.pbz2', 'w') as f: 
         cPickle.dump(data, f)   
@@ -295,29 +365,28 @@ def compressed_pickle(title:str, data:object):
 def decompress_pickle(file:str):
     """Decompress CPickle objects compressed first with bz2 formats
 
-    Args:
-        file (str): This is the cPickle files compressed with bz2.BZ2File. (as a convention with extension .pbz2, but not needed)
+    Parameters
+    ----------
+    file : str
+         This is the cPickle files compressed with bz2.BZ2File. (as a convention with extension .pbz2, but not needed)
 
-    Returns:
-        object: The python object.
+    Returns
+    -------
+    object
+        The python object.
     """
     data = bz2.BZ2File(file, 'rb')
     data = cPickle.load(data)
     return data
 
-def make_sdf(individuals:list, sdf = 'out.sdf'):
-
-    pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
-    with Chem.SDWriter(sdf) as w:
-        for individual in individuals:
-            with open(pdbqt_tmp.name, 'w') as f:
-                f.write(individual.pdbqt)
-            pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
-            mol = pdbqt_mol.export_rdkit_mol()
-            mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
-            w.write(mol)
-
 def import_sascorer():
+    """Function to import sascorer from RDConfig.RDContribDir of RDKit
+
+    Returns
+    -------
+    module
+        The sascorer module ready to use.
+    """
     # In order to import sascorer from RDConfig.RDContribDir
     from rdkit.Chem import RDConfig
     import os, importlib.util as importlib_util
@@ -424,7 +493,7 @@ class CHUNK_VINA_OUT:
 
 class VINA_OUT:
     """
-    To access the chunks you need to take into account that 
+    Vina class to handle vina output. Think about use meeko in the future!
     """
     def __init__(self, file):
         self.file = file
@@ -463,6 +532,7 @@ class VINA_OUT:
 ######################################################################################################################################
 #                                             Classes to work with moldrug                                                                   #
 ######################################################################################################################################
+
 class Individual:
     """
     Base class to work with GA, Local and all the fitness functions.
@@ -472,8 +542,24 @@ class Individual:
     In order to use other operations, or cast to a list
     array = np.array([c1,c2])
     array_2 = (array*2).astype('float64')
+    It also admit copy and deepcopy operations
     """
-    def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt = None, cost:float = np.inf) -> None:
+    def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt:str = None, cost:float = np.inf) -> None:
+        """This is the constructor of the class.
+
+        Parameters
+        ----------
+        smiles : str, optional
+            A valid RDKit SMILES, by default None
+        mol : Chem.rdchem.Mol, optional
+            A valid RDKit molecule. If not provided it will be generated from smiles, by default None
+        idx : int, optional
+            An identification, by default 0
+        pdbqt : str, optional
+            A valid pdbqt string. If it is not provided it will be generated from mol through utils.confgen and the mol attribute will be update with the 3D model, by default None
+        cost : float, optional
+            This attribute is used to perform operations between Individuals and should be used for the cost functions, by default np.inf
+        """
         self.smiles = smiles
         
         if not mol:
@@ -582,7 +668,32 @@ class Individual:
             setattr(result, k, deepcopy(v, memo))
         return result
 
+def make_sdf(individuals:list[Individual], sdf = 'out.sdf'):
+    """This function create a sdf file from a list of Individuals based on their pdbqt (or pdbqts) attribute
+    !!! pdbqts is not implemented yet
+    This assume that the cost fucntion update hte pdbqt attribute after the docking with the conformations obtained
+    NA in the case of muultiple receptor a new attribute named pdbqts is addded and it is only a list of pdbqt valid string.
+
+    Parameters
+    ----------
+    individuals : list[Individual]
+        A list of individuals
+    sdf : str, optional
+        The name for the output file, by default 'out.sdf'
+    """
+    pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
+    with Chem.SDWriter(sdf) as w:
+        for individual in individuals:
+            with open(pdbqt_tmp.name, 'w') as f:
+                f.write(individual.pdbqt)
+            pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
+            mol = pdbqt_mol.export_rdkit_mol()
+            mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
+            w.write(mol)
+
 class Local:
+    """For local search
+    """
     def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
         # Add check to get if the molecules is with Hs in case that some specification of the where to grow is given
         self.mol = mol
@@ -594,6 +705,7 @@ class Local:
         
         MolNonHs = Chem.RemoveHs(self.mol)
         self.pop = [Individual(Chem.MolToSmiles(MolNonHs), MolNonHs, idx = 0)]
+    
     def __call__(self, njobs:int = 1, pick:int = None):
         new_mols = list(grow_mol(
             self.mol,
@@ -651,6 +763,16 @@ class Local:
         return pd.DataFrame(list_of_dictionaries)       
 
 class GA:
+    """A more general searching strategy in the chemical space.
+
+    Attributes (importants)
+    -----------------------
+    -   pop:
+    -   SawIndividuals:
+    -   NumCalls:
+    -   NumGens: 
+
+    """
     def __init__(self, seed_smiles:str, costfunc:object, costfunc_kwargs:dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga') -> None:
         self.InitIndividual = Individual(seed_smiles, idx=0)
         self.costfunc = costfunc
@@ -684,7 +806,7 @@ class GA:
         
         # Tracking parameters
         self.NumCalls = 0
-        self.NumGen = 0
+        self.NumGens = 0
         self.SawIndividuals = []
     
     @timeit
@@ -785,14 +907,14 @@ class GA:
         
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
-            compressed_pickle(f"{self.deffnm}_pop", (self.NumGen,self.pop))
+            compressed_pickle(f"{self.deffnm}_pop", (self.NumGens,self.pop))
             make_sdf(self.pop, sdf=f"{self.deffnm}_pop.sdf")
         
         # Main Loop
         number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
         for iter in range(self.maxiter):
             # Saving Number of Generations
-            self.NumGen += 1
+            self.NumGens += 1
 
             # Probabilities Selections
             factors = (-self.beta * np.array(self.pop)).astype('float64')
@@ -827,7 +949,7 @@ class GA:
                     individual.idx = i + NumbOfSawIndividuals
                     # The problem here is that we are not being general for other possible Cost functions.
                     args_list.append((individual,kwargs_copy))
-                print(f'Evaluating generation {self.NumGen} / {self.maxiter + number_of_previous_generations}:')
+                print(f'Evaluating generation {self.NumGens} / {self.maxiter + number_of_previous_generations}:')
                 
                 # Calculating cost fucntion in parallel
                 popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
@@ -854,12 +976,12 @@ class GA:
             # Saving population in disk if it was required
             if self.save_pop_every_gen:
                 # Save every save_pop_every_gen and always the last population
-                if self.NumGen % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
-                    compressed_pickle(f"{self.deffnm}_pop", (self.NumGen, self.pop))
+                if self.NumGens % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
+                    compressed_pickle(f"{self.deffnm}_pop", (self.NumGens, self.pop))
                     make_sdf(self.pop, sdf=f"{self.deffnm}_pop.sdf")
             
             # Show Iteration Information
-            print(f"Generation {self.NumGen}: Best Individual: {self.pop[0]}.\n")
+            print(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}.\n")
         
         # Printing summary information
         print(f"\n{50*'=+'}\n")

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+"""The pdbqt for the receptors with PDB id: : 6lu7, x0131.
+"""
 r_6lu7 = """
 ATOM      1  N   SER U   1     -32.073   9.085  33.695 -0.32  2.00    -0.064 N 
 ATOM      2  CA  SER U   1     -32.156   8.073  34.741  0.30  2.00     0.297 C 
