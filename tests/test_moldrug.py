@@ -61,7 +61,7 @@ def test_single_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
             'max_inc':3,
             'ncores':cpu_count(),
         },
-        costfunc = fitness.Cost,#__CostSimilarity,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost, CostMultiReceptors
+        costfunc = fitness.Cost,
         costfunc_kwargs = {
             'vina_executable': 'vina',
             'receptor_path': r_x0161_file,
@@ -80,7 +80,7 @@ def test_single_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
 
     for o in out.pop:
         print(o.smiles, o.cost)
-    out.pickle(os.path.join(tmp_path.name, f"result_test_single_receptor_NumGen_{out.NumGen}_PopSize_{popsize}"), compress=True)
+    out.pickle(os.path.join(tmp_path.name, f"result_test_single_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=True)
     print(out.to_dataframe())
 
 def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
@@ -88,7 +88,7 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
         seed_smiles=ligands.r_x0161,
         maxiter=maxiter,
         popsize=popsize,
-        crem_db_path = crem_db_path,#'/home/ale/GITLAB/bi_crem_database/replacements02_sc2.db',
+        crem_db_path = crem_db_path,
         pc = 1,
         get_similar = False,
         mutate_crem_kwargs = {
@@ -99,11 +99,11 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
             'max_inc':3,
             'ncores':cpu_count(),
         },
-        costfunc = fitness.CostMultiReceptors,#__CostSimilarity,# __VinaCostLipinski, Cost, __VinaCost, __QedSasVinaCost, CostMultiReceptors
+        costfunc = fitness.CostMultiReceptors,
         costfunc_kwargs = {
-            'receptor_path': [r_x0161_file, r_6lu7_file],
-            'boxcenter' : [boxes.r_x0161["A"]['boxcenter'], boxes.r_6lu7["A"]['boxcenter']],
-            'boxsize': [boxes.r_x0161["A"]['boxsize'], boxes.r_6lu7["A"]['boxsize']],
+            'receptor_paths': [r_x0161_file, r_6lu7_file],
+            'boxcenters' : [boxes.r_x0161["A"]['boxcenter'], boxes.r_6lu7["A"]['boxcenter']],
+            'boxsizes': [boxes.r_x0161["A"]['boxsize'], boxes.r_6lu7["A"]['boxsize']],
             'vina_score_types': ['min', 'max'],
             'exhaustiveness': 4,
             'ncores': int(cpu_count() / njobs),
@@ -118,7 +118,7 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
 
     for o in out.pop:
         print(o.smiles, o.cost)
-    out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGen_{out.NumGen}_PopSize_{popsize}"), compress=True)
+    out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=True)
     print(out.to_dataframe())
 
 def test_local(njobs = 3, pick = 2):
