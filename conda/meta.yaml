@@ -1,17 +1,16 @@
-{% set data = load_setup_py_data(setup_file = 'setup.py', from_recipe_dir=True, recipe_dir='../') %}
+{% set data = load_setup_py_data(setup_file = 'setup.py', from_recipe_dir=True, recipe_dir='.') %}
 
 package:
   name: moldrug
   version: {{ data['version'] }}
 
 source:
-  path: ..
+  path: ../
 
 build:
-build:
+  noarch: python
   number: 0
-  script: python setup.py install --single-version-externally-managed
-
+  script: python -m pip install --no-deps --ignore-installed .
 requirements:
   host:
     - python
