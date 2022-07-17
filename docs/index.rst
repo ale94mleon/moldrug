@@ -5,7 +5,7 @@
 
 Welcome to moldrug's documentation!
 ===================================
-.. include:: ../../README.rst
+.. include:: ../README.rst
    
 .. toctree::
    :caption: User guide
