@@ -765,8 +765,8 @@ class Local:
 class GA:
     """A more general searching strategy in the chemical space.
 
-    Attributes (importants)
-    -----------------------
+    Attributes
+    ----------
     -   pop:
     -   SawIndividuals:
     -   NumCalls:
