@@ -668,28 +668,77 @@ class Individual:
             setattr(result, k, deepcopy(v, memo))
         return result
 
-def make_sdf(individuals:list[Individual], sdf = 'out.sdf'):
+def make_sdf(individuals:list[Individual], sdf_name = 'out'):
     """This function create a sdf file from a list of Individuals based on their pdbqt (or pdbqts) attribute
-    !!! pdbqts is not implemented yet. It will return the conformations of pdbqt (not the desired behavior.)
-    This assume that the cost fucntion update hte pdbqt attribute after the docking with the conformations obtained
-    In in the case of multiple receptor a new attribute named pdbqts is added and it is only a list of pdbqt valid string.
+    This assume that the cost function update the pdbqt attribute after the docking with the conformations obtained
+    In the case of multiple receptor a new attribute named pdbqts should been added and it is only a list of pdbqt valid string.
+    Here will export several sdf depending how many pdbqt string are in the pdbqts attribute.
 
     Parameters
     ----------
     individuals : list[Individual]
         A list of individuals
-    sdf : str, optional
-        The name for the output file, by default 'out.sdf'
+    sdf_name : str, optional
+        The name for the output file. Could be a ``path + sdf_name``. The sdf extension will be added by the function, by default 'out'
+    
+    Example
+    -------
+    .. ipython:: python
+
+        from moldrug import utils
+        # Creating two individuals
+        I1 = utils.Individual('CCCCl')
+        I2 = utils.Individual('CCOCCCF')
+        # Creating the pdbqts attribute with the pdbqt attribute (this is just a silly example)
+        I1.pdbqts = [I1.pdbqt, I1.pdbqt]
+        I2.pdbqts = [I2.pdbqt, I2.pdbqt]
+        utils.make_sdf([I1, I2])
+        # Two files were created
+        # In the other hand, if the attribute pdbqts is not present, only one file is going to be created
+        # Delete the pdbqts attribute
+        delattr(I1, 'pdbqts')
+        delattr(I2, 'pdbqts')
+        utils.make_sdf([I1, I2])
+        # Only one file will be created if the pdbqts has not len in some of the individuals or they presents different lens as well. In this case the pdbqts will be completely ignored and pdbqt attribute will be used for the construction of the sdf file
+        I1.pdbqts = [I1.pdbqt, I1.pdbqt, I1.pdbqt]
+        I2.pdbqts = [I2.pdbqt, I2.pdbqt]
+        utils.make_sdf([I1, I2])
     """
     pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
-    with Chem.SDWriter(sdf) as w:
-        for individual in individuals:
-            with open(pdbqt_tmp.name, 'w') as f:
-                f.write(individual.pdbqt)
-            pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
-            mol = pdbqt_mol.export_rdkit_mol()
-            mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
-            w.write(mol)
+    
+    # Check for the attribute pdbqts in all passed individuals and that all of them have the same number of pdbqt
+    check = True
+    NumbOfpdbqt = set()
+    for individual in individuals:
+        if 'pdbqts' in dir(individual):
+            NumbOfpdbqt.add(len(individual.pdbqts))
+        else:
+            check = False
+            break
+    if len(NumbOfpdbqt) == 0 or len(NumbOfpdbqt) > 1:
+        check = False
+    
+    if check == True:
+        for i in range(list(NumbOfpdbqt)[0]):
+            with Chem.SDWriter(f"{sdf_name}_{i+1}.sdf") as w:
+                for individual in individuals:
+                    with open(pdbqt_tmp.name, 'w') as f:
+                        f.write(individual.pdbqts[i])
+                    pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
+                    mol = pdbqt_mol.export_rdkit_mol()
+                    mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
+                    w.write(mol)
+            print(f" File {sdf_name}_{i+1}.sdf was createad!")           
+    else:
+        with Chem.SDWriter(f"{sdf_name}.sdf") as w:
+            for individual in individuals:
+                with open(pdbqt_tmp.name, 'w') as f:
+                    f.write(individual.pdbqt)
+                pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
+                mol = pdbqt_mol.export_rdkit_mol()
+                mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
+                w.write(mol)
+        print(f"File {sdf_name}.sdf was createad!")
 
 class Local:
     """For local search
@@ -908,7 +957,7 @@ class GA:
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
             compressed_pickle(f"{self.deffnm}_pop", (self.NumGens,self.pop))
-            make_sdf(self.pop, sdf=f"{self.deffnm}_pop.sdf")
+            make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
         
         # Main Loop
         number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
@@ -978,7 +1027,7 @@ class GA:
                 # Save every save_pop_every_gen and always the last population
                 if self.NumGens % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
                     compressed_pickle(f"{self.deffnm}_pop", (self.NumGens, self.pop))
-                    make_sdf(self.pop, sdf=f"{self.deffnm}_pop.sdf")
+                    make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
             
             # Show Iteration Information
             print(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}.\n")

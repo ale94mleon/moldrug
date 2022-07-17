@@ -86,7 +86,7 @@ def run():
     # Save final data
     ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
     # Saving final sdf file always
-    utils.make_sdf(ResultsClass.pop, sdf = f"{InitArgs['deffnm']}_pop.sdf")
+    utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
     print(f'The main job finished!.')
     # In case that follows jobs were defined
     if FollowConfig:
@@ -107,5 +107,5 @@ def run():
             # Save final data
             ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
             # Saving final sdf file always
-            utils.make_sdf(ResultsClass.pop, sdf = f"{InitArgs['deffnm']}_pop.sdf")
+            utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
             print(f'The job {job} finished!.')
