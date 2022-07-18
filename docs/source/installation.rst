@@ -27,7 +27,7 @@ We will create a new enveiroment ``conda``:
 
     conda create -n moldrug
     conda activate moldrug
-    conda install -c ale94mleon -c conda-forge -c bioconda moldrug
+    conda install -c ale94mleon -c conda-forge moldrug
 
 If some dependencies are missing, please installead through pip. Some of them could be:
 
@@ -55,8 +55,7 @@ Then install the dependencies libraries:
 
 .. code-block:: bash
 
-    conda install -y -c conda-forge rdkit">=2022.0"
-    conda install -y -c bioconda autodock-vina
+    conda install -y -c conda-forge rdkit">=2022.0" vina
 
 In the future we will consider to use the python modules `vina on pypi <https://pypi.org/project/vina/>`_. Finally:
 

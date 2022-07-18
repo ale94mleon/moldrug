@@ -1,6 +1,6 @@
 {% set data = load_setup_py_data() %}
 
-# Building: conda build -c conda-forge  conda/
+# Building: conda build -c conda-forge -c bioconda  conda/
 package:
   name: moldrug
   version: {{ data['version'] }}
@@ -9,6 +9,7 @@ source:
   path: ..
 
 build:
+  noarch: python
   number: 0
   script: python -m pip install .
 requirements:
@@ -17,7 +18,7 @@ requirements:
     - pip
   run:
     - rdkit >=2022.0.0
-    - vina
+    - autodock-vina
     - python
     - ipykernel
     - ipython

@@ -3,7 +3,6 @@ channels:
   - conda-forge
   - anaconda
   - defaults
-  - bioconda
 dependencies:
   - ipykernel
   - ipython
@@ -14,7 +13,7 @@ dependencies:
   - nbsphinx==0.8.7
   - sphinx==4.1.2
   - tqdm
-  - autodock-vina
+  - vina
   - conda-build
   - pip:
     - numpy
