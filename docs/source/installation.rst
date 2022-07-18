@@ -33,7 +33,7 @@ If some dependencies are missing, please installead through pip. Some of them co
 
 .. code-block:: bash
 
-    pip install meeko crem>=0.2.9 pyyaml scipy tqdm>=4.64.0
+    pip install meeko crem  pyyaml scipy tqdm
 
 .. warning::
 
