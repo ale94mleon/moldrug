@@ -1,8 +1,6 @@
 name: publish_conda
 
-on:
-  release:
-    types: [published]
+on: [push]
     
 jobs:
   publish:
@@ -12,6 +10,6 @@ jobs:
     - name: publish-to-conda
       uses: fcakyon/conda-publish-action@v1.3
       with:
-        subdir: '../../conda/'
+        subdir: 'conda'
         anacondatoken: ${{ secrets.ANACONDA_TOKEN }}
         platforms: 'win osx linux'

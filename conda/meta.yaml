@@ -1,16 +1,17 @@
-{% set data = load_setup_py_data(setup_file = 'setup.py', from_recipe_dir=True, recipe_dir='.') %}
+{% set data = load_setup_py_data() %}
 
 package:
   name: moldrug
   version: {{ data['version'] }}
 
 source:
-  path: ../
+  path: ..
 
 build:
   noarch: python
   number: 0
-  script: python -m pip install .
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
 requirements:
   host:
     - python
@@ -32,5 +33,5 @@ about:
   dev_url: {{ data['url'] }}
   doc_url: {{ data['project_urls']['Documentation'] }}
   doc_source_url: https://github.com/ale94mleon/MolDrug/tree/main/docs/source
-summary: {{ data['description'] }}
+  summary: {{ data['description'] }}
 
