@@ -21,13 +21,19 @@ Requirements:
 Via conda
 ~~~~~~~~~
 
-It is recomendable to install through ``conda``:
+We will create a new enveiroment ``conda``:
 
 .. code-block:: bash
 
     conda create -n moldrug
     conda activate moldrug
     conda install -c ale94mleon -c conda-forge -c bioconda moldrug
+
+If some dependencies are missing, please installead through pip. Some of them could be:
+
+.. code-block:: bash
+
+    pip install meeko crem>=0.2.9 pyyaml scipy tqdm>=4.64.0
 
 .. warning::
 
