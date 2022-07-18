@@ -814,7 +814,7 @@ class Local:
         return pd.DataFrame(list_of_dictionaries)       
 
 class GA:
-    """A more general searching strategy in the chemical space.
+    """An implementation of genetic algorithm to search in the chemical space.
 
     Attributes
     ----------

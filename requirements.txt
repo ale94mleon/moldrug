@@ -6,7 +6,7 @@ pyyaml
 meeko
 scipy
 six
-rdkit
+#rdkit
 crem
 # # Test dependencies
 # requests==2.28.1
