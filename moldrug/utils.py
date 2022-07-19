@@ -746,18 +746,20 @@ class Local:
     """For local search
     """
     def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
-        # Add check to get if the molecules is with Hs in case that some specification of the where to grow is given
         self.mol = mol
+        self.InitIndividual = Individual(Chem.MolToSmiles(self.mol), self.mol, idx = 0)
+        if self.InitIndividual.pdbqt:
+            raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.crem_db_path = crem_db_path
-        self.grow_crem_kwargs = grow_crem_kwargs
-        self.grow_crem_kwargs.update({'return_mol':True})
+        self.grow_crem_kwargs = grow_crem_kwargs  
         self.costfunc = costfunc
         self.costfunc_kwargs = costfunc_kwargs
-        
-        MolNonHs = Chem.RemoveHs(self.mol)
-        self.pop = [Individual(Chem.MolToSmiles(MolNonHs), MolNonHs, idx = 0)]
+        self.pop = [self.InitIndividual]
+
+
     
     def __call__(self, njobs:int = 1, pick:int = None):
+        self.grow_crem_kwargs.update({'return_mol':True})
         new_mols = list(grow_mol(
             self.mol,
             self.crem_db_path,
@@ -770,7 +772,9 @@ class Local:
 
         idx0 = len(self.pop)
         for i, mol in enumerate(new_mols):
-            self.pop.append(Individual(Chem.MolToSmiles(mol), mol, idx = idx0 + i))
+            individual = Individual(Chem.MolToSmiles(mol), mol, idx = idx0 + i)
+            if individual.pdbqt:
+                self.pop.append(individual)
         
         # Calculating cost of each individual
         # Creating the arguments
@@ -826,6 +830,8 @@ class GA:
     """
     def __init__(self, seed_smiles:str, costfunc:object, costfunc_kwargs:dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga') -> None:
         self.InitIndividual = Individual(seed_smiles, idx=0)
+        if not self.InitIndividual.pdbqt:
+            raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
         self.pop = [self.InitIndividual]
@@ -919,7 +925,9 @@ class GA:
                 pass 
 
             for i, mol in enumerate(GenInitStructs):
-                self.pop.append(Individual(Chem.MolToSmiles(mol), mol, idx = i + 1))# 0 is the InitIndividual
+                individual = Individual(Chem.MolToSmiles(mol), mol, idx = i + 1) # 0 is the InitIndividual
+                if individual.pdbqt:
+                    self.pop.append()
             
             # Calculating cost of each individual
             # Creating the arguments
@@ -980,8 +988,8 @@ class GA:
                 children = self.mutate(parent)
                 
                 # Save offspring population
-                # I will save only those offsprings that were not seen 
-                if children not in self.SawIndividuals: popc.append(children)
+                # I will save only those offsprings that were not seen and that have a correct pdbqt file
+                if children not in self.SawIndividuals and children.pdbqt: popc.append(children)
 
             if popc: # Only if there are new members
                 # Calculating cost of each offspring individual (Doing Docking)
@@ -1018,11 +1026,10 @@ class GA:
             # Store Average cost
             self.avg_cost.append(np.mean(self.pop))
 
-            # Saving tracking variables and getting new ones for the model update
+            # Saving tracking variables
             for individual in popc:
-                if individual not in self.SawIndividuals:
-                    #Tracking variables
-                    self.SawIndividuals.append(individual)
+                #Tracking variables. There is not need to check if the individual is in self.SawIndividual. It was already checked above.
+                self.SawIndividuals.append(individual)
             
             # Saving population in disk if it was required
             if self.save_pop_every_gen:
