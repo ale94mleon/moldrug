@@ -927,7 +927,7 @@ class GA:
             for i, mol in enumerate(GenInitStructs):
                 individual = Individual(Chem.MolToSmiles(mol), mol, idx = i + 1) # 0 is the InitIndividual
                 if individual.pdbqt:
-                    self.pop.append()
+                    self.pop.append(individual)
             
             # Calculating cost of each individual
             # Creating the arguments
