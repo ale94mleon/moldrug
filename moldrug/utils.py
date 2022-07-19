@@ -748,7 +748,7 @@ class Local:
     def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
         self.mol = mol
         self.InitIndividual = Individual(Chem.MolToSmiles(self.mol), self.mol, idx = 0)
-        if self.InitIndividual.pdbqt:
+        if not self.InitIndividual.pdbqt:
             raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.crem_db_path = crem_db_path
         self.grow_crem_kwargs = grow_crem_kwargs  
