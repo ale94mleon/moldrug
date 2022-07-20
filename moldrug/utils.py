@@ -220,7 +220,6 @@ def lipinski_profile(mol:Chem.rdchem.Mol):
         'NHOHCount': {'method':Lipinski.NHOHCount,'cutoff':None},
         'NOCount': {'method':Lipinski.NOCount,'cutoff':None},
         'NHOHCount': {'method':Lipinski.NHOHCount,'cutoff':None},
-        'NOCount': {'method':Lipinski.NOCount,'cutoff':None},
         'NumAliphaticCarbocycles': {'method':Lipinski.NumAliphaticCarbocycles,'cutoff':None},
         'NumAliphaticHeterocycles': {'method':Lipinski.NumAliphaticHeterocycles,'cutoff':None},
         'NumAliphaticRings': {'method':Lipinski.NumAliphaticRings,'cutoff':None},
@@ -261,7 +260,7 @@ def LargerTheBest(Value:float, LowerLimit:float, Target:float, r:float = 1)  -> 
     """
     if Value < LowerLimit:
         return 0.0
-    elif LowerLimit <= Value <= Target:
+    elif (LowerLimit <= Value) and (Value <= Target):
         return ((Value -LowerLimit)/(Target-LowerLimit))**r
     else:
         return 1.0
@@ -287,7 +286,7 @@ def SmallerTheBest(Value:float, Target:float, UpperLimit:float, r:float = 1) -> 
     """
     if Value < Target:
         return 1.0
-    elif Target <= Value <= UpperLimit:
+    elif (Target <= Value) and (Value <= UpperLimit):
         return ((UpperLimit-Value)/(UpperLimit-Target))**r
     else:
         return 0.0
@@ -317,9 +316,9 @@ def NominalTheBest(Value:float, LowerLimit:float, Target:float, UpperLimit:float
     """
     if Value < LowerLimit:
         return 0.0
-    elif LowerLimit <= Value <= Target:
+    elif (LowerLimit <= Value) and (Value <= Target):
         return ((Value -LowerLimit)/(Target-LowerLimit))**r1
-    elif Target <= Value <= UpperLimit:
+    elif (Target <= Value) and (Value <= UpperLimit):
         return ((UpperLimit-Value)/(UpperLimit-Target))**r2
     else:
         return 0.0
@@ -923,7 +922,6 @@ class GA:
                 print('The initial population has repeated elements')
                 # temporal solution
                 GenInitStructs +=  random.choices(GenInitStructs, k = self.popsize - len(GenInitStructs) -1)
-                pass# I am not sure how to deal with this
             elif len(GenInitStructs) > (self.popsize - 1):
                 #Selected random sample from the generation
                 GenInitStructs = random.sample(GenInitStructs, k = self.popsize -1)
