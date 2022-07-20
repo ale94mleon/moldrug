@@ -61,11 +61,11 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
 ..  |docs|  image:: https://readthedocs.org/projects/moldrug/badge/?version=latest
     :target: https://moldrug.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation
-.. |binder| image:: https://mybinder.org/badge_logo.svg
+..  |binder| image:: https://mybinder.org/badge_logo.svg
     :target: https://mybinder.org/v2/gh/ale94mleon/moldrug/HEAD?labpath=%2Fdocs%2Fnotebooks%2F
     :alt: binder
-..  |tests| image:: https://github.com/ale94mleon/moldrug/actions/workflows/tests.yml/badge.svg
-    :target: https://github.com/ale94mleon/moldrug/actions/workflows/tests.yml/
+..  |tests| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/python-package.yml/badge.svg
+    :target: https://github.com/ale94mleon/MolDrug/actions/workflows/python-package.yml
     :alt: tests
 ..  |pypi-version|  image:: https://img.shields.io/pypi/v/moldrug.svg
     :target: https://pypi.python.org/pypi/moldrug/
