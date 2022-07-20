@@ -32,6 +32,11 @@ jobs:
         echo after "Add conda to system path" My python version is actually: $(python --version).
     - name: Install dependencies from conda
       run: |
+        # This is to get the correct python version inside conda
+        IFS=' ' read -ra split <<< "$(python --version)"
+        conda install -y python==$(echo "${split[1]}")
+        # Now install the dependencies
+        conda install python $()
         conda install -y -c conda-forge vina
         echo after "Install dependencies from conda vina" My python version is actually: $(python --version).
         conda install -y -c conda-forge rdkit">=2020.0"
