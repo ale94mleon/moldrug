@@ -10,20 +10,8 @@ dependencies:
   - pip
   - python==3.9.*
   - rdkit
-  - nbsphinx==0.8.7
-  - sphinx==4.1.2
-  - tqdm
   - vina
-  - conda-build
   - pip:
-    - numpy
-    - pandas
-    - pyyaml
-    - meeko
-    - scipy
-    - six
-    - crem
+    - moldrug
     - requests
-    - pytest
-    - recommonmark
-    - sphinx_rtd_theme
+    - matplotlib
