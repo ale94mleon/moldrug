@@ -1,0 +1,29 @@
+name: moldrug
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - ipykernel
+  - ipython
+  - ipywidgets
+  - pip
+  - python==3.9.*
+  - rdkit
+  - nbsphinx==0.8.7
+  - sphinx==4.1.2
+  - tqdm
+  - vina
+  - conda-build
+  - pip:
+    - numpy
+    - pandas
+    - pyyaml
+    - meeko
+    - scipy
+    - six
+    - crem
+    - requests
+    - pytest
+    - recommonmark
+    - sphinx_rtd_theme
