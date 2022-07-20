@@ -29,7 +29,6 @@ jobs:
         echo before "Add conda to system path" My python version is actually: $(python --version).
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
-        conda env update --file environment.yml --name base
         echo after "Add conda to system path" My python version is actually: $(python --version).
     - name: Install dependencies from conda
       run: |
