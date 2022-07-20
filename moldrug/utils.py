@@ -9,6 +9,7 @@ from copy import deepcopy
 from inspect import getfullargspec
 import multiprocessing as mp
 import tempfile, subprocess, random, time, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
+from typing import List, Dict
 
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*') 
@@ -98,7 +99,7 @@ def confgen(smiles:str, return_mol:bool = False):
     else:
         return pdbqt_string
 
-def get_sim(ms:list[Chem.rdchem.Mol], ref_fps:list):
+def get_sim(ms:List[Chem.rdchem.Mol], ref_fps:List):
     """Get the molecules with higher similarity to each member of ref_fps.
 
     Parameters
@@ -121,7 +122,7 @@ def get_sim(ms:list[Chem.rdchem.Mol], ref_fps:list):
         output.append([v[i], i])
     return output
 
-def get_similar_mols(mols:list, ref_mol:Chem.rdchem.Mol, pick:int, beta:float = 0.01):
+def get_similar_mols(mols:List, ref_mol:Chem.rdchem.Mol, pick:int, beta:float = 0.01):
     """Pick the similar molecules from mols respect to ref_mol using a roulette wheel selection strategy.
 
     Parameters
@@ -667,7 +668,7 @@ class Individual:
             setattr(result, k, deepcopy(v, memo))
         return result
 
-def make_sdf(individuals:list[Individual], sdf_name = 'out'):
+def make_sdf(individuals:List[Individual], sdf_name = 'out'):
     """This function create a sdf file from a list of Individuals based on their pdbqt (or pdbqts) attribute
     This assume that the cost function update the pdbqt attribute after the docking with the conformations obtained
     In the case of multiple receptor a new attribute named pdbqts should been added and it is only a list of pdbqt valid string.
@@ -745,7 +746,7 @@ def make_sdf(individuals:list[Individual], sdf_name = 'out'):
 class Local:
     """For local search
     """
-    def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:dict = {}, costfunc_kwargs:dict = {}) -> None:
+    def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:Dict = {}, costfunc_kwargs:Dict = {}) -> None:
         self.mol = mol
         self.InitIndividual = Individual(Chem.MolToSmiles(self.mol), self.mol, idx = 0)
         if not self.InitIndividual.pdbqt:
@@ -828,7 +829,7 @@ class GA:
     -   NumGens: 
 
     """
-    def __init__(self, seed_smiles:str, costfunc:object, costfunc_kwargs:dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga') -> None:
+    def __init__(self, seed_smiles:str, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga') -> None:
         self.InitIndividual = Individual(seed_smiles, idx=0)
         if not self.InitIndividual.pdbqt:
             raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")

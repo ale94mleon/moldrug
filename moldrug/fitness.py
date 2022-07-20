@@ -3,10 +3,11 @@
 from moldrug import utils
 from rdkit.Chem import QED
 import os, numpy as np
+from typing import List
 
 
 
-def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str = 'vina', receptor_path:str = None, boxcenter:list[float] = None, boxsize:list[float] =None, exhaustiveness:int = 8, ncores:int = 1,  num_modes:int = 1):
+def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str = 'vina', receptor_path:str = None, boxcenter:List[float] = None, boxsize:List[float] =None, exhaustiveness:int = 8, ncores:int = 1,  num_modes:int = 1):
     """This is the main Cost function of the module
 
     Parameters
@@ -102,7 +103,7 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
     Individual.cost = 1 - D
     return Individual
 
-def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str = 'vina', receptor_paths:list[str] = None, vina_score_types:list[str] = None, boxcenters:list[float] = None, boxsizes:list[float] =None, exhaustiveness:int = 8, ncores:int = 1,  num_modes:int = 1):
+def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str = 'vina', receptor_paths:List[str] = None, vina_score_types:List[str] = None, boxcenters:List[float] = None, boxsizes:List[float] =None, exhaustiveness:int = 8, ncores:int = 1,  num_modes:int = 1):
     """This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility to work with more than one receptor.
 
     Parameters
