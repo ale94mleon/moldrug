@@ -68,6 +68,8 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
     # Creating the ligand pdbqt
     with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
         l.write(Individual.pdbqt)
+    # try:
+    #     # This should be always the case. Consider to use some atom filter in order to eliminate incompatible vina molecules
     utils.run(cmd)
 
     # Getting the information
@@ -77,6 +79,9 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
 
     # Getting the Scoring function of Vina
     Individual.vina_score = best_energy.freeEnergy
+# except:
+    #     # If something happens with vina, the pdbqt is wrong or any other error. This could be dangerous because hide some possibles user errors. Think about it.
+    #     pass
 
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
