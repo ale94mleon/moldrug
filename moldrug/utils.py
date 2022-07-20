@@ -12,13 +12,16 @@ import tempfile, subprocess, random, time, shutil, tqdm, bz2, pickle, _pickle as
 from typing import List, Dict
 
 from rdkit import RDLogger
-RDLogger.DisableLog('rdApp.*') 
+RDLogger.DisableLog('rdApp.*')
 
 ######################################################################################################################################
 #                                   Here are some important functions to work with                                                   #
 ######################################################################################################################################
-def timeit(method:object):
-    """Calculate the time of a process. Useful as decorator of functions
+
+
+def timeit(method: object):
+    """Calculate the time of a process.
+    Useful as decorator of functions
 
     Parameters
     ----------
@@ -33,12 +36,12 @@ def timeit(method:object):
             name = kw.get('log_name', method.__name__.upper())
             kw['log_time'][name] = int((te - ts) * 1000)
         else:
-            print('%r  %2.2f ms' % \
-                  (method.__name__, (te - ts) * 1000))
+            print('%r  %2.2f ms' % (method.__name__, (te - ts) * 1000))
         return result
     return timed
 
-def run(command:str, shell:bool = True, executable:str = '/bin/bash', Popen:bool = False):
+
+def run(command: str, shell: bool = True, executable: str = '/bin/bash', Popen: bool = False):
     """This function is just a useful wrapper around subprocess.Popen, subprocess.run
 
     Parameters
@@ -63,17 +66,18 @@ def run(command:str, shell:bool = True, executable:str = '/bin/bash', Popen:bool
         In case of non-zero exit status on the provided command.
     """
     if Popen:
-        #In this case you could access the pid as: run.pid
-        process = subprocess.Popen(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+        # In this case you could access the pid as: run.pid
+        process = subprocess.Popen(command, shell=shell, executable=executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     else:
-        process = subprocess.run(command, shell = shell, executable = executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+        process = subprocess.run(command, shell=shell, executable=executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         returncode = process.returncode
         if returncode != 0:
             print(f'Command {command} returned non-zero exit status {returncode}')
             raise RuntimeError(process.stderr)
     return process
 
-def confgen(smiles:str, return_mol:bool = False):
+
+def confgen(smiles: str, return_mol: bool = False):
     """Create a 3D model from a smiles and return a pdbqt string and, a mol if ``return_mol = True``.
 
     Parameters
@@ -86,7 +90,7 @@ def confgen(smiles:str, return_mol:bool = False):
     Returns
     -------
     tuple or str
-        If ``return_mol = True`` it will return a tuple ``(str[pdbqt], Chem.rdchem.Mol)``, if not only a ``str`` that represents the pdbqt. 
+        If ``return_mol = True`` it will return a tuple ``(str[pdbqt], Chem.rdchem.Mol)``, if not only a ``str`` that represents the pdbqt.
     """
     mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
     AllChem.EmbedMolecule(mol)
@@ -99,7 +103,8 @@ def confgen(smiles:str, return_mol:bool = False):
     else:
         return pdbqt_string
 
-def get_sim(ms:List[Chem.rdchem.Mol], ref_fps:List):
+
+def get_sim(ms: List[Chem.rdchem.Mol], ref_fps: List):
     """Get the molecules with higher similarity to each member of ref_fps.
 
     Parameters
@@ -122,7 +127,8 @@ def get_sim(ms:List[Chem.rdchem.Mol], ref_fps:List):
         output.append([v[i], i])
     return output
 
-def get_similar_mols(mols:List, ref_mol:Chem.rdchem.Mol, pick:int, beta:float = 0.01):
+
+def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, beta: float = 0.01):
     """Pick the similar molecules from mols respect to ref_mol using a roulette wheel selection strategy.
 
     Parameters
@@ -155,7 +161,8 @@ def get_similar_mols(mols:List, ref_mol:Chem.rdchem.Mol, pick:int, beta:float = 
             indexes.add(np.argwhere(r <= cumsum)[0][0])
         return [mols[index] for index in indexes]
 
-def lipinski_filter(mol:Chem.rdchem.Mol, maxviolation:int = 2):
+
+def lipinski_filter(mol: Chem.rdchem.Mol, maxviolation: int = 2):
     """Implementation of Lipinski filter.
 
     Parameters
@@ -171,16 +178,16 @@ def lipinski_filter(mol:Chem.rdchem.Mol, maxviolation:int = 2):
         True if the molecule present less than maxviolation violations; otherwise False.
     """
     filter = {
-        'NumHAcceptors': {'method':Lipinski.NumHAcceptors,'cutoff':10},
-        'NumHDonors': {'method':Lipinski.NumHDonors,'cutoff':5},
-        'wt': {'method':Descriptors.MolWt,'cutoff':500},
-        'MLogP': {'method':Descriptors.MolLogP,'cutoff':5},
-        'NumRotatableBonds': {'method':Lipinski.NumRotatableBonds,'cutoff':10},
-        'TPSA': {'method':Chem.MolSurf.TPSA,'cutoff':140},
+        'NumHAcceptors': {'method': Lipinski.NumHAcceptors, 'cutoff': 10},
+        'NumHDonors': {'method': Lipinski.NumHDonors, 'cutoff': 5},
+        'wt': {'method': Descriptors.MolWt, 'cutoff': 500},
+        'MLogP': {'method': Descriptors.MolLogP, 'cutoff': 5},
+        'NumRotatableBonds': {'method': Lipinski.NumRotatableBonds, 'cutoff': 10},
+        'TPSA': {'method': Chem.MolSurf.TPSA, 'cutoff': 140},
     }
     cont = 0
     for property in filter:
-        
+
         if filter[property]['method'](mol) > filter[property]['cutoff']:
             cont += 1
         if cont >= maxviolation:
@@ -209,7 +216,7 @@ def lipinski_profile(mol:Chem.rdchem.Mol):
         'TPSA': {'method':Chem.MolSurf.TPSA,'cutoff':range(0,140)},
 
         'FractionCSP3': {'method':Lipinski.FractionCSP3,'cutoff':None},
-        'HeavyAtomCount': {'method':Lipinski.HeavyAtomCount,'cutoff':None}, 
+        'HeavyAtomCount': {'method':Lipinski.HeavyAtomCount,'cutoff':None},
         'NHOHCount': {'method':Lipinski.NHOHCount,'cutoff':None},
         'NOCount': {'method':Lipinski.NOCount,'cutoff':None},
         'NHOHCount': {'method':Lipinski.NHOHCount,'cutoff':None},
@@ -330,7 +337,7 @@ def full_pickle(title:str, data:object):
     """
     with open(f'{title}.pkl', 'wb') as pkl:
         pickle.dump(data, pkl)
-    
+
 def loosen(file:str):
     """Unpickle a pickled object.
 
@@ -358,8 +365,8 @@ def compressed_pickle(title:str, data:object):
     data : object
         Any serializable python object
     """
-    with bz2.BZ2File(f'{title}.pbz2', 'w') as f: 
-        cPickle.dump(data, f)   
+    with bz2.BZ2File(f'{title}.pbz2', 'w') as f:
+        cPickle.dump(data, f)
 
 def decompress_pickle(file:str):
     """Decompress CPickle objects compressed first with bz2 formats
@@ -469,7 +476,7 @@ class CHUNK_VINA_OUT:
                 self.run = int(line[5:])
             elif line.startswith("REMARK VINA RESULT:"):
                     (self.freeEnergy, self.RMSD1, self.RMSD2) = [float(number) for number in line.split(":")[-1].split()]
-                    
+
             elif line.startswith("ATOM"):
                 self.atoms.append(Atom(line))
             else:
@@ -481,14 +488,14 @@ class CHUNK_VINA_OUT:
         If to_dict is True, each atom is represented as a dictionary.
         Otherwise, a list of Atom objects is returned."""
         return [x.__dict__ for x in self.atoms]
-        
+
     def write(self, name = None):
         if name:
             with open(name,"w") as f:
                 f.writelines(self.chunk)
         else:
             with open(f"Run_{self.run}.pdbqt","w") as f:
-                f.writelines(self.chunk)            
+                f.writelines(self.chunk)
 
 class VINA_OUT:
     """
@@ -517,7 +524,7 @@ class VINA_OUT:
                 self.chunks.append(CHUNK_VINA_OUT(tmp_chunk))
 
             i += 1
-            
+
     def BestEnergy(self, write = False):
         min_chunk = min(self.chunks, key= lambda x: x.freeEnergy)
         if write: min_chunk.write("best_energy.pdbqt")
@@ -560,7 +567,7 @@ class Individual:
             This attribute is used to perform operations between Individuals and should be used for the cost functions, by default np.inf
         """
         self.smiles = smiles
-        
+
         if not mol:
             try:
                 self.mol = Chem.MolFromSmiles(smiles)
@@ -568,9 +575,9 @@ class Individual:
                 self.mol = None
         else:
             self.mol = mol
-        
+
         self.idx = idx
-        
+
         if not pdbqt:
             try:
                 self.pdbqt, mol3D = confgen(smiles, return_mol=True)
@@ -582,7 +589,7 @@ class Individual:
             self.pdbqt = pdbqt
 
         self.cost = cost
-    
+
     def __repr__(self):
         return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {self.smiles}, cost = {self.cost})"
 
@@ -649,9 +656,9 @@ class Individual:
         return self.cost ** other
     def __rpow__(self, other: object):
         return  other  ** self.cost
-    
+
     def exp(self):
-        return np.exp(self.cost)     
+        return np.exp(self.cost)
 
     def __copy__(self):
         cls = self.__class__
@@ -679,7 +686,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
         A list of individuals
     sdf_name : str, optional
         The name for the output file. Could be a ``path + sdf_name``. The sdf extension will be added by the function, by default 'out'
-    
+
     Example
     -------
     .. ipython:: python
@@ -707,7 +714,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
         utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
     """
     pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
-    
+
     # Check for the attribute pdbqts in all passed individuals and that all of them have the same number of pdbqt
     check = True
     NumbOfpdbqt = set()
@@ -719,7 +726,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
             break
     if len(NumbOfpdbqt) == 0 or len(NumbOfpdbqt) > 1:
         check = False
-    
+
     if check == True:
         for i in range(list(NumbOfpdbqt)[0]):
             with Chem.SDWriter(f"{sdf_name}_{i+1}.sdf") as w:
@@ -730,7 +737,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                     mol = pdbqt_mol.export_rdkit_mol()
                     mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
                     w.write(mol)
-            print(f" File {sdf_name}_{i+1}.sdf was createad!")           
+            print(f" File {sdf_name}_{i+1}.sdf was createad!")
     else:
         with Chem.SDWriter(f"{sdf_name}.sdf") as w:
             for individual in individuals:
@@ -751,13 +758,13 @@ class Local:
         if not self.InitIndividual.pdbqt:
             raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.crem_db_path = crem_db_path
-        self.grow_crem_kwargs = grow_crem_kwargs  
+        self.grow_crem_kwargs = grow_crem_kwargs
         self.costfunc = costfunc
         self.costfunc_kwargs = costfunc_kwargs
         self.pop = [self.InitIndividual]
 
 
-    
+
     def __call__(self, njobs:int = 1, pick:int = None):
         self.grow_crem_kwargs.update({'return_mol':True})
         new_mols = list(grow_mol(
@@ -775,7 +782,7 @@ class Local:
             individual = Individual(Chem.MolToSmiles(mol), mol, idx = idx0 + i)
             if individual.pdbqt:
                 self.pop.append(individual)
-        
+
         # Calculating cost of each individual
         # Creating the arguments
         args_list = []
@@ -784,7 +791,7 @@ class Local:
         if 'wd' in getfullargspec(self.costfunc).args:
             costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
             kwargs_copy['wd'] = costfunc_jobs.name
-        
+
         for individual in self.pop:
             args_list.append((individual, kwargs_copy))
 
@@ -792,14 +799,14 @@ class Local:
         pool = mp.Pool(njobs)
         self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
         pool.close()
-        
+
         if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
 
     def __costfunc__(self, args_list):
         Individual, kwargs = args_list
         #This is just to use the progress bar on pool.imap
         return self.costfunc(Individual, **kwargs)
-            
+
     def pickle(self,title, compress = False):
         cls = self.__class__
         result = cls.__new__(cls)
@@ -808,14 +815,14 @@ class Local:
             compressed_pickle(title, result)
         else:
             full_pickle(title, result)
-    
+
     def to_dataframe(self):
         list_of_dictionaries = []
         for individual in self.pop:
             dictionary = individual.__dict__.copy()
             del dictionary['mol']
             list_of_dictionaries.append(dictionary)
-        return pd.DataFrame(list_of_dictionaries)       
+        return pd.DataFrame(list_of_dictionaries)
 
 class GA:
     """An implementation of genetic algorithm to search in the chemical space.
@@ -825,7 +832,7 @@ class GA:
     -   pop:
     -   SawIndividuals:
     -   NumCalls:
-    -   NumGens: 
+    -   NumGens:
 
     """
     def __init__(self, seed_smiles:str, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga') -> None:
@@ -844,7 +851,7 @@ class GA:
             self.costfunc_ncores = self.costfunc_kwargs['ncores']
         else:
             self.costfunc_ncores = 1
-        
+
         self.nc = round(pc*popsize)
         self.get_similar = get_similar
         self.mutate_crem_kwargs = {
@@ -860,21 +867,21 @@ class GA:
         # Saving parameters
         self.save_pop_every_gen = save_pop_every_gen
         self.deffnm = deffnm
-        
+
         # Tracking parameters
         self.NumCalls = 0
         self.NumGens = 0
         self.SawIndividuals = []
-    
+
     @timeit
     def __call__(self, njobs:int = 1):
-        # Counting the calls 
+        # Counting the calls
         self.NumCalls += 1
-        
+
         # Here we will update if needed some parameters for the crem operations that could change between differents calls.
         # We need to return the molecule, so we override the possible user definition respect to this keyword
         self.mutate_crem_kwargs['return_mol'] = True
-        
+
         # Guess if we need to add explicit hydrogens in the mutate operation
         self.AddExplicitHs = False
         if 'min_size' in self.mutate_crem_kwargs:
@@ -900,7 +907,7 @@ class GA:
                         )
                     )
                 GenInitStructs = get_similar_mols(mols = [Chem.RemoveHs(item[1]) for item in GenInitStructs], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
-                
+
             else:
                 GenInitStructs = list(
                     mutate_mol(
@@ -910,7 +917,7 @@ class GA:
                         )
                     )
                 GenInitStructs = [Chem.RemoveHs(mol) for (_, mol) in GenInitStructs]
-                       
+
             # Checking for possible scenarios
             if len(GenInitStructs) < (self.popsize - 1):
                 print('The initial population has repeated elements')
@@ -918,17 +925,17 @@ class GA:
                 GenInitStructs +=  random.choices(GenInitStructs, k = self.popsize - len(GenInitStructs) -1)
                 pass# I am not sure how to deal with this
             elif len(GenInitStructs) > (self.popsize - 1):
-                #Selected random sample from the generation 
+                #Selected random sample from the generation
                 GenInitStructs = random.sample(GenInitStructs, k = self.popsize -1)
             else:
                 # Everything is ok!
-                pass 
+                pass
 
             for i, mol in enumerate(GenInitStructs):
                 individual = Individual(Chem.MolToSmiles(mol), mol, idx = i + 1) # 0 is the InitIndividual
                 if individual.pdbqt:
                     self.pop.append(individual)
-            
+
             # Calculating cost of each individual
             # Creating the arguments
             args_list = []
@@ -937,7 +944,7 @@ class GA:
             if 'wd' in getfullargspec(self.costfunc).args:
                 costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
                 kwargs_copy['wd'] = costfunc_jobs.name
-            
+
             for individual in self.pop:
                 args_list.append((individual, kwargs_copy))
 
@@ -945,30 +952,30 @@ class GA:
             pool = mp.Pool(njobs)
             self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
             pool.close()
-            
+
             if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
-            
+
             # Print some information of the initial population
             print(f"Initial Population: Best individual: {min(self.pop)}")
             # Updating the info of the first individual (parent) to print at the end how well performed the method (cost function)
             # Because How the population was initialized and because we are using pool.imap (ordered). The parent is the first Individual of self.pop.
             # We have to use deepcopy because Individual is a mutable object
             self.InitIndividual = deepcopy(self.pop[0])
-            
+
             # Best Cost of Iterations
             self.bestcost = []
             self.avg_cost = []
-        
+
         # Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.
         for individual in self.pop:
             if individual not in self.SawIndividuals:
                 self.SawIndividuals.append(individual)
-        
+
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
             compressed_pickle(f"{self.deffnm}_pop", (self.NumGens,self.pop))
             make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
-        
+
         # Main Loop
         number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
         for iter in range(self.maxiter):
@@ -986,7 +993,7 @@ class GA:
 
                 # Perform Mutation (this mutation is some kind of crossover but with CReM library)
                 children = self.mutate(parent)
-                
+
                 # Save offspring population
                 # I will save only those offsprings that were not seen and that have a correct pdbqt file
                 if children not in self.SawIndividuals and children.pdbqt: popc.append(children)
@@ -1001,7 +1008,7 @@ class GA:
                 if 'wd' in getfullargspec(self.costfunc).args:
                     costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
                     kwargs_copy['wd'] = costfunc_jobs.name
-                
+
                 NumbOfSawIndividuals = len(self.SawIndividuals)
                 for (i, individual) in enumerate(popc):
                     # Add idx label to each individual
@@ -1009,12 +1016,12 @@ class GA:
                     # The problem here is that we are not being general for other possible Cost functions.
                     args_list.append((individual,kwargs_copy))
                 print(f'Evaluating generation {self.NumGens} / {self.maxiter + number_of_previous_generations}:')
-                
+
                 # Calculating cost fucntion in parallel
-                popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]  
+                popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
                 pool.close()
                 if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
-                
+
             # Merge, Sort and Select
             self.pop += popc
             self.pop = sorted(self.pop)
@@ -1030,17 +1037,17 @@ class GA:
             for individual in popc:
                 #Tracking variables. There is not need to check if the individual is in self.SawIndividual. It was already checked above.
                 self.SawIndividuals.append(individual)
-            
+
             # Saving population in disk if it was required
             if self.save_pop_every_gen:
                 # Save every save_pop_every_gen and always the last population
                 if self.NumGens % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
                     compressed_pickle(f"{self.deffnm}_pop", (self.NumGens, self.pop))
                     make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
-            
+
             # Show Iteration Information
             print(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}.\n")
-        
+
         # Printing summary information
         print(f"\n{50*'=+'}\n")
         print(f'The simulation finished successfully after {self.maxiter} generations with a population of {self.popsize} individuals. A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.')
@@ -1052,8 +1059,8 @@ class GA:
     def __costfunc__(self, args_list):
         individual, kwargs = args_list
         #This is just to use the progress bar on pool.imap
-        return self.costfunc(individual, **kwargs)  
-    
+        return self.costfunc(individual, **kwargs)
+
     def mutate(self, individual):
         try:
             if self.AddExplicitHs:
@@ -1062,7 +1069,7 @@ class GA:
                 mutants = [(0, Chem.RemoveHs(mutant)) for _, mutant in mutants]
             else:
                 mutants = list(mutate_mol(individual.mol, self.crem_db_path, **self.mutate_crem_kwargs))
-            
+
             # Bias the searching to similar molecules
             if self.get_similar:
                 mol = get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
@@ -1074,14 +1081,14 @@ class GA:
             print('The mutation did not work, we returned the same individual')
             smiles, mol = individual.smiles, individual.mol
         return Individual(smiles,mol)
-    
-    
+
+
     def roulette_wheel_selection(self, p):
         c = np.cumsum(p)
         r = sum(p)*np.random.rand()
         ind = np.argwhere(r <= c)
         return ind[0][0]
-    
+
     def pickle(self, title, compress = False):
         cls = self.__class__
         result = cls.__new__(cls)
@@ -1090,7 +1097,7 @@ class GA:
             compressed_pickle(title, result)
         else:
             full_pickle(title, result)
-    
+
     def to_dataframe(self):
         list_of_dictionaries = []
         for individual in self.SawIndividuals:

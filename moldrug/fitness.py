@@ -35,7 +35,7 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
     -------
     utils.Individual
         A new instance of the original Individual with the the new attributes: pdbqt, qed, vina_score, sa_score and cost
-    
+
     Example
     -------
     .. ipython:: python
@@ -56,10 +56,10 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
     Individual.qed = QED.weights_mean(Individual.mol)
-    
+
     # Getting synthetic accessibility score
     Individual.sa_score = sascorer.calculateScore(Individual.mol)
-    
+
     # Getting Vina score
     cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
@@ -86,7 +86,7 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
 
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
-    # Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible. 
+    # Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible.
     w_qed = 1
     d_qed = utils.LargerTheBest(Individual.qed, LowerLimit=0.1, Target=0.75, r = 1)
     # Synthetic accessibility score (ranges from 1 to 10). We would like to have 3 or lower and beyond 7 we assume that is not good.
@@ -95,11 +95,11 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
     # Vina. In this case is difficult to create a desirability because the range, we will use as target -12 upperlimit -6.
     w_vina_score = 1
     d_vina_score = utils.SmallerTheBest(Individual.vina_score, Target = -12, UpperLimit=-6, r = 1)
-    # Average 
+    # Average
     #D = (w_qed*d_qed + w_sa_score*d_sa_score + w_vina_score*d_vina_score) / (w_qed + w_sa_score + w_vina_score)
     # Geometric mean
     D = (d_qed**w_qed * d_sa_score**w_sa_score * d_vina_score**w_vina_score)**(1/(w_qed + w_sa_score + w_vina_score))
-    # And because we are minimizing we have to return 
+    # And because we are minimizing we have to return
     Individual.cost = 1 - D
     return Individual
 
@@ -133,7 +133,7 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
     -------
     utils.Individual
         A new instance of the original Individual with the the new attributes: pdbqts [a list of pdbqt], qed, vina_scores [a list of vina_score], sa_score and cost
-    
+
     Example
     -------
     .. ipython:: python
@@ -156,10 +156,10 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
     """
     sascorer = utils.import_sascorer()
     Individual.qed = QED.weights_mean(Individual.mol)
-    
+
     # Getting synthetic accessibility score
     Individual.sa_score = sascorer.calculateScore(Individual.mol)
-    
+
     # Getting Vina score
     Individual.pdbqts = []
     Individual.vina_scores = []
@@ -184,7 +184,7 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
 
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
-    # Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible. 
+    # Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible.
     w_qed = 1
     d_qed = utils.LargerTheBest(Individual.qed, LowerLimit=0.1, Target=0.75, r = 1)
     # Synthetic accessibility score (ranges from 1 to 10). We would like to have 3 or lower and beyond 7 we assume that is not good.
@@ -201,11 +201,11 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
         else:
             # I have to check first if the list vina_score_types only contains min and max strings
             pass
-    # Average 
+    # Average
     #D = (w_qed*d_qed + w_sa_score*d_sa_score + sum([w_vina_score*d_vina_score for w_vina_score, d_vina_score in zip(w_vina_scores, d_vina_scores)])) / (w_qed + w_sa_score + sum(w_vina_scores))
     # Geometric mean
     D = (d_qed**w_qed * d_sa_score**w_sa_score * np.prod([d_vina_score**w_vina_score for d_vina_score, w_vina_score in zip(d_vina_scores, w_vina_scores)]))** (1/(w_qed + w_sa_score + sum(w_vina_scores)))
-    # And because we are minimizing we have to return 
+    # And because we are minimizing we have to return
     Individual.cost = 1 - D
     return Individual
 if __name__ == '__main__':

@@ -10,6 +10,7 @@ nohup.out
 ideas
 pkl
 tmp
+tox.ini
 
 build
 dist
