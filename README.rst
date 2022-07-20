@@ -8,6 +8,8 @@ MolDrug
 
     * - **Documentation**
       - |docs|
+    * - **Tutorials**
+      - |binder|
     * - **CI/CD**
       - |tests|
     * - **Build**
@@ -30,6 +32,8 @@ Description
 **MolDrug** is a python package for lead generation and optimization of small molecules.
 It use a Genetic Algorithm (GA) as searching engine in the chemical space and
 `CReM <https://github.com/DrrDom/crem>`__ library as chemical structure generator.
+
+You can try it out prior to any installation on `Binder <https://mybinder.org/v2/gh/ale94mleon/moldrug/HEAD?labpath=%2Fdocs%2Fnotebooks%2F>`__.
 
 Documentation
 -------------
@@ -57,6 +61,9 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
 ..  |docs|  image:: https://readthedocs.org/projects/moldrug/badge/?version=latest
     :target: https://moldrug.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+    :target: https://mybinder.org/v2/gh/ale94mleon/moldrug/HEAD?labpath=%2Fdocs%2Fnotebooks%2F
+    :alt: binder
 ..  |tests| image:: https://github.com/ale94mleon/moldrug/actions/workflows/tests.yml/badge.svg
     :target: https://github.com/ale94mleon/moldrug/actions/workflows/tests.yml/
     :alt: tests
