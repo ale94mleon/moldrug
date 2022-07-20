@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.7", "3.8", "3.9", "3.10"]
+        python-version: ["3.8", "3.9", "3.10"]
 
     steps:
     - uses: actions/checkout@v3
@@ -26,24 +26,30 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Add conda to system path
       run: |
+        echo before "Add conda to system path" My python version is actually: $(python --version).
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
+        echo after "Add conda to system path" My python version is actually: $(python --version).
     - name: Install dependencies from conda
       run: |
         conda install -y -c conda-forge vina
-        conda install -y -c conda-forge rdkit">=2022.0"  
+        conda install -y -c conda-forge rdkit">=2022.0"
+        echo after "Install dependencies from conda" My python version is actually: $(python --version).
     - name: Install pip dependencies and moldrug on test mode
       run: |
-        #python -m pip install --upgrade pip
+        python -m pip install --upgrade pip
         python -m pip install flake8
         pip install -e .[test]
+        echo after "Install pip dependencies and moldrug on test mode" My python version is actually: $(python --version).
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        echo after "Lint with flake8" My python version is actually: $(python --version).
     - name: Test with pytest
       run: |
-        echo My python version is actually: $(python --version).
+        echo before "Test with pytest" My python version is actually: $(python --version).
         pytest
+        echo after "Test with pytest" My python version is actually: $(python --version).
