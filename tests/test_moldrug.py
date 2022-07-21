@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from ctypes import util
+from multiprocessing.context import assert_spawning
 from rdkit import Chem
 from moldrug import utils, fitness, home
 from moldrug.data import receptors, ligands, boxes
-import tempfile, os, gzip, shutil, requests, yaml
+import tempfile, os, gzip, shutil, requests, yaml, copy
 from multiprocessing import cpu_count
 
 # Creating a temporal directory
@@ -64,8 +64,8 @@ def test_single_receptor_command_line():
         "02_allow_grow": {
             "mutate_crem_kwargs": {
                 "radius": 3,
-                "min_size": 0,
-                "max_size": 2,
+                "min_size": 1,
+                "max_size": 0,
                 "min_inc": -5,
                 "max_inc": 3,
                 "ncores": 12
@@ -118,6 +118,17 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
         print(o.smiles, o.cost)
     out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=False)
     print(out.to_dataframe())
+    
+    with open(os.path.join(tmp_path.name, 'vina_out.pdbqt'), 'w') as p:
+        p.write(out.pop[0].pdbqts[0])
+    
+    vina_out = utils.VINA_OUT(os.path.join(tmp_path.name, 'vina_out.pdbqt'))
+    vina_out.chunks[0].get_atoms()
+    vina_out.chunks[0].write(os.path.join(tmp_path.name, 'chunk.pdbqt'))
+    cwd = os.getcwd()
+    os.chdir(tmp_path.name)
+    vina_out.chunks[0].write()
+    os.chdir(cwd)
 
 
 def test_local_command_line():
@@ -149,7 +160,9 @@ def test_local_command_line():
     with open(os.path.join(tmp_path.name, "local_config.yml"), 'w') as c:
         yaml.dump(Config, c)
     os.chdir(tmp_path.name)
-    utils.run('moldrug local_config.yml')
+    non_standard_fitness = os.path.join(home.home(), 'fitness.py')
+    shutil.copy(non_standard_fitness, '.')
+    utils.run('moldrug local_config.yml --fitness fitness.py')
     result = utils.decompress_pickle(os.path.join(tmp_path.name, 'local_result.pbz2'))
     result.pickle(os.path.join(tmp_path.name, "local_non_compress"), compress=False)
     print(result.to_dataframe())
@@ -158,7 +171,6 @@ def test_local_command_line():
 
 def test_home():
     home.home(dataDir='data')
-    home.home()
 
 
 def test_get_sim_utils():
@@ -171,11 +183,35 @@ def test_get_sim_utils():
         ref_fps.append(AllChem.GetMorganFingerprintAsBitVect(mol, 2))
     utils.get_sim(mols, ref_fps)
 
+
 def test_lipinski():
     mol = Chem.MolFromSmiles('CCCO')
     utils.lipinski_filter(Chem.MolFromSmiles('BrCC(COCN)CC(Br)CC(Cl)CCc1ccccc1CCCC(NCCCO)'))
     utils.lipinski_filter(mol)
     utils.lipinski_profile(mol)
+
+
+def test_Individual():
+    I1 = utils.Individual('CC', cost=10)
+    I2 = utils.Individual('CCO', cost=2)
+    I3 = copy.copy(I1)
+    I4 = copy.deepcopy(I2)
+    I5 = utils.Individual('CC', cost = 10, pdbqt=I1.pdbqt)
+    assert I3 + I4 == 12
+    assert I5 - I2 == 8
+    assert I1 > I2
+    assert I1 >= I2
+    assert I2 < I1
+    assert I2 <= I1
+    assert -I1 == -10
+    assert abs(I1) == 10
+    assert I1 * I2 == 20
+    assert I1 / I2 == 5
+    assert I1 // I2 == 5
+    assert I1 % I2 == 0
+    assert divmod(I1, I2) == (5,0)
+    assert I1**I2 == 100
+
 
 
 def test_miscellanea():
@@ -193,4 +229,4 @@ def test_miscellanea():
 
 
 if __name__ == '__main__':
-    pass
+    test_local_command_line()

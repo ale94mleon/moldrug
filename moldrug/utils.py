@@ -451,8 +451,6 @@ class CHUNK_VINA_OUT:
 
             elif line.startswith("ATOM"):
                 self.atoms.append(Atom(line))
-            else:
-                pass
 
     def get_atoms(self):
         """Return a list of all atoms.
