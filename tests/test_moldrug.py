@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from ctypes import util
 from rdkit import Chem
-from moldrug import utils, fitness
-from moldrug.data import receptors, ligands, boxes, config_yaml
-import tempfile, os, gzip, shutil, requests
+from moldrug import utils, fitness, home
+from moldrug.data import receptors, ligands, boxes
+import tempfile, os, gzip, shutil, requests, yaml
 from multiprocessing import cpu_count
 
 # Creating a temporal directory
@@ -27,59 +28,59 @@ with gzip.open(crem_dbgz_path, 'rb') as f_in:
     with open(crem_db_path, 'wb') as f_out:
         shutil.copyfileobj(f_in, f_out)
 
-
-def test_single_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
-
-    """For a local optimization we could use
-        min_size=1, max_size=1, min_inc=-1, max_inc=1
-        Or use just grow instead
-        min_size=0, max_size=0,
-        And if we would like to integrate all this option
-        min_size=0, max_size=1, min_inc=-1, max_inc=1
-        this will add, delate heavy mutate heavy atoms.
-        or change Hydrogens for heavy atoms
-
-        with
-        min_size=1, max_size=8, min_inc=-5, max_inc=3
-        I explore efficiently the chemical space, not good for cost functions with similarity included. 
-    """
-    
-    out = utils.GA(
-        seed_smiles=ligands.r_x0161,
-        maxiter=maxiter,
-        popsize=popsize,
-        crem_db_path = crem_db_path,#'/home/ale/GITLAB/bi_crem_database/replacements02_sc2.db',
-        pc = 1,
-        get_similar = False,
-        mutate_crem_kwargs = {
-            'radius':3,
-            'min_size':1,
-            'max_size':8,
-            'min_inc':-5,
-            'max_inc':3,
-            'ncores':cpu_count(),
+def test_single_receptor_command_line():
+    Config = {
+        "01_grow": {
+            "type": "GA",
+            "njobs": 3,
+            "seed_smiles": ligands.r_x0161,
+            "costfunc": "Cost",
+            "costfunc_kwargs": {
+                "vina_executable": "vina",
+                "receptor_path": r_x0161_file,
+                "boxcenter": boxes.r_x0161["A"]['boxcenter'],
+                "boxsize": boxes.r_x0161["A"]['boxsize'],
+                "exhaustiveness": 4,
+                "ncores": 4,
+                "num_modes": 1
+            },
+            "crem_db_path": crem_db_path,
+            "maxiter": 1,
+            "popsize": 2,
+            "beta": 0.001,
+            "pc": 1,
+            "get_similar": False,
+            "mutate_crem_kwargs": {
+                "radius": 3,
+                "min_size": 0,
+                "max_size": 0,
+                "min_inc": -5,
+                "max_inc": 6,
+                "ncores": 1
+            },
+            "save_pop_every_gen": 10,
+            "deffnm": "01_grow"
         },
-        costfunc = fitness.Cost,
-        costfunc_kwargs = {
-            'vina_executable': 'vina',
-            'receptor_path': r_x0161_file,
-            'boxcenter' : boxes.r_x0161["A"]['boxcenter'] ,
-            'boxsize': boxes.r_x0161["A"]['boxsize'],
-            'exhaustiveness': 4,
-            'ncores': int(cpu_count() / njobs),
-            'num_modes': 1,
-        },
-        save_pop_every_gen = 20,
-        deffnm = os.path.join(tmp_path.name, 'test_single_receptor')
-        )
+        "02_allow_grow": {
+            "mutate_crem_kwargs": {
+                "radius": 3,
+                "min_size": 0,
+                "max_size": 2,
+                "min_inc": -5,
+                "max_inc": 3,
+                "ncores": 12
+            },
+            "maxiter": 1,
+            "deffnm": "02_allow_grow"
+        }
+    }
+    cwd = os.getcwd()
+    with open(os.path.join(tmp_path.name, "test_single_receptor.yml"), 'w') as c:
+        yaml.dump(Config, c)
+    os.chdir(tmp_path.name)
+    utils.run('moldrug test_single_receptor.yml')
+    os.chdir(cwd)
 
-    for _ in range(NumbCalls):
-        out(njobs = njobs)
-
-    for o in out.pop:
-        print(o.smiles, o.cost)
-    out.pickle(os.path.join(tmp_path.name, f"result_test_single_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=True)
-    print(out.to_dataframe())
 
 def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     out = utils.GA(
@@ -88,10 +89,10 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
         popsize=popsize,
         crem_db_path = crem_db_path,
         pc = 1,
-        get_similar = False,
+        get_similar = True,
         mutate_crem_kwargs = {
             'radius':3,
-            'min_size':1,
+            'min_size':0,
             'max_size':8,
             'min_inc':-5,
             'max_inc':3,
@@ -116,31 +117,79 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
 
     for o in out.pop:
         print(o.smiles, o.cost)
-    out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=True)
-    print(out.to_dataframe())
+    out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=False)
 
-def test_local(njobs = 3, pick = 2):
-    local = utils.Local(
-        mol = Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161)),
-        crem_db_path = crem_db_path,
-        grow_crem_kwargs = {
-                'radius':3,
-                'min_atoms':1,
-                'max_atoms':3,
-                'ncores':cpu_count(),
+
+def test_local_command_line():
+    Config = {
+        "main": {
+            "type": "Local",
+            "njobs": 1,
+            "pick": 2,
+            "mol": Chem.MolToSmiles(Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161))),
+            "costfunc": "Cost",
+            "costfunc_kwargs": {
+                "vina_executable": "vina",
+                "receptor_path": r_x0161_file,
+                "boxcenter": boxes.r_x0161["A"]['boxcenter'],
+                "boxsize": boxes.r_x0161["A"]['boxsize'],
+                "exhaustiveness": 4,
+                "ncores": 4,
+                "num_modes": 1
             },
-        costfunc = fitness.Cost,
-        costfunc_kwargs = {
-            'receptor_path': r_x0161_file,
-            'boxcenter' : boxes.r_x0161["A"]['boxcenter'],
-            'boxsize': boxes.r_x0161["A"]['boxsize'],
-            'exhaustiveness': 8,
-            'ncores': int(cpu_count() / njobs),
-            'num_modes': 1,
-        },
-    )
-    local(njobs = njobs, pick=pick)
-    print(local.to_dataframe())
+            "crem_db_path": crem_db_path,
+            "grow_crem_kwargs": {
+                "radius": 3,
+                "min_atoms": 1,
+                "max_atoms": 3
+            }
+        }
+    }
+    cwd = os.getcwd()
+    with open(os.path.join(tmp_path.name, "local_config.yml"), 'w') as c:
+        yaml.dump(Config, c)
+    os.chdir(tmp_path.name)
+    utils.run('moldrug local_config.yml')
+    result = utils.decompress_pickle(os.path.join(tmp_path.name, 'local_result.pbz2'))
+    result.pickle(os.path.join(tmp_path.name, "local_non_compress"), compress=False)
+    print(result.to_dataframe())
+    os.chdir(cwd)
+
+
+def test_home():
+    home.home(dataDir='data')
+    home.home()
+
+
+def test_get_sim_utils():
+    from rdkit.Chem import AllChem
+    mols = []
+    ref_fps = []
+    for s in ['CC', 'CCO']:
+        mol = Chem.MolFromSmiles(s)
+        mols.append(mol)
+        ref_fps.append(AllChem.GetMorganFingerprintAsBitVect(mol, 2))
+    utils.get_sim(mols, ref_fps)
+
+def test_lipinski():
+    mol = Chem.MolFromSmiles('CCCO')
+    utils.lipinski_filter(mol)
+    utils.lipinski_profile(mol)
+
+
+def test_miscellanea():
+    obj0 = []
+    for i in range(0,50):
+        obj0.append(utils.NominalTheBest(Value=i, LowerLimit=10, Target=20, UpperLimit=30))
+    
+    utils.full_pickle(os.path.join(tmp_path.name,'test_desirability'), obj0)
+    utils.compressed_pickle(os.path.join(tmp_path.name,'test_desirability'), obj0)
+    obj1 = utils.loosen(os.path.join(tmp_path.name,'test_desirability.pkl'))
+    obj2 = utils.decompress_pickle(os.path.join(tmp_path.name,'test_desirability.pbz2'))
+
+    assert obj0 == obj1
+    assert obj0 == obj2
+
 
 if __name__ == '__main__':
-    test_single_receptor(maxiter = 5, popsize = 5, njobs = 5, NumbCalls = 2)
+    pass

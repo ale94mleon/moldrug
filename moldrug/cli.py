@@ -5,7 +5,8 @@
     Source Code: https://github.com/ale94mleon/moldrug
 """
 from moldrug import utils, __version__
-import yaml, argparse, inspect, importlib
+import yaml, argparse, inspect, importlib, warnings
+from rdkit import Chem
 def moldrug_cmd():
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawTextHelpFormatter)
@@ -46,30 +47,45 @@ def moldrug_cmd():
         TypeOfRun = utils.GA
     elif MainConfig['type'].lower() == 'local':
         TypeOfRun = utils.Local
+        # For now I will accept as input in Local a SMILES, but I am not sure 
+        MainConfig['mol'] = Chem.MolFromSmiles(MainConfig['mol'])
     else:
         raise RuntimeError(f"\"{MainConfig['type']}\" it is not a possible type. Select from: GA or Local")
     InitArgs = MainConfig.copy()
 
     # Modifying InitArgs
-    [InitArgs.pop(key, None) for key in ['type', 'njobs']]
+    [InitArgs.pop(key, None) for key in ['type', 'njobs', 'pick']]
     InitArgs['costfunc'] = Cost
+
+    # Getting call arguments 
+    CallArgs = dict()
+    for key in ['njobs', 'pick']:
+        try:
+            CallArgs[key] = MainConfig[key]
+        except:
+            pass
 
     # Checking for follow jobs and sanity check on the arguments
     if FollowConfig:
-        # Defining the possible mutable arguments with its default values
-        mutable_args = {
-            'njobs': MainConfig['njobs'],
-            'crem_db_path': InitArgs['crem_db_path'],
-            'maxiter': InitArgs['maxiter'],
-            'popsize': InitArgs['popsize'],
-            'beta': InitArgs['beta'],
-            'pc': InitArgs['pc'],
-            'get_similar': InitArgs['get_similar'],
-            # This one it will update with the default values of crem rather thant the previous one.
-            'mutate_crem_kwargs': InitArgs['mutate_crem_kwargs'],
-            'save_pop_every_gen': InitArgs['save_pop_every_gen'],
-            'deffnm': InitArgs['deffnm'],
-        }
+        # Defining the possible mutable arguments with its default values depending on the type of run
+        if MainConfig['type'].lower() == 'local':
+            raise ValueError(f"Type = Local does not accept multiple call from the command line! Remove follow jobs from the yaml file (only the main job is possible)")
+        else:
+            mutable_args = {
+                'njobs': CallArgs['njobs'],
+                'crem_db_path': InitArgs['crem_db_path'],
+                'maxiter': InitArgs['maxiter'],
+                'popsize': InitArgs['popsize'],
+                'beta': InitArgs['beta'],
+                'pc': InitArgs['pc'],
+                'get_similar': InitArgs['get_similar'],
+                # This one it will update with the default values of crem rather thant the previous one.
+                'mutate_crem_kwargs': InitArgs['mutate_crem_kwargs'],
+                'save_pop_every_gen': InitArgs['save_pop_every_gen'],
+                'deffnm': InitArgs['deffnm'],
+            }
+
+        
         # Sanity check
         for job in FollowConfig:
             for arg in FollowConfig[job]:
@@ -80,11 +96,14 @@ def moldrug_cmd():
     ResultsClass = TypeOfRun(**InitArgs)
     # Call the class
     print(f'The main job is being executed.')
-    ResultsClass(MainConfig['njobs'])
-    # Save final data
-    ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
-    # Saving final sdf file always
-    utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
+    ResultsClass(**CallArgs)
+    # Saving data
+    if MainConfig['type'].lower() == 'local':
+        ResultsClass.pickle("local_result", compress=True)
+        utils.make_sdf(ResultsClass.pop, sdf_name = "local_pop")
+    else:
+        ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
+        utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
     print(f'The main job finished!.')
     # In case that follows jobs were defined
     if FollowConfig:
@@ -94,16 +113,23 @@ def moldrug_cmd():
             # Updating arguments
             mutable_args.update(FollowConfig[job])
             InitArgs = mutable_args.copy()
-            njobs = InitArgs.pop('njobs')
+            
+            # Getting call arguments 
+            CallArgs = dict()
+            for key in ['njobs', 'pick']:
+                try:
+                    CallArgs[key] = InitArgs[key]
+                except:
+                    pass
 
             # Changing the attributes values
             for arg in InitArgs:
                 setattr(ResultsClass, arg, InitArgs[arg])
 
             # Call the class again
-            ResultsClass(njobs)
-            # Save final data
+            ResultsClass(**CallArgs)
+            # Saving data
             ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
-            # Saving final sdf file always
             utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
+
             print(f'The job {job} finished!.')

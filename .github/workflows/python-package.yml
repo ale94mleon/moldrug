@@ -58,7 +58,7 @@ jobs:
     - name: Test with pytest
       run: |
         echo before "Test with pytest" My python version is actually: $(python --version).
-        pytest --cov .
+        pytest --cov moldrug
         echo after "Test with pytest" My python version is actually: $(python --version).
     - name: Upload coverage reports to Codecov with GitHub Action
       uses: codecov/codecov-action@v3
