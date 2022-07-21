@@ -429,33 +429,6 @@ class Atom:
     def __getitem__(self, key):
         return self.__dict__[key]
 
-class Hetatm:
-    """This is a simple class to wrap a pdbqt Hetatm. It is based on https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out.
-    """
-    def __init__(self, line):
-        self.lineType = "HETATM"
-        self.serial = int(line[6:11])
-        self.name = line[12:16].strip()
-        self.altLoc = line[16]
-        self.resName = line[17:21].strip()
-        self.chainID = line[21]
-        self.resSeq = int(line[22:26])
-        self.iCode = line[26]
-        self.x = float(line[30:38])
-        self.y = float(line[38:46])
-        self.z = float(line[46:54])
-        self.occupancy = line[54:60].strip()
-        self.tempFactor = line[60:66].strip()
-        self.partialChrg = line[66:76].strip()
-        self.atomType = line[78:80].strip()
-    def __getitem__(self, key):
-        return self.__dict__[key]
-
-class Remark:
-    """For now useless
-    """
-    def __init__(self, line):
-        pass
 
 class CHUNK_VINA_OUT:
     """This class will be used by VINA_OUT in order to read the pdbqt ouput of a vina docking results.
@@ -495,6 +468,7 @@ class CHUNK_VINA_OUT:
         else:
             with open(f"Run_{self.run}.pdbqt","w") as f:
                 f.writelines(self.chunk)
+
 
 class VINA_OUT:
     """

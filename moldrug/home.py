@@ -4,18 +4,17 @@
 import moldrug, os, sys, inspect, platform
 
 
-def home(dataDir=None, libDir=False):
+def home(dataDir=None):
     """Return the pathname of the moldrug root directory (or a data subdirectory).
     Parameters
     ----------
     dataDir : str
         If not None, return the path to a specific data directory
-    libDir : bool
-        If True, return path to the lib directory
     Returns
     -------
     dir : str
         The directory
+    
     Example
     -------
     >>> from moldrug.home import home
@@ -36,11 +35,6 @@ def home(dataDir=None, libDir=False):
 
     if dataDir:
         return os.path.join(homeDir, "data", dataDir)
-    elif libDir:
-        libdir = os.path.join(homeDir, "lib", platform.system())
-        if not os.path.exists(libdir):
-            raise FileNotFoundError("Could not find libs.")
-        return libdir
     else:
         return homeDir
 
