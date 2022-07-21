@@ -259,7 +259,7 @@ def LargerTheBest(Value:float, LowerLimit:float, Target:float, r:float = 1)  -> 
     """
     if Value < LowerLimit:
         return 0.0
-    elif (LowerLimit <= Value) and (Value <= Target):
+    elif Value <= Target:
         return ((Value -LowerLimit)/(Target-LowerLimit))**r
     else:
         return 1.0
@@ -285,7 +285,7 @@ def SmallerTheBest(Value:float, Target:float, UpperLimit:float, r:float = 1) -> 
     """
     if Value < Target:
         return 1.0
-    elif (Target <= Value) and (Value <= UpperLimit):
+    elif Value <= UpperLimit:
         return ((UpperLimit-Value)/(UpperLimit-Target))**r
     else:
         return 0.0
@@ -315,9 +315,9 @@ def NominalTheBest(Value:float, LowerLimit:float, Target:float, UpperLimit:float
     """
     if Value < LowerLimit:
         return 0.0
-    elif (LowerLimit <= Value) and (Value <= Target):
+    elif Value <= Target:
         return ((Value -LowerLimit)/(Target-LowerLimit))**r1
-    elif (Target <= Value) and (Value <= UpperLimit):
+    elif Value <= UpperLimit:
         return ((UpperLimit-Value)/(UpperLimit-Target))**r2
     else:
         return 0.0
