@@ -5,7 +5,7 @@
     Source Code: https://github.com/ale94mleon/moldrug
 """
 from moldrug import utils, __version__
-import yaml, argparse, inspect, importlib, warnings
+import yaml, argparse, inspect, importlib, os
 from rdkit import Chem
 def moldrug_cmd():
     parser = argparse.ArgumentParser(description=__doc__,
@@ -35,9 +35,10 @@ def moldrug_cmd():
     FollowConfig = Config
 
     if args.fitness:
-        spec=importlib.util.spec_from_file_location('fitness', args.fitness)
-        fitness = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(fitness)
+        from . import fitness
+        # spec=importlib.util.spec_from_file_location('fitness', args.fitness)
+        # fitness = importlib.util.module_from_spec(spec)
+        # spec.loader.exec_module(fitness)
         Cost = dict(inspect.getmembers(fitness))[MainConfig['costfunc']]
     else:
         from moldrug import fitness
