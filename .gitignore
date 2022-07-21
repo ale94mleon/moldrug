@@ -4,6 +4,7 @@ __pycache__
 .vscode
 .pytest_cache
 .ipynb_checkpoints
+.coverage*
 interesting_struct.txt
 nohup.out
 

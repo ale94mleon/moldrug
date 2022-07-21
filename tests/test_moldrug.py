@@ -78,7 +78,7 @@ def test_single_receptor_command_line():
     with open(os.path.join(tmp_path.name, "test_single_receptor.yml"), 'w') as c:
         yaml.dump(Config, c)
     os.chdir(tmp_path.name)
-    utils.run('moldrug test_single_receptor.yml')
+    utils.run('moldrug test_single_receptor.yml', Popen=True)
     os.chdir(cwd)
 
 
@@ -96,7 +96,6 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
             'max_size':8,
             'min_inc':-5,
             'max_inc':3,
-            'ncores':cpu_count(),
         },
         costfunc = fitness.CostMultiReceptors,
         costfunc_kwargs = {
@@ -118,6 +117,7 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     for o in out.pop:
         print(o.smiles, o.cost)
     out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=False)
+    print(out.to_dataframe())
 
 
 def test_local_command_line():
@@ -173,6 +173,7 @@ def test_get_sim_utils():
 
 def test_lipinski():
     mol = Chem.MolFromSmiles('CCCO')
+    utils.lipinski_filter(Chem.MolFromSmiles('BrCC(COCN)CC(Br)CC(Cl)CCc1ccccc1CCCC(NCCCO)'))
     utils.lipinski_filter(mol)
     utils.lipinski_profile(mol)
 
