@@ -219,7 +219,6 @@ def lipinski_profile(mol:Chem.rdchem.Mol):
         'HeavyAtomCount': {'method':Lipinski.HeavyAtomCount,'cutoff':None},
         'NHOHCount': {'method':Lipinski.NHOHCount,'cutoff':None},
         'NOCount': {'method':Lipinski.NOCount,'cutoff':None},
-        'NHOHCount': {'method':Lipinski.NHOHCount,'cutoff':None},
         'NumAliphaticCarbocycles': {'method':Lipinski.NumAliphaticCarbocycles,'cutoff':None},
         'NumAliphaticHeterocycles': {'method':Lipinski.NumAliphaticHeterocycles,'cutoff':None},
         'NumAliphaticRings': {'method':Lipinski.NumAliphaticRings,'cutoff':None},

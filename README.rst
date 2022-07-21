@@ -11,7 +11,7 @@ MolDrug
     * - **Tutorials**
       - |binder|
     * - **CI/CD**
-      - |tests|
+      - |tests| |codecov| |lgtm|
     * - **Build**
       - |pypi-version| |conda|
     * - **Source Code**
@@ -67,6 +67,12 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
 ..  |tests| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/python-package.yml/badge.svg
     :target: https://github.com/ale94mleon/MolDrug/actions/workflows/python-package.yml
     :alt: tests
+..  |codecov| image:: https://codecov.io/gh/ale94mleon/MolDrug/branch/main/graph/badge.svg?token=RTLKQ070YX 
+    :target: https://codecov.io/gh/ale94mleon/MolDrug
+    :alt: codecov
+..  |lgtm| image::  https://img.shields.io/lgtm/grade/python/g/ale94mleon/MolDrug.svg?logo=lgtm&logoWidth=18
+    :target: https://lgtm.com/projects/g/ale94mleon/MolDrug/context:python
+    :alt: lgtm
 ..  |pypi-version|  image:: https://img.shields.io/pypi/v/moldrug.svg
     :target: https://pypi.python.org/pypi/moldrug/
     :alt: pypi-version

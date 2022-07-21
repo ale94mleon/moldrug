@@ -5,7 +5,7 @@
     Source Code: https://github.com/ale94mleon/moldrug
 """
 from moldrug import utils, __version__
-import yaml, argparse, inspect, importlib, os
+import yaml, argparse, inspect
 from rdkit import Chem
 def moldrug_cmd():
     parser = argparse.ArgumentParser(description=__doc__,

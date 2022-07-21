@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from multiprocessing.context import assert_spawning
 from rdkit import Chem
 from moldrug import utils, fitness, home
 from moldrug.data import receptors, ligands, boxes
