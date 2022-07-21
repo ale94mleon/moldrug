@@ -46,6 +46,7 @@ jobs:
         python -m pip install --upgrade pip
         python -m pip install flake8
         pip install -e .[test]
+        python -m pip install pytest-cov
         echo after "Install pip dependencies and moldrug on test mode" My python version is actually: $(python --version).
     - name: Lint with flake8
       run: |
@@ -57,5 +58,7 @@ jobs:
     - name: Test with pytest
       run: |
         echo before "Test with pytest" My python version is actually: $(python --version).
-        pytest
+        pytest --cov .
         echo after "Test with pytest" My python version is actually: $(python --version).
+    - name: Upload coverage reports to Codecov with GitHub Action
+      uses: codecov/codecov-action@v3
