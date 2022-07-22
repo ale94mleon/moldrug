@@ -3,7 +3,7 @@
 from rdkit import Chem
 from moldrug import utils, fitness, home
 from moldrug.data import receptors, ligands, boxes
-import tempfile, os, gzip, shutil, requests, yaml, copy
+import tempfile, os, gzip, shutil, requests, yaml, copy, sys
 from multiprocessing import cpu_count
 
 # Creating a temporal directory
@@ -161,7 +161,9 @@ def test_local_command_line():
         yaml.dump(Config, c)
 
     utils.run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')}")
-
+    print(os.listdir())
+    # This problems with the modules are not so convenients
+    sys.path.append('.')
     result = utils.decompress_pickle('local_result.pbz2')
     result.pickle('local_non_compress', compress=False)
     print(result.to_dataframe())
