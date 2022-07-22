@@ -91,8 +91,7 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
         get_similar = True,
         mutate_crem_kwargs = {
             'radius':3,
-            'min_size':0,
-            'max_size':8,
+            'max_size':0,
             'min_inc':-5,
             'max_inc':3,
         },
@@ -144,7 +143,6 @@ def test_local_command_line():
                 "boxcenter": boxes.r_x0161["A"]['boxcenter'],
                 "boxsize": boxes.r_x0161["A"]['boxsize'],
                 "exhaustiveness": 4,
-                "ncores": 4,
                 "num_modes": 1
             },
             "crem_db_path": crem_db_path,
@@ -160,9 +158,10 @@ def test_local_command_line():
     with open("local_config.yml", 'w') as c:
         yaml.dump(Config, c)
 
-    utils.run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')}")
+    utils.run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')} --outdir results")
     print(os.listdir())
-    # This problems with the modules are not so convenients
+    # This problems with the modules are not so convenient
+    os.chdir('results')
     sys.path.append('.')
     result = utils.decompress_pickle('local_result.pbz2')
     result.pickle('local_non_compress', compress=False)
