@@ -117,10 +117,10 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
         print(o.smiles, o.cost)
     out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=False)
     print(out.to_dataframe())
-    
+
     with open(os.path.join(tmp_path.name, 'vina_out.pdbqt'), 'w') as p:
         p.write(out.pop[0].pdbqts[0])
-    
+
     vina_out = utils.VINA_OUT(os.path.join(tmp_path.name, 'vina_out.pdbqt'))
     vina_out.chunks[0].get_atoms()
     vina_out.chunks[0].write(os.path.join(tmp_path.name, 'chunk.pdbqt'))
@@ -156,16 +156,17 @@ def test_local_command_line():
         }
     }
     cwd = os.getcwd()
-    with open(os.path.join(tmp_path.name, "local_config.yml"), 'w') as c:
-        yaml.dump(Config, c)
     os.chdir(tmp_path.name)
-    non_standard_fitness = os.path.join(home.home(), 'fitness.py')
-    shutil.copy(non_standard_fitness, '.')
-    utils.run('moldrug local_config.yml --fitness fitness.py')
-    result = utils.decompress_pickle(os.path.join(tmp_path.name, 'local_result.pbz2'))
-    result.pickle(os.path.join(tmp_path.name, "local_non_compress"), compress=False)
+    with open("local_config.yml", 'w') as c:
+        yaml.dump(Config, c)
+
+    utils.run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')}")
+
+    result = utils.decompress_pickle('local_result.pbz2')
+    result.pickle('local_non_compress', compress=False)
     print(result.to_dataframe())
     os.chdir(cwd)
+
 
 
 def test_home():
@@ -217,7 +218,7 @@ def test_miscellanea():
     obj0 = []
     for i in range(0,50):
         obj0.append(utils.NominalTheBest(Value=i, LowerLimit=10, Target=20, UpperLimit=30))
-    
+
     utils.full_pickle(os.path.join(tmp_path.name,'test_desirability'), obj0)
     utils.compressed_pickle(os.path.join(tmp_path.name,'test_desirability'), obj0)
     obj1 = utils.loosen(os.path.join(tmp_path.name,'test_desirability.pkl'))

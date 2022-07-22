@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import moldrug, os, sys, inspect, platform
+import moldrug, os, sys, inspect
 
 
 def home(dataDir=None):
@@ -14,7 +14,7 @@ def home(dataDir=None):
     -------
     dir : str
         The directory
-    
+
     Example
     -------
     >>> from moldrug.home import home
