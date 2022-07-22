@@ -67,7 +67,7 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
 ..  |tests| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/python-package.yml/badge.svg
     :target: https://github.com/ale94mleon/MolDrug/actions/workflows/python-package.yml
     :alt: tests
-..  |codecov| image:: https://codecov.io/gh/ale94mleon/MolDrug/branch/main/graph/badge.svg?token=RTLKQ070YX 
+..  |codecov| image:: https://codecov.io/gh/ale94mleon/MolDrug/branch/main/graph/badge.svg?token=RTLKQ070YX
     :target: https://codecov.io/gh/ale94mleon/MolDrug
     :alt: codecov
 ..  |lgtm| image::  https://img.shields.io/lgtm/grade/python/g/ale94mleon/MolDrug.svg?logo=lgtm&logoWidth=18

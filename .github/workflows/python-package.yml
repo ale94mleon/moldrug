@@ -1,7 +1,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
 
-name: Python package
+name: python-package
 
 on:
   push:
@@ -12,24 +12,20 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.8", "3.10"]
-
+        os: [ubuntu-latest]
+        python-version: ["3.8"]
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v3
+    - uses: actions/checkout@v2
+    - name: Setup conda
+      uses: s-weigand/setup-conda@v1
       with:
+        update-conda: true
         python-version: ${{ matrix.python-version }}
-    - name: Add conda to system path
-      run: |
-        echo before "Add conda to system path" My python version is actually: $(python --version).
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        echo $CONDA/bin >> $GITHUB_PATH
-        echo after "Add conda to system path" My python version is actually: $(python --version).
+        conda-channels: anaconda, conda-forge
     - name: Install dependencies from conda
       run: |
         # This is to get the correct python version inside conda
