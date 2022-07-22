@@ -4,8 +4,8 @@
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
-from moldrug import utils, __version__
-import yaml, argparse, inspect
+from moldrug import utils, __version__, home
+import yaml, argparse, inspect, os
 from rdkit import Chem
 def moldrug_cmd():
     parser = argparse.ArgumentParser(description=__doc__,
@@ -26,29 +26,31 @@ def moldrug_cmd():
                         default=None,
                         type=str)
     args = parser.parse_args()
-    
+
     with open(args.yaml_file, 'r') as c:
         Config = yaml.safe_load(c)
-    
+
     # Checking how many jobs are defined: Main and follows jobs
     MainConfig = Config.pop(list(Config.keys())[0])
     FollowConfig = Config
 
     if args.fitness:
-        from . import fitness
-        # spec=importlib.util.spec_from_file_location('fitness', args.fitness)
-        # fitness = importlib.util.module_from_spec(spec)
-        # spec.loader.exec_module(fitness)
-        Cost = dict(inspect.getmembers(fitness))[MainConfig['costfunc']]
+        # If the fitness module provided is not in the current directory or if its name is not fitness
+        # Create the module inside MolDrug
+        with open(args.fitness, 'r') as source:
+            with open(os.path.join(home.home(),'__CustomMolDrugFitness__.py'), 'w') as destination:
+                destination.write(source.read())
+        from moldrug import __CustomMolDrugFitness__
+        Cost = dict(inspect.getmembers(__CustomMolDrugFitness__))[MainConfig['costfunc']]
     else:
         from moldrug import fitness
         Cost = dict(inspect.getmembers(fitness))[MainConfig['costfunc']]
-    
+
     if MainConfig['type'].lower() == 'ga':
         TypeOfRun = utils.GA
     elif MainConfig['type'].lower() == 'local':
         TypeOfRun = utils.Local
-        # For now I will accept as input in Local a SMILES, but I am not sure 
+        # For now I will accept as input in Local a SMILES, but I am not sure
         MainConfig['mol'] = Chem.MolFromSmiles(MainConfig['mol'])
     else:
         raise RuntimeError(f"\"{MainConfig['type']}\" it is not a possible type. Select from: GA or Local")
@@ -58,7 +60,7 @@ def moldrug_cmd():
     [InitArgs.pop(key, None) for key in ['type', 'njobs', 'pick']]
     InitArgs['costfunc'] = Cost
 
-    # Getting call arguments 
+    # Getting call arguments
     CallArgs = dict()
     for key in ['njobs', 'pick']:
         try:
@@ -86,13 +88,13 @@ def moldrug_cmd():
                 'deffnm': InitArgs['deffnm'],
             }
 
-        
+
         # Sanity check
         for job in FollowConfig:
             for arg in FollowConfig[job]:
                 if arg not in mutable_args:
-                    raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". For now only the following are accepted: {list(mutable_args.keys())}")   
-    
+                    raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". For now only the following are accepted: {list(mutable_args.keys())}")
+
     # Initialize the class
     ResultsClass = TypeOfRun(**InitArgs)
     # Call the class
@@ -110,12 +112,12 @@ def moldrug_cmd():
     if FollowConfig:
         for job in FollowConfig:
             print(f"The follow job {job} started.")
-            
+
             # Updating arguments
             mutable_args.update(FollowConfig[job])
             InitArgs = mutable_args.copy()
-            
-            # Getting call arguments 
+
+            # Getting call arguments
             CallArgs = dict()
             for key in ['njobs', 'pick']:
                 try:
@@ -132,5 +134,13 @@ def moldrug_cmd():
             # Saving data
             ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
             utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
-
             print(f'The job {job} finished!.')
+
+    # Clean __CustomMolDrugFitness__ if needed
+    if args.fitness:
+        with open(os.path.join(home.home(),'__CustomMolDrugFitness__.py'), 'w') as f:
+            f.write(
+                "#!/usr/bin/env python3\n"\
+                "# -*- coding: utf-8 -*-\n"\
+                "# This module is reserved just for Fitness function implemented for the user and the command line is used."
+                )
