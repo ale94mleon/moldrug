@@ -25,6 +25,12 @@ def moldrug_cmd():
                         dest='fitness',
                         default=None,
                         type=str)
+    parser.add_argument('-o', '--outdir',
+                        help="The path to where all the files should be written. "\
+                            "By default the current working directory will be used (where the command line was invoked).",
+                        dest='outdir',
+                        default=None,
+                        type=str)
     args = parser.parse_args()
 
     with open(args.yaml_file, 'r') as c:
@@ -37,10 +43,16 @@ def moldrug_cmd():
     if args.fitness:
         # If the fitness module provided is not in the current directory or if its name is not fitness
         # Create the module inside MolDrug
+        if args.outdir:
+            if not os.path.exists(args.outdir): os.makedirs(args.outdir)
+            destination_path = os.path.join(args.outdir, 'CustomMolDrugFitness.py')
+        else:
+            destination_path = 'CustomMolDrugFitness.py'
         with open(args.fitness, 'r') as source:
-            with open('CustomMolDrugFitness.py', 'w') as destination:
+            with open(destination_path, 'w') as destination:
                 destination.write(source.read())
-
+        # Changing to the outdir path if provided
+        if args.outdir: os.chdir(args.outdir)
         sys.path.append('.')
         import CustomMolDrugFitness
         Cost = dict(inspect.getmembers(CustomMolDrugFitness))[MainConfig['costfunc']]
@@ -55,7 +67,7 @@ def moldrug_cmd():
         # For now I will accept as input in Local a SMILES, but I am not sure
         MainConfig['mol'] = Chem.MolFromSmiles(MainConfig['mol'])
     else:
-        raise RuntimeError(f"\"{MainConfig['type']}\" it is not a possible type. Select from: GA or Local")
+        raise NotImplementedError(f"\"{MainConfig['type']}\" it is not a possible type. Select from: GA or Local")
     InitArgs = MainConfig.copy()
 
     # Modifying InitArgs
