@@ -4,7 +4,6 @@
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
-from signal import raise_signal
 from moldrug import utils, __version__
 import yaml, argparse, inspect, os, sys
 from rdkit import Chem

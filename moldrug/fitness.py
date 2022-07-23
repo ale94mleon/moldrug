@@ -75,7 +75,7 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
 
     # Getting the information
     best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
-    # Changing the xyz conformation by the conformation of the binding pose
+    # Changing the 3D conformation by the conformation of the binding pose
     Individual.pdbqt = ''.join(best_energy.chunk)
 
     # Getting the Scoring function of Vina
@@ -176,7 +176,7 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
 
         # Getting the information
         best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_{i}_out.pdbqt')).BestEnergy()
-        # Changing the xyz conformation by the conformation of the binding pose
+        # Changing the 3D conformation by the conformation of the binding pose
         Individual.pdbqts.append(''.join(best_energy.chunk))
 
         # Getting the Scoring function of Vina
