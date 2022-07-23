@@ -541,7 +541,7 @@ class Individual:
         if not mol:
             try:
                 self.mol = Chem.MolFromSmiles(smiles)
-            except:
+            except Exception:
                 self.mol = None
         else:
             self.mol = mol
@@ -553,7 +553,7 @@ class Individual:
                 self.pdbqt, mol3D = confgen(smiles, return_mol=True)
                 if not mol:
                     self.mol = Chem.RemoveHs(mol3D)
-            except:
+            except Exception:
                 self.pdbqt = None
         else:
             self.pdbqt = pdbqt
@@ -1046,7 +1046,7 @@ class GA:
             else:
                 _, mol = random.choice(mutants)
                 smiles = Chem.MolToSmiles(mol)
-        except:
+        except Exception:
             print('The mutation did not work, we returned the same individual')
             smiles, mol = individual.smiles, individual.mol
         return Individual(smiles,mol)

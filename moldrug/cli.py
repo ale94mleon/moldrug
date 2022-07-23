@@ -4,6 +4,7 @@
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
+from signal import raise_signal
 from moldrug import utils, __version__
 import yaml, argparse, inspect, os, sys
 from rdkit import Chem
@@ -79,7 +80,7 @@ def moldrug_cmd():
     for key in ['njobs', 'pick']:
         try:
             CallArgs[key] = MainConfig[key]
-        except:
+        except Exception:
             pass
 
     # Checking for follow jobs and sanity check on the arguments
@@ -136,7 +137,7 @@ def moldrug_cmd():
             for key in ['njobs', 'pick']:
                 try:
                     CallArgs[key] = InitArgs[key]
-                except:
+                except Exception:
                     pass
 
             # Changing the attributes values
