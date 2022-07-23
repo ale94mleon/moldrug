@@ -16,7 +16,6 @@ Welcome to moldrug's documentation!
 
 .. toctree::
    :caption: Tutorials
-   :maxdepth: 2
    :numbered:
 
    source/note_on_crem.rst

@@ -1,7 +1,7 @@
 Data
 ====
 This is sub-packege for testing. It has ``ligands``, ``receptors``, ``boxes`` and ``config_yaml``.
-There are two ssytmes: r_x0161 and r_6lu7.  The corresponded atributes could be acces
+There are two sytems: r_x0161 and r_6lu7.  The corresponded atributes could be acces
 like this: 
 
 .. ipython:: python
