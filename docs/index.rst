@@ -19,6 +19,8 @@ Welcome to moldrug's documentation!
    :maxdepth: 2
    :numbered:
 
+   source/note_on_crem.rst
+   
    notebooks/quickstart
    notebooks/how_to
 
