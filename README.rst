@@ -53,7 +53,7 @@ If you have questions on how to use MolDrug, or if you want to give feedback or 
 Citing **MolDrug**
 ------------------
 
-Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/source/citation.html>`__ on the documentation.
+Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/source/citations.html>`__ on the documentation.
 
 ..  |logo|  image:: https://github.com/ale94mleon/moldrug/blob/main/row_data/logo.png?raw=true
     :target: https://github.com/ale94mleon/moldrug/
