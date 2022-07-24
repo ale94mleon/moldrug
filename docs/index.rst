@@ -13,12 +13,13 @@ Welcome to moldrug's documentation!
 
    source/installation
    source/citations
+   source/CHANGELOG.md
 
 .. toctree::
    :caption: Tutorials
    :numbered:
 
-   source/note_on_crem.rst
+   source/note_on_crem
    
    notebooks/quickstart
    notebooks/how_to
