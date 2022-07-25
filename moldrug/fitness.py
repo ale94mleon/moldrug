@@ -1,13 +1,50 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from random import expovariate
 from moldrug import utils
 from rdkit.Chem import QED
 import os, numpy as np
-from typing import List
+from typing import Dict, List
 
 
 
-def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str = 'vina', receptor_path:str = None, boxcenter:List[float] = None, boxsize:List[float] =None, exhaustiveness:int = 8, ncores:int = 1,  num_modes:int = 1):
+def Cost(
+    Individual:utils.Individual,
+    wd:str = '.vina_jobs',
+    vina_executable:str = 'vina',
+    receptor_path:str = None,
+    boxcenter:List[float] = None,
+    boxsize:List[float] =None,
+    exhaustiveness:int = 8,
+    ncores:int = 1, 
+    num_modes:int = 1,
+    desirability:Dict = {
+        'qed': {
+            'w': 1,
+            'LargerTheBest': {
+                'LowerLimit': 0.1,
+                'Target': 0.75,
+                'r': 1
+            }
+        },
+        'sa_score': {
+            'w': 1,
+            'SmallerTheBest': {
+                'Target': 3,
+                'UpperLimit': 7,
+                'r': 1
+            }
+        },
+        'vina_score': {
+            'w': 1,
+            'SmallerTheBest': {
+                'Target': -12,
+                'UpperLimit': -6,
+                'r': 1
+            }
+        }
+    }
+    ):
     """This is the main Cost function of the module
 
     Parameters
@@ -30,16 +67,18 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
         Number of cpus to use in Vina, by default 1
     num_modes : int, optional
         How many modes should Vina export, by default 1
+    desirability : dict, optional
+        The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
+        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`]
+        ,by default { 'qed': { 'w': 1, 'LargerTheBest': { 'LowerLimit': 0.1, 'Target': 0.75, 'r': 1 } }, 'sa_score': { 'w': 1, 'SmallerTheBest': { 'Target': 3, 'UpperLimit': 7, 'r': 1 } }, 'vina_score': { 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } } }
 
     Returns
     -------
     utils.Individual
         A new instance of the original Individual with the the new attributes: pdbqt, qed, vina_score, sa_score and cost
-
     Example
     -------
     .. ipython:: python
-
         from moldrug import utils, fitness
         import tempfile, os
         from moldrug.data import ligands, boxes, receptors
@@ -49,6 +88,7 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
         receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
         with open(receptor_path, 'w') as r: r.write(receptors.r_x0161)
         box = boxes.r_x0161['A']
+        # Using the default desirability
         NewI = fitness.Cost(Individual = I,wd = tmp_path.name,receptor_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
     """
@@ -87,23 +127,77 @@ def Cost(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
     # Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible.
-    w_qed = 1
-    d_qed = utils.LargerTheBest(Individual.qed, LowerLimit=0.1, Target=0.75, r = 1)
-    # Synthetic accessibility score (ranges from 1 to 10). We would like to have 3 or lower and beyond 7 we assume that is not good.
-    w_sa_score = 1
-    d_sa_score = utils.SmallerTheBest(Individual.sa_score, Target = 3, UpperLimit=7, r = 1)
-    # Vina. In this case is difficult to create a desirability because the range, we will use as target -12 upperlimit -6.
-    w_vina_score = 1
-    d_vina_score = utils.SmallerTheBest(Individual.vina_score, Target = -12, UpperLimit=-6, r = 1)
+    
+    base = 1
+    exponent = 0
+    for variable in desirability:
+        for key in desirability[variable]:
+            if key == 'w':
+                w = desirability[variable][key]
+            elif key in utils.DerringerSuichDesirability:
+                d = utils.DerringerSuichDesirability[key](getattr(Individual, variable), **desirability[variable][key])
+            else:
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability.keys()}")
+        base *= d**w
+        exponent += w
     # Average
     #D = (w_qed*d_qed + w_sa_score*d_sa_score + w_vina_score*d_vina_score) / (w_qed + w_sa_score + w_vina_score)
     # Geometric mean
-    D = (d_qed**w_qed * d_sa_score**w_sa_score * d_vina_score**w_vina_score)**(1/(w_qed + w_sa_score + w_vina_score))
-    # And because we are minimizing we have to return
+    # D = (d_qed**w_qed * d_sa_score**w_sa_score * d_vina_score**w_vina_score)**(1/(w_qed + w_sa_score + w_vina_score))
+    # We are using Geometric mean
+    D = base**(1/exponent)
+    #  And because we are minimizing we have to return
     Individual.cost = 1 - D
     return Individual
 
-def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_executable:str = 'vina', receptor_paths:List[str] = None, vina_score_types:List[str] = None, boxcenters:List[float] = None, boxsizes:List[float] =None, exhaustiveness:int = 8, ncores:int = 1,  num_modes:int = 1):
+def CostMultiReceptors(
+    Individual:utils.Individual,
+    wd:str = '.vina_jobs',
+    vina_executable:str = 'vina',
+    receptor_paths:List[str] = None,
+    vina_score_types:List[str] = None,
+    boxcenters:List[float] = None,
+    boxsizes:List[float] =None,
+    exhaustiveness:int = 8,
+    ncores:int = 1,
+    num_modes:int = 1,
+    desirability:Dict = {
+        'qed': {
+            'w': 1,
+            'LargerTheBest': {
+                'LowerLimit': 0.1,
+                'Target': 0.75,
+                'r': 1
+            }
+        },
+        'sa_score': {
+            'w': 1,
+            'SmallerTheBest': {
+                'Target': 3,
+                'UpperLimit': 7,
+                'r': 1
+            }
+        },
+        'vina_scores': {
+            'min':{
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
+            },
+            'max':{
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': -4,
+                    'Target': 0,
+                    'r': 1
+                }
+            }            
+        }
+    }
+    ):
     """This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility to work with more than one receptor.
 
     Parameters
@@ -128,6 +222,11 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
          Number of cpus to use in Vina, by default 1
     num_modes : int, optional
         How many modes should Vina export, by default 1
+    desirability : dict, optional
+        The definition of the desirability to use for each used variable = [qed, sa_score, vina_scores].
+        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
+        In the case of vina_scores there is another layer for the vina_score_type= [min, max],
+        by default { 'qed': { 'w': 1, 'LargerTheBest': { 'LowerLimit': 0.1, 'Target': 0.75, 'r': 1 } }, 'sa_score': { 'w': 1, 'SmallerTheBest': { 'Target': 3, 'UpperLimit': 7, 'r': 1 } }, 'vina_score': { 'min':{ 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } }, 'max':{ 'w': 1, 'LargerTheBest': { 'LowerLimit': -4, 'Target': 0, 'r': 1 } } } }
 
     Returns
     -------
@@ -150,9 +249,9 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
         boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
         boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
         vina_score_types = ['min', 'max']
+        # Using the default desirability
         NewI = fitness.CostMultiReceptors(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_scores, NewI.qed, NewI.sa_score)
-
     """
     sascorer = utils.import_sascorer()
     Individual.qed = QED.weights_mean(Individual.mol)
@@ -182,29 +281,40 @@ def CostMultiReceptors(Individual:utils.Individual, wd:str = '.vina_jobs', vina_
         # Getting the Scoring function of Vina
         Individual.vina_scores.append(best_energy.freeEnergy)
 
-    # Adding the cost using all the information of qed, sas and vina_cost
-    # Construct the desirability
-    # Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible.
-    w_qed = 1
-    d_qed = utils.LargerTheBest(Individual.qed, LowerLimit=0.1, Target=0.75, r = 1)
-    # Synthetic accessibility score (ranges from 1 to 10). We would like to have 3 or lower and beyond 7 we assume that is not good.
-    w_sa_score = 1
-    d_sa_score = utils.SmallerTheBest(Individual.sa_score, Target = 3, UpperLimit=7, r = 1)
-    # Vina. In this case is difficult to create a desirability because the range, we will use as target -12 upperlimit -6.
-    w_vina_scores = len(vina_score_types)*[1]
-    d_vina_scores = []
+    # pops the region of vina_scores
+    vina_desirability_section = desirability.pop('vina_scores')
+    # Initialize base and exponent
+    base = 1
+    exponent = 0
+    # Runs for all properties different to vina_scores
+    for variable in desirability:
+        for key in desirability[variable]:
+            if key == 'w':
+                w = desirability[variable][key]
+            elif key in utils.DerringerSuichDesirability:
+                d = utils.DerringerSuichDesirability[key](getattr(Individual, variable), **desirability[variable][key])
+            else:
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability.keys()}. Only in the case of vina_scores [min and max] keys")
+        base *= d**w
+        exponent += w
+
+    # Run only for vina_scores
     for vina_score, vina_score_type in zip(Individual.vina_scores, vina_score_types):
-        if vina_score_type == 'min':
-            d_vina_scores.append(utils.SmallerTheBest(vina_score, Target = -12, UpperLimit=-6, r = 1))
-        elif vina_score_type == 'max':
-            d_vina_scores.append(utils.LargerTheBest(vina_score, LowerLimit = -4, Target = 0, r = 1))
-        else:
-            # I have to check first if the list vina_score_types only contains min and max strings
-            pass
+        for key in vina_desirability_section[vina_score_type]:
+            if key == 'w':
+                w = vina_desirability_section[vina_score_type][key]
+            elif key in utils.DerringerSuichDesirability:
+                d = utils.DerringerSuichDesirability[key](vina_score, **vina_desirability_section[vina_score_type][key])
+            else:
+                RuntimeError(f"Inside the desirability dictionary you provided for the variable = vina_scores[{vina_score_type}] a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability.keys()}.")
+        base *= d**w
+        exponent += w
+
     # Average
     #D = (w_qed*d_qed + w_sa_score*d_sa_score + sum([w_vina_score*d_vina_score for w_vina_score, d_vina_score in zip(w_vina_scores, d_vina_scores)])) / (w_qed + w_sa_score + sum(w_vina_scores))
     # Geometric mean
-    D = (d_qed**w_qed * d_sa_score**w_sa_score * np.prod([d_vina_score**w_vina_score for d_vina_score, w_vina_score in zip(d_vina_scores, w_vina_scores)]))** (1/(w_qed + w_sa_score + sum(w_vina_scores)))
+    # D = (d_qed**w_qed * d_sa_score**w_sa_score * np.prod([d_vina_score**w_vina_score for d_vina_score, w_vina_score in zip(d_vina_scores, w_vina_scores)]))** (1/(w_qed + w_sa_score + sum(w_vina_scores)))
+    D = base**(1/exponent)
     # And because we are minimizing we have to return
     Individual.cost = 1 - D
     return Individual

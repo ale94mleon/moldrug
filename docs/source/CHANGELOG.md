@@ -5,7 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [unreleased]
+
+Nothing yet
+
+## [0.1.0]
 
 ### Fixed
 
@@ -15,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `outdir` option for the command line.
+- User custom desirability.
 
 ## [0.0.4] - 2022-07-21
 
@@ -26,5 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor cleaning code.
 - Better code covered during testing.xed typos in Indonesian translation from [@ekojs](https://github.com/ekojs)
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/0.0.4...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/0.0.1...HEAD
+[0.1.0]: https://github.com/ale94mleon/MolDrug/compare/0.0.4...0.0.1
 [0.0.4]: https://github.com/ale94mleon/MolDrug/compare/0.0.3...0.0.4
