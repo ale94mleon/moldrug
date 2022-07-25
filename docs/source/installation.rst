@@ -62,7 +62,7 @@ In the future we will consider to use the python modules `vina on pypi <https://
 .. code-block:: bash
 
     # To get the version on develop (not recommended)
-    pip install git+https://github.com/ale94mleon/moldrug.git@main
+    pip install git+https://github.com/ale94mleon/MolDrug.git@main
 
 or:
 
