@@ -322,11 +322,20 @@ def NominalTheBest(Value:float, LowerLimit:float, Target:float, UpperLimit:float
     else:
         return 0.0
 
-DerringerSuichDesirability = {
-    'LargerTheBest': LargerTheBest,
-    'SmallerTheBest': SmallerTheBest,
-    'NominalTheBest': NominalTheBest
-}
+def DerringerSuichDesirability():
+    """A warper around the implemented desirability functions
+
+    Returns
+    -------
+    dict
+        A dict with key name of the desirability and value the corresponded function
+    """
+    my_dict = {
+        'LargerTheBest': LargerTheBest,
+        'SmallerTheBest': SmallerTheBest,
+        'NominalTheBest': NominalTheBest
+    }
+    return my_dict
 # Saving data
 def full_pickle(title:str, data:object):
     """Normal pickle.

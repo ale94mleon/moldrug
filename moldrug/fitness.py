@@ -134,10 +134,10 @@ def Cost(
         for key in desirability[variable]:
             if key == 'w':
                 w = desirability[variable][key]
-            elif key in utils.DerringerSuichDesirability:
-                d = utils.DerringerSuichDesirability[key](getattr(Individual, variable), **desirability[variable][key])
+            elif key in utils.DerringerSuichDesirability():
+                d = utils.DerringerSuichDesirability()[key](getattr(Individual, variable), **desirability[variable][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability.keys()}")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
         base *= d**w
         exponent += w
     # Average
@@ -291,10 +291,10 @@ def CostMultiReceptors(
         for key in desirability[variable]:
             if key == 'w':
                 w = desirability[variable][key]
-            elif key in utils.DerringerSuichDesirability:
-                d = utils.DerringerSuichDesirability[key](getattr(Individual, variable), **desirability[variable][key])
+            elif key in utils.DerringerSuichDesirability():
+                d = utils.DerringerSuichDesirability()[key](getattr(Individual, variable), **desirability[variable][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability.keys()}. Only in the case of vina_scores [min and max] keys")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}. Only in the case of vina_scores [min and max] keys")
         base *= d**w
         exponent += w
 
@@ -303,10 +303,10 @@ def CostMultiReceptors(
         for key in vina_desirability_section[vina_score_type]:
             if key == 'w':
                 w = vina_desirability_section[vina_score_type][key]
-            elif key in utils.DerringerSuichDesirability:
-                d = utils.DerringerSuichDesirability[key](vina_score, **vina_desirability_section[vina_score_type][key])
+            elif key in utils.DerringerSuichDesirability():
+                d = utils.DerringerSuichDesirability()[key](vina_score, **vina_desirability_section[vina_score_type][key])
             else:
-                RuntimeError(f"Inside the desirability dictionary you provided for the variable = vina_scores[{vina_score_type}] a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability.keys()}.")
+                RuntimeError(f"Inside the desirability dictionary you provided for the variable = vina_scores[{vina_score_type}] a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}.")
         base *= d**w
         exponent += w
 
