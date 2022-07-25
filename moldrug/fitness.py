@@ -79,6 +79,7 @@ def Cost(
     Example
     -------
     .. ipython:: python
+    
         from moldrug import utils, fitness
         import tempfile, os
         from moldrug.data import ligands, boxes, receptors
