@@ -14,14 +14,14 @@ Requirements:
 
 .. note::
 
-    If you have RDKit and Vina already installed you could try with ``pip install moldrug`` directlly.
-    But if it is not the case or some version conflicts occurred, think about installed in a isoleated enviroment
+    If you have RDKit and Vina already installed you could try with ``pip install moldrug`` directly.
+    But if it is not the case or some version conflicts occurred, think about installed in a isolated environment
     as it will be show in brief.
 
 Via conda
 ~~~~~~~~~
 
-We will create a new enveiroment ``conda``:
+We will create a new environment ``conda``:
 
 .. code-block:: bash
 
@@ -29,7 +29,7 @@ We will create a new enveiroment ``conda``:
     conda activate moldrug
     conda install -c ale94mleon -c conda-forge moldrug
 
-If some dependencies are missing, please installead through pip. Some of them could be:
+If some dependencies are missing, please installed through pip. Some of them could be:
 
 .. code-block:: bash
 
@@ -37,14 +37,14 @@ If some dependencies are missing, please installead through pip. Some of them co
 
 .. warning::
 
-    Ussually pip has the lates stable version. But we are working to constantlly update the conda packege.
+    Usually pip has the latest stable version. But we are working to constantly update the conda package.
     Future plans are deployed inside conda-forge.
 
 Via pip
 ~~~~~~~~~
 
-Another possible way is direclly install from pip. But in this case you must have a correct installation
-of RDKit and autodock-vina. One posibility is:
+Another possible way is directly install from pip. But in this case you must have a correct installation
+of RDKit and autodock-vina. One possibility is:
 
 .. code-block:: bash
 
@@ -61,7 +61,7 @@ In the future we will consider to use the python modules `vina on pypi <https://
 
 .. code-block:: bash
 
-    # To get the version on developing (not recomended)
+    # To get the version on develop (not recommended)
     pip install git+https://github.com/ale94mleon/moldrug.git@main
 
 or:
@@ -73,7 +73,7 @@ or:
 
 Work with a docker container
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#. Use the `Docker configuration file on GitHub <https://github.com/ale94mleon/MolDrug/blob/main/Dockerfile>`__. 
+#. Use the `Docker configuration file on GitHub <https://github.com/ale94mleon/MolDrug/blob/main/Dockerfile>`__.
 #. Vist the `MolDrug <https://hub.docker.com/r/ale94mleon/4moldrug>`__ docker container.
 
-Finaly ``pip install moldrug`` inside it.
+Finally ``pip install moldrug`` inside it.
