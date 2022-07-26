@@ -29,7 +29,7 @@ Nothing yet
 - Problem with the user custom cost function supplied on the command line.
 - `Local` class compatible with the command line.
 - Minor cleaning code.
-- Better code covered during testing.xed typos in Indonesian translation from [@ekojs](https://github.com/ekojs)
+- Better code covered during testing
 
 [unreleased]: https://github.com/ale94mleon/MolDrug/compare/0.0.1...HEAD
 [0.1.0]: https://github.com/ale94mleon/MolDrug/compare/0.0.4...0.0.1
