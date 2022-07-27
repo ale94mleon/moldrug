@@ -1,5 +1,5 @@
 Installation
-------------
+============
 
 Requirements:
 
@@ -18,8 +18,45 @@ Requirements:
     But if it is not the case or some version conflicts occurred, think about installed in a isolated environment
     as it will be show in brief.
 
+Via pip (standard)
+------------------
+
+In this case you must have a correct installation
+of RDKit and autodock-vina. If you already have it, skip the creation of the conda environment and the conda dependencies installation:
+
+Create conda environment and install conda dependencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+    conda create -n moldrug
+    conda activate moldrug
+
+Then install the dependencies libraries:
+
+.. code-block:: bash
+
+    conda install -y -c conda-forge rdkit">=2022.0" vina
+
+..  In the future we will consider to use the python modules `vina on pypi <https://pypi.org/project/vina/>`_. Finally:
+
+pip install
+~~~~~~~~~~~
+
+.. code-block:: bash
+
+    # To get the last "stable" version (strongly recommended). This project is still in beta state.
+    pip install moldrug
+
+or:
+
+.. code-block:: bash
+
+    # To get the version on develop (not recommended)
+    pip install git+https://github.com/ale94mleon/MolDrug.git@main
+
 Via conda
-~~~~~~~~~
+---------
 
 We will create a new environment ``conda``:
 
@@ -33,46 +70,16 @@ If some dependencies are missing, please installed through pip. Some of them cou
 
 .. code-block:: bash
 
-    pip install meeko crem  pyyaml scipy tqdm
+    pip install meeko crem pyyaml scipy tqdm
 
-.. warning::
+.. note::
 
-    Usually pip has the latest stable version. But we are working to constantly update the conda package.
-    Future plans are deployed inside conda-forge.
+   In the future it will be deployed inside conda-forge.
 
-Via pip
-~~~~~~~~~
-
-Another possible way is directly install from pip. But in this case you must have a correct installation
-of RDKit and autodock-vina. One possibility is:
-
-.. code-block:: bash
-
-    conda create -n moldrug
-    conda activate moldrug
-
-Then install the dependencies libraries:
-
-.. code-block:: bash
-
-    conda install -y -c conda-forge rdkit">=2022.0" vina
-
-In the future we will consider to use the python modules `vina on pypi <https://pypi.org/project/vina/>`_. Finally:
-
-.. code-block:: bash
-
-    # To get the version on develop (not recommended)
-    pip install git+https://github.com/ale94mleon/MolDrug.git@main
-
-or:
-
-.. code-block:: bash
-
-    # To get the last "stable" version (strongly recommended). This project is still in beta state.
-    pip install moldrug
 
 Work with a docker container
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
+
 #. Use the `Docker configuration file on GitHub <https://github.com/ale94mleon/MolDrug/blob/main/Dockerfile>`__.
 #. Vist the `MolDrug <https://hub.docker.com/r/ale94mleon/4moldrug>`__ docker container.
 

@@ -6,23 +6,24 @@
 Welcome to moldrug's documentation!
 ===================================
 .. include:: ../README.rst
-   
+
 .. toctree::
    :caption: User guide
    :maxdepth: 2
 
    source/installation
    source/citations
-   source/CHANGELOG.md
+   source/CHANGELOG
 
 .. toctree::
    :caption: Tutorials
    :numbered:
 
    source/note_on_crem
-   
+
    notebooks/quickstart
    notebooks/how_to
+   notebooks/advance_topics
 
 .. toctree::
    :caption: Documentation

@@ -50,8 +50,8 @@ The following are the response variables:
 #. `Quantitative Estimation of Drug-likeness. <https://www.nature.com/articles/nchem.1243>`_
 #. `Synthetic accessibility.  <https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)>`_
 
-For each of this response variables we create their corresponded Derringer-Suich desirability functions.
-And them we combine them as a geometric mean:
+For each of this response variables we create their corresponded `Derringer-Suich desirability functions <https://www.tandfonline.com/doi/abs/10.1080/00224065.1980.11980968>`_.
+And then we combine them as a geometric mean:
 
 .. math::
     D = {\left[\prod_{i = 1}^{3} d_i^{w_i}\right]}^{\frac{1}{\sum_i w_i}}

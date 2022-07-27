@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 -   Hidden `RuntimeError` in `moldrug.fitness` module.
+-   Bug printing number of generations in final info.
 
 ### Removed
 -   Unused code in `moldrug.home` module.
