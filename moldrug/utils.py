@@ -1033,7 +1033,7 @@ class GA:
 
         # Printing summary information
         print(f"\n{50*'=+'}\n")
-        print(f'The simulation finished successfully after {self.maxiter} generations with a population of {self.popsize} individuals. A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.')
+        print(f'The simulation finished successfully after {self.NumGens} generations with a population of {self.popsize} individuals. A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.')
         print(f"Initial Individual: {self.InitIndividual}")
         print(f"Final Individual: {self.pop[0]}")
         print(f"The cost function droped in {self.InitIndividual - self.pop[0]} units.")
