@@ -8,13 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Fixed
--   Hidden `RuntimeError` in fitness module
+-   Hidden `RuntimeError` in `moldrug.fitness` module.
+
+### Removed
+-   Unused code in `moldrug.home` module.
 
 ## [0.1.0] - 2022-07-25
 
 ### Fixed
 
-- Minor cleaning code.
+- Minor code cleaning.
 - Bug during the import of user custom cost function.
 
 ### Added
@@ -29,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor compatibility issue with Python 3.8 (issue [#4](https://github.com/ale94mleon/MolDrug/issues/4)).
 - Problem with the user custom cost function supplied on the command line.
 - `Local` class compatible with the command line.
-- Minor cleaning code.
+- Minor code cleaning.
 - Better code covered during testing
 
 [unreleased]: https://github.com/ale94mleon/MolDrug/compare/0.1.0...HEAD
