@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from random import expovariate
 from moldrug import utils
 from rdkit.Chem import QED
-import os, numpy as np
+import os
 from typing import Dict, List
 
 
@@ -16,7 +15,7 @@ def Cost(
     boxcenter:List[float] = None,
     boxsize:List[float] =None,
     exhaustiveness:int = 8,
-    ncores:int = 1, 
+    ncores:int = 1,
     num_modes:int = 1,
     desirability:Dict = {
         'qed': {
@@ -79,7 +78,7 @@ def Cost(
     Example
     -------
     .. ipython:: python
-    
+
         from moldrug import utils, fitness
         import tempfile, os
         from moldrug.data import ligands, boxes, receptors
@@ -128,7 +127,7 @@ def Cost(
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
     # Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible.
-    
+
     base = 1
     exponent = 0
     for variable in desirability:
@@ -195,7 +194,7 @@ def CostMultiReceptors(
                     'Target': 0,
                     'r': 1
                 }
-            }            
+            }
         }
     }
     ):
@@ -282,18 +281,20 @@ def CostMultiReceptors(
         # Getting the Scoring function of Vina
         Individual.vina_scores.append(best_energy.freeEnergy)
 
+    # make a copy of the default values of desirability
     # pops the region of vina_scores
-    vina_desirability_section = desirability.pop('vina_scores')
+    desirability_to_work_with = desirability.copy()
+    vina_desirability_section = desirability_to_work_with.pop('vina_scores')
     # Initialize base and exponent
     base = 1
     exponent = 0
     # Runs for all properties different to vina_scores
-    for variable in desirability:
-        for key in desirability[variable]:
+    for variable in desirability_to_work_with:
+        for key in desirability_to_work_with[variable]:
             if key == 'w':
-                w = desirability[variable][key]
+                w = desirability_to_work_with[variable][key]
             elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](getattr(Individual, variable), **desirability[variable][key])
+                d = utils.DerringerSuichDesirability()[key](getattr(Individual, variable), **desirability_to_work_with[variable][key])
             else:
                 raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}. Only in the case of vina_scores [min and max] keys")
         base *= d**w
@@ -307,7 +308,7 @@ def CostMultiReceptors(
             elif key in utils.DerringerSuichDesirability():
                 d = utils.DerringerSuichDesirability()[key](vina_score, **vina_desirability_section[vina_score_type][key])
             else:
-                RuntimeError(f"Inside the desirability dictionary you provided for the variable = vina_scores[{vina_score_type}] a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}.")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = vina_scores[{vina_score_type}] a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}.")
         base *= d**w
         exponent += w
 
