@@ -37,8 +37,3 @@ def home(dataDir=None):
         return os.path.join(homeDir, "data", dataDir)
     else:
         return homeDir
-
-if __name__ == "__main__":
-
-    h = home(dataDir='data')
-    print(h)
