@@ -170,19 +170,20 @@ def test_local_command_line():
     os.chdir(cwd)
 
 
-def test_CostMultiReceptorsOnlyVina():
+def test_CostOnlyVina():
     ligand_smiles = ligands.r_x0161
     I = utils.Individual(ligand_smiles)
-    receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
-    with open(receptor_paths[0], 'w') as r: r.write(receptors.r_x0161)
-    with open(receptor_paths[1], 'w') as r: r.write(receptors.r_6lu7)
+    receptor_paths = [r_x0161_file,r_6lu7_file]
     boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
     boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
     vina_score_types = ['min', 'max']
-    # Using the default desirability
-    NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
-    NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
-    print(NewI.cost, NewI.vina_scores)
+
+    fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
+    fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+
+    fitness.CostOnlyVina(Individual = I,wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+    fitness.CostOnlyVina(Individual = I,wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+
 
 
 def test_home():
@@ -245,4 +246,4 @@ def test_miscellanea():
 
 
 if __name__ == '__main__':
-    test_CostMultiReceptorsOnlyVina()
+    test_local_command_line()
