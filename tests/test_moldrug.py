@@ -136,7 +136,7 @@ def test_local_command_line():
             "njobs": 1,
             "pick": 2,
             "mol": Chem.MolToSmiles(Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161))),
-            "costfunc": "Cost",
+            "costfunc": "CostOnlyVina",
             "costfunc_kwargs": {
                 "vina_executable": "vina",
                 "receptor_path": r_x0161_file,
@@ -168,6 +168,23 @@ def test_local_command_line():
     print(result.to_dataframe())
     os.chdir(cwd)
 
+
+def test_CostMultiReceptorsOnlyVina():
+    from moldrug import utils, fitness
+    import tempfile, os
+    from moldrug.data import ligands, boxes, receptors
+    tmp_path = tempfile.TemporaryDirectory()
+    ligand_smiles = ligands.r_x0161
+    I = utils.Individual(ligand_smiles)
+    receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
+    with open(receptor_paths[0], 'w') as r: r.write(receptors.r_x0161)
+    with open(receptor_paths[1], 'w') as r: r.write(receptors.r_6lu7)
+    boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
+    boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
+    vina_score_types = ['min', 'max']
+    # Using the default desirability
+    NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
+    print(NewI.cost, NewI.vina_scores)
 
 
 def test_home():
