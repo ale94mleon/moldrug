@@ -8,11 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [unreleased]
 
 ### Fixed
--   Hidden `RuntimeError` in `moldrug.fitness` module.
--   Bug printing number of generations in final info.
+
+- Hidden `RuntimeError` in `moldrug.fitness` module.
+- Bug printing number of generations in final info.
 
 ### Removed
--   Unused code in `moldrug.home` module.
+
+- Unused code in `moldrug.home` module.
+
+### Added
+
+- Handling vina RuntimeError and keeping track for debug. This feature is used to identify what is the error. In the future will be removed.
+- Two new fitness functions: `moldrug.fitness.CostOnlyVina` and `moldrug.fitness.CostMultiReceptorsOnlyVina`. They only use the information of vina scoring function. See the [docs](https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html) for more info about it.
 
 ## [0.1.0] - 2022-07-25
 
