@@ -6,6 +6,7 @@ from moldrug.data import receptors, ligands, boxes
 import tempfile, os, gzip, shutil, requests, yaml, copy, sys
 from multiprocessing import cpu_count
 
+
 # Creating a temporal directory
 tmp_path = tempfile.TemporaryDirectory()
 # Creating receptors files
@@ -170,10 +171,6 @@ def test_local_command_line():
 
 
 def test_CostMultiReceptorsOnlyVina():
-    from moldrug import utils, fitness
-    import tempfile, os
-    from moldrug.data import ligands, boxes, receptors
-    tmp_path = tempfile.TemporaryDirectory()
     ligand_smiles = ligands.r_x0161
     I = utils.Individual(ligand_smiles)
     receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
@@ -184,6 +181,7 @@ def test_CostMultiReceptorsOnlyVina():
     vina_score_types = ['min', 'max']
     # Using the default desirability
     NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
+    NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
     print(NewI.cost, NewI.vina_scores)
 
 
@@ -247,4 +245,4 @@ def test_miscellanea():
 
 
 if __name__ == '__main__':
-    test_local_command_line()
+    test_CostMultiReceptorsOnlyVina()

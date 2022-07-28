@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from ctypes import util
-from genericpath import isfile
 from moldrug import utils
-from rdkit.Chem import QED
+from rdkit.Chem import QED, Descriptors
 import os
+import numpy as np
 from typing import Dict, List
 
 
@@ -182,6 +181,7 @@ def CostOnlyVina(
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
+    wt_cutoff:float = None,
     ):
     """This Cost function performs Docking and return the vina_score as cost
 
@@ -209,7 +209,8 @@ def CostOnlyVina(
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`]
         ,by default { 'qed': { 'w': 1, 'LargerTheBest': { 'LowerLimit': 0.1, 'Target': 0.75, 'r': 1 } }, 'sa_score': { 'w': 1, 'SmallerTheBest': { 'Target': 3, 'UpperLimit': 7, 'r': 1 } }, 'vina_score': { 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } } }
-
+    wt_cutoff : float, optional
+        If some number is provided the molecules with a molecular weight higher than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
     Returns
     -------
     utils.Individual
@@ -230,7 +231,13 @@ def CostOnlyVina(
         NewI = fitness.CostOnlyVina(Individual = I,wd = tmp_path.name,receptor_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score)
     """
-
+    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add the pdbqt to pdbqts and np.inf to vina_scores
+    if wt_cutoff:
+        if Descriptors.MolWt(Individual.mol) > wt_cutoff:
+            Individual.vina_score = np.inf
+            Individual.cost = np.inf
+            return Individual
+    
     # Getting Vina score
     cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
@@ -496,7 +503,8 @@ def CostMultiReceptorsOnlyVina(
                 'r': 1
             }
         }
-    }
+    },
+    wt_cutoff = None,
     ):
     """In this case we only use the information of vina Score and from there construct the desirabilities.
 
@@ -526,6 +534,8 @@ def CostMultiReceptorsOnlyVina(
         The definition of the desirability when min or max is used.
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
         by default { 'min':{ 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } }, 'max':{ 'w': 1, 'LargerTheBest': { 'LowerLimit': -4, 'Target': 0, 'r': 1 } } }
+    wt_cutoff : float, optional
+        If some number is provided the molecules with a molecular weight higher than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
 
     Returns
     -------
@@ -552,11 +562,19 @@ def CostMultiReceptorsOnlyVina(
         NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_scores)
     """
-
-
-    # Getting Vina score
     Individual.pdbqts = []
     Individual.vina_scores = []
+
+    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add the pdbqt to pdbqts and np.inf to vina_scores
+    if wt_cutoff:
+        if Descriptors.MolWt(Individual.mol) > wt_cutoff:
+            for _ in range(len(receptor_paths)):
+                Individual.pdbqts.append(Individual.pdbqt)
+                Individual.vina_scores.append(np.inf)
+            Individual.cost = np.inf
+            return Individual
+
+    # Getting Vina score
     for i in range(len(receptor_paths)):
         cmd = f"{vina_executable} --receptor {receptor_paths[i]} --ligand {os.path.join(wd, f'{Individual.idx}_{i}.pdbqt')} "\
             f"--center_x {boxcenters[i][0]} --center_y {boxcenters[i][1]} --center_z {boxcenters[i][2]} "\
