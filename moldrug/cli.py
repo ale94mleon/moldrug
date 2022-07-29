@@ -4,6 +4,7 @@
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
+from multiprocessing.dummy import Manager
 from moldrug import utils, __version__
 import yaml, argparse, inspect, os, sys
 from rdkit import Chem
@@ -64,10 +65,12 @@ def moldrug_cmd():
         TypeOfRun = utils.GA
     elif MainConfig['type'].lower() == 'local':
         TypeOfRun = utils.Local
-        # For now I will accept as input in Local a SMILES, but I am not sure
-        MainConfig['mol'] = Chem.MolFromSmiles(MainConfig['mol'])
     else:
         raise NotImplementedError(f"\"{MainConfig['type']}\" it is not a possible type. Select from: GA or Local")
+    
+    # Convert the SMILES to RDKit mol
+    MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
+    
     InitArgs = MainConfig.copy()
 
     # Modifying InitArgs

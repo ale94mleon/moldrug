@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from re import L
 from rdkit import Chem
 from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors, rdFMCS
 from meeko import MoleculePreparation, PDBQTMolecule
@@ -77,13 +78,13 @@ def run(command: str, shell: bool = True, executable: str = '/bin/bash', Popen: 
     return process
 
 
-def confgen(smiles: str, return_mol: bool = False):
+def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False):
     """Create a 3D model from a smiles and return a pdbqt string and, a mol if ``return_mol = True``.
 
     Parameters
     ----------
-    smiles : str
-        A valid SMILES string.
+    smiles : Chem.rdchem.Mol
+        A valid RDKit molecule.
     return_mol : bool, optional
         If true the function will also return the ``rdkit.Chem.rdchem.Mol``, by default False
 
@@ -92,7 +93,7 @@ def confgen(smiles: str, return_mol: bool = False):
     tuple or str
         If ``return_mol = True`` it will return a tuple ``(str[pdbqt], Chem.rdchem.Mol)``, if not only a ``str`` that represents the pdbqt.
     """
-    mol = Chem.AddHs(Chem.MolFromSmiles(smiles))
+    mol = Chem.AddHs(mol)
     AllChem.EmbedMolecule(mol)
     AllChem.MMFFOptimizeMolecule(mol)
     preparator = MoleculePreparation()
@@ -104,7 +105,7 @@ def confgen(smiles: str, return_mol: bool = False):
         return pdbqt_string
 
 
-def update_reactant_zone(parent:Chem.rdchem.Mol, offspring:Chem.rdchem.Mol, parent_replace_ids:List[int] = None, parent_protected_ids:List[int] = None):
+def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, parent_replace_ids: List[int] = None, parent_protected_ids: List[int] = None):
     """This function will find the difference between offspring and parent based on the Maximum Common Substructure (MCS).
     This difference will be consider offspring_replace_ids.
     Because after a reaction the indexes of the product could change respect to the reactant, the parent_replace_ids could change.
@@ -254,7 +255,7 @@ def lipinski_filter(mol: Chem.rdchem.Mol, maxviolation: int = 2):
             return False
     return True
 
-def lipinski_profile(mol:Chem.rdchem.Mol):
+def lipinski_profile(mol: Chem.rdchem.Mol):
     """See: https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski
 
     Parameters
@@ -273,7 +274,7 @@ def lipinski_profile(mol:Chem.rdchem.Mol):
         'wt': {'method':Descriptors.MolWt,'cutoff':500},
         'MLogP': {'method':Descriptors.MolLogP,'cutoff':5},
         'NumRotatableBonds': {'method':Lipinski.NumRotatableBonds,'cutoff':10},
-        'TPSA': {'method':Chem.MolSurf.TPSA,'cutoff':range(0,140)},
+        'TPSA': {'method': Chem.MolSurf.TPSA,'cutoff':range(0,140)},
 
         'FractionCSP3': {'method':Lipinski.FractionCSP3,'cutoff':None},
         'HeavyAtomCount': {'method':Lipinski.HeavyAtomCount,'cutoff':None},
@@ -298,7 +299,7 @@ def lipinski_profile(mol:Chem.rdchem.Mol):
     return profile
 
 #Desirability. doi:10.1016/j.chemolab.2011.04.004; https://www.youtube.com/watch?v=quz4NW0uIYw&list=PL6ebkIZFT4xXiVdpOeKR4o_sKLSY0aQf_&index=3
-def LargerTheBest(Value:float, LowerLimit:float, Target:float, r:float = 1)  -> float:
+def LargerTheBest(Value: float, LowerLimit: float, Target: float, r: float = 1)  -> float:
     """Desirability function used when larger values are the targets. If Value is higher or equal than the target it will return 1; if it is lower than LowerLimit it will return 0; else a number between 0 and 1.
 
     Parameters
@@ -324,7 +325,7 @@ def LargerTheBest(Value:float, LowerLimit:float, Target:float, r:float = 1)  -> 
     else:
         return 1.0
 
-def SmallerTheBest(Value:float, Target:float, UpperLimit:float, r:float = 1) -> float:
+def SmallerTheBest(Value: float, Target: float, UpperLimit: float, r: float = 1) -> float:
     """Desirability function used when lower values are the targets. If Value is lower or equal than the target it will return 1; if it is higher than UpperLimit it will return 0; else a number between 0 and 1.
 
     Parameters
@@ -350,7 +351,7 @@ def SmallerTheBest(Value:float, Target:float, UpperLimit:float, r:float = 1) -> 
     else:
         return 0.0
 
-def NominalTheBest(Value:float, LowerLimit:float, Target:float, UpperLimit:float, r1:float = 1, r2:float = 1) -> float:
+def NominalTheBest(Value: float, LowerLimit: float, Target:float, UpperLimit: float, r1: float = 1, r2: float = 1) -> float:
     """Desirability function used when a target value is desired. If Value is lower or equal than the LowerLimit it will return 0; as well values higher or equal than  UpperLimit; else a number between 0 and 1.
 
     Parameters
@@ -397,7 +398,7 @@ def DerringerSuichDesirability():
     }
     return my_dict
 # Saving data
-def full_pickle(title:str, data:object):
+def full_pickle(title: str, data: object):
     """Normal pickle.
 
     Parameters
@@ -410,7 +411,7 @@ def full_pickle(title:str, data:object):
     with open(f'{title}.pkl', 'wb') as pkl:
         pickle.dump(data, pkl)
 
-def loosen(file:str):
+def loosen(file: str):
     """Unpickle a pickled object.
 
     Parameters
@@ -427,7 +428,7 @@ def loosen(file:str):
         data = pickle.load(pkl)
     return data
 
-def compressed_pickle(title:str, data:object):
+def compressed_pickle(title: str, data: object):
     """Compress python object. First cPickle it and then bz2.BZ2File compressed it.
 
     Parameters
@@ -440,7 +441,7 @@ def compressed_pickle(title:str, data:object):
     with bz2.BZ2File(f'{title}.pbz2', 'w') as f:
         cPickle.dump(data, f)
 
-def decompress_pickle(file:str):
+def decompress_pickle(file: str):
     """Decompress CPickle objects compressed first with bz2 formats
 
     Parameters
@@ -594,15 +595,13 @@ class Individual:
     array_2 = (array*2).astype('float64')
     It also admit copy and deepcopy operations
     """
-    def __init__(self,smiles:str = None, mol:Chem.rdchem.Mol = None, idx:int = 0, pdbqt:str = None, cost:float = np.inf) -> None:
+    def __init__(self, mol:Chem.rdchem.Mol, idx:int = 0, pdbqt:str = None, cost:float = np.inf) -> None:
         """This is the constructor of the class.
 
         Parameters
         ----------
-        smiles : str, optional
-            A valid RDKit SMILES, by default None
         mol : Chem.rdchem.Mol, optional
-            A valid RDKit molecule. If not provided it will be generated from smiles, by default None
+            A valid RDKit molecule.
         idx : int, optional
             An identification, by default 0
         pdbqt : str, optional
@@ -610,21 +609,13 @@ class Individual:
         cost : float, optional
             This attribute is used to perform operations between Individuals and should be used for the cost functions, by default np.inf
         """
-        self.smiles = smiles
+        self.mol = mol
 
-        if not mol:
-            try:
-                self.mol = Chem.MolFromSmiles(smiles)
-            except Exception:
-                self.mol = None
-        else:
-            self.mol = mol
-
-        self.idx = idx
+        self.smiles = Chem.MolToSmiles(self.mol)
 
         if not pdbqt:
             try:
-                self.pdbqt = confgen(smiles)
+                self.pdbqt = confgen(self.mol)
             except Exception:
                 self.pdbqt = None
         else:
@@ -632,8 +623,10 @@ class Individual:
 
         self.cost = cost
 
+        self.idx = idx
+
     def __repr__(self):
-        return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {self.smiles}, cost = {self.cost})"
+        return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {Chem.MolToSmiles(Chem.RemoveHs(self.mol))}, cost = {self.cost})"
 
     def __eq__(self, other: object) -> bool:
         if self.__class__ is other.__class__:
@@ -794,9 +787,14 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
 class Local:
     """For local search
     """
-    def __init__(self, mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:Dict = {}, costfunc_kwargs:Dict = {}) -> None:
-        self.mol = mol
-        self.InitIndividual = Individual(Chem.MolToSmiles(self.mol), self.mol, idx = 0)
+    def __init__(self, seed_mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:Dict = {}, costfunc_kwargs:Dict = {}, AddHs:bool = False) -> None:
+        
+        if AddHs:
+            self.seed_mol = Chem.AddHs(seed_mol)
+        else:
+            self.seed_mol = seed_mol
+        
+        self.InitIndividual = Individual(self.seed_mol, idx = 0)
         if not self.InitIndividual.pdbqt:
             raise Exception(f"For some reason, it was not possible to create for the class Individula a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.crem_db_path = crem_db_path
@@ -817,11 +815,11 @@ class Local:
         if pick:
             random.shuffle(new_mols)
             new_mols = new_mols[:pick]
-            new_mols = [Chem.RemoveHs(item[1]) for item in new_mols]
+            new_mols = [item[1] for item in new_mols]
 
         idx0 = len(self.pop)
         for i, mol in enumerate(new_mols):
-            individual = Individual(Chem.MolToSmiles(mol), mol, idx = idx0 + i)
+            individual = Individual(mol, idx = idx0 + i)
             if individual.pdbqt:
                 self.pop.append(individual)
 
@@ -877,8 +875,14 @@ class GA:
     -   NumGens:
 
     """
-    def __init__(self, seed_smiles:str, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga') -> None:
-        self.InitIndividual = Individual(seed_smiles, idx=0)
+    def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
+        
+        self.AddHs = AddHs
+        if self.AddHs:
+            self.InitIndividual = Individual(Chem.AddHs(seed_mol), idx = 0)
+        else:
+            self.InitIndividual = Individual(seed_mol, idx=0)
+        
         if not self.InitIndividual.pdbqt:
             raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.costfunc = costfunc
@@ -951,7 +955,10 @@ class GA:
                 pass
 
             for i, mol in enumerate(GenInitStructs):
-                individual = Individual(Chem.MolToSmiles(mol), mol, idx = i + 1) # 0 is the InitIndividual
+                if self.AddHs:
+                    individual = Individual(Chem.AddHs(mol), idx = i + 1) # 0 is the InitIndividual
+                else:
+                    individual = Individual(mol, idx = i + 1) # 0 is the InitIndividual
                 if individual.pdbqt:
                     self.pop.append(individual)
 
@@ -1096,13 +1103,14 @@ class GA:
             # Bias the searching to similar molecules
             if self.get_similar:
                 mol = get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
-                smiles = Chem.MolToSmiles(mol)
             else:
-                smiles, mol = random.choice(mutants)
+                _, mol = random.choice(mutants)
         except Exception:
             print('The mutation did not work, we returned the same individual')
-            smiles, mol = individual.smiles, individual.mol
-        return Individual(smiles,mol)
+            mol = individual.mol
+        if self.AddHs:
+            mol = Chem.AddHs(mol)
+        return Individual(mol)
 
 
     def roulette_wheel_selection(self, p):
