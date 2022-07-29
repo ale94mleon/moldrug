@@ -938,9 +938,12 @@ class GA:
         if len(self.pop) == 1:
             if self.get_similar:
                 # Bias the searching to similar molecules
+                #=============================================================
+                # !!!!!!!!!! I have to add the correct crem keywords
+                #=============================================================
                 GenInitStructs = list(
                     grow_mol(
-                        Chem.AddHs(self.InitIndividual.mol),
+                        self.InitIndividual.mol,
                         self.crem_db_path,
                         radius=3,
                         min_atoms=1, max_atoms = 4,
@@ -953,7 +956,7 @@ class GA:
             else:
                 GenInitStructs = list(
                     mutate_mol(
-                        Chem.AddHs(self.InitIndividual.mol),
+                        self.InitIndividual.mol,
                         self.crem_db_path,
                         **self.mutate_crem_kwargs,
                         )
@@ -1132,6 +1135,7 @@ class GA:
         except Exception:
             print('The mutation did not work, we returned the same individual')
             smiles, mol = individual.smiles, individual.mol
+        print(individual.idx, smiles, mutate_crem_kwargs_to_work_with['protected_ids'])
         return Individual(smiles,mol)
 
 
