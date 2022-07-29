@@ -939,7 +939,7 @@ class GA:
             if self.get_similar:
                 # Bias the searching to similar molecules
                 #=============================================================
-                # !!!!!!!!!! I have to add the correct crem keywords
+                # !!!!!!!!!! I have to add the correct crem keywords, when protectead an all of that.....
                 #=============================================================
                 GenInitStructs = list(
                     grow_mol(
@@ -964,6 +964,8 @@ class GA:
                 GenInitStructs = [Chem.RemoveHs(mol) for (_, mol) in GenInitStructs]
 
             # Checking for possible scenarios
+            if len(GenInitStructs) == 0:
+                raise RuntimeError('Something really strange happened. The seed SMILES did not generate any new molecule during the initialization of the population. Check the provided crem parameters!')
             if len(GenInitStructs) < (self.popsize - 1):
                 print('The initial population has repeated elements')
                 # temporal solution
@@ -1135,7 +1137,6 @@ class GA:
         except Exception:
             print('The mutation did not work, we returned the same individual')
             smiles, mol = individual.smiles, individual.mol
-        print(individual.idx, smiles, mutate_crem_kwargs_to_work_with['protected_ids'])
         return Individual(smiles,mol)
 
 
