@@ -15,11 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Unused code in `moldrug.home` module.
+- 3D conformation in the `mol` attribute of the Individual during initialization.
 
 ### Added
 
 - Handling vina RuntimeError and keeping track for debug. This feature is used to identify what is the error. In the future will be removed.
 - Two new fitness functions: `moldrug.fitness.CostOnlyVina` and `moldrug.fitness.CostMultiReceptorsOnlyVina`. They only use the information of vina scoring function. See the [docs](https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html) for more info about it.
+- Tracking of atom indexes during generations in order to use `protected_ids` and `replace_ids` options of `mutate_mol` function of [CReM](https://github.com/DrrDom/crem). Before it was not possible; the use of these features generate undesired solutions because the indexes are not static over generations. Even so, there are still some problems for symmetric molecules. We are working on it.
 
 ## [0.1.0] - 2022-07-25
 

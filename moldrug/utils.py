@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from rdkit import Chem
-from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors
+from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors, rdFMCS
 from meeko import MoleculePreparation, PDBQTMolecule
 from crem.crem import mutate_mol, grow_mol
 
@@ -102,6 +102,66 @@ def confgen(smiles: str, return_mol: bool = False):
         return (pdbqt_string, mol)
     else:
         return pdbqt_string
+
+
+def update_reactant_zone(parent:Chem.rdchem.Mol, offspring:Chem.rdchem.Mol, parent_replace_ids:List[int] = None, parent_protected_ids:List[int] = None):
+    """This function will find the difference between offspring and parent based on the Maximum Common Substructure (MCS).
+    This difference will be consider offspring_replace_ids.
+    Because after a reaction the indexes of the product could change respect to the reactant, the parent_replace_ids could change.
+    The function will map the index of the parent to the offspring based on MCS. If on those indexes some of the 
+    parent_replace_ids are still present, they will be updated based on the offspring and added to offspring_replace_ids also.
+    Similarly will be done for the parent_protected_ids.
+
+    Parameters
+    ----------
+    parent : Chem.rdchem.Mol
+        The original molecule from where offspring was generated
+    offspring : Chem.rdchem.Mol
+        A derivative of parent
+    parent_replace_ids : List[int], optional
+        A list of replaceable indexes in the parent, by default None
+    parent_protected_ids : List[int], optional
+        A list of protected indexes in the parent, by default None
+    Returns
+    -------
+    tuple[list[int]]
+        The function returns a tuple composed by two list of integers.
+        The first list is offspring_replace_ids and the second one  offspring_protected_ids.
+    """
+    
+    # Finding Maximum Common Substructure (MCS) and getting the SMARTS
+    mcs = rdFMCS.FindMCS([parent,offspring])
+    mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
+
+    # Get the index corresponding to the MCS for both parent and offspring
+    # The ordering of the indices corresponds to the atom ordering in GetSubstructMatch. Therefore we have a mapping between the two molecules
+    match_parent = parent.GetSubstructMatch(mcs_mol)
+    match_offspring = offspring.GetSubstructMatch(mcs_mol)
+    mapping = dict(zip(match_parent, match_offspring))
+
+    offspring_replace_ids = []
+    for atom in offspring.GetAtoms():
+        if atom.GetIdx() not in match_offspring:
+            offspring_replace_ids.append(atom.GetIdx())
+    
+    # Because after a reaction the index could change we must update the original index.
+    # If the try raise exception is because the parent_replace_ids are not present in the MCS what means that they were already submitted to a reaction
+    # Therefore we dont need to update them neither add to the offspring_replace_ids
+    if parent_replace_ids:
+        for idx in parent_replace_ids:
+            try:
+                offspring_replace_ids.append(mapping[idx])
+            except Exception:
+                pass
+
+    offspring_protected_ids = []
+    if parent_protected_ids:
+        for idx in parent_protected_ids:
+            try:
+                offspring_protected_ids.append(mapping[idx])
+            except Exception:
+                pass
+    return offspring_replace_ids, offspring_protected_ids
 
 
 def get_sim(ms: List[Chem.rdchem.Mol], ref_fps: List):
@@ -564,9 +624,7 @@ class Individual:
 
         if not pdbqt:
             try:
-                self.pdbqt, mol3D = confgen(smiles, return_mol=True)
-                if not mol:
-                    self.mol = Chem.RemoveHs(mol3D)
+                self.pdbqt = confgen(smiles)
             except Exception:
                 self.pdbqt = None
         else:
@@ -740,7 +798,7 @@ class Local:
         self.mol = mol
         self.InitIndividual = Individual(Chem.MolToSmiles(self.mol), self.mol, idx = 0)
         if not self.InitIndividual.pdbqt:
-            raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
+            raise Exception(f"For some reason, it was not possible to create for the class Individula a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.crem_db_path = crem_db_path
         self.grow_crem_kwargs = grow_crem_kwargs
         self.costfunc = costfunc
@@ -1045,13 +1103,24 @@ class GA:
         return self.costfunc(individual, **kwargs)
 
     def mutate(self, individual):
+        
+        # Here is were I have to check if replace_ids or protected_ids where provided.
+        mutate_crem_kwargs_to_work_with = self.mutate_crem_kwargs.copy()
+        if 'replace_ids' in self.mutate_crem_kwargs and 'protected_ids' in self.mutate_crem_kwargs:
+            mutate_crem_kwargs_to_work_with['replace_ids'], mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(self.InitIndividual.mol, individual.mol, parent_replace_ids=self.mutate_crem_kwargs['replace_ids'], parent_protected_ids=self.mutate_crem_kwargs['protected_ids'])
+        elif 'replace_ids' in self.mutate_crem_kwargs:
+            mutate_crem_kwargs_to_work_with['replace_ids'], _ = update_reactant_zone(self.InitIndividual.mol, individual.mol, parent_replace_ids=self.mutate_crem_kwargs['replace_ids'])
+        elif 'protected_ids' in self.mutate_crem_kwargs:
+            _, mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(self.InitIndividual.mol, individual.mol, parent_protected_ids=self.mutate_crem_kwargs['protected_ids'])
+
+
         try:
             if self.AddExplicitHs:
-                mutants = list(mutate_mol(Chem.AddHs(individual.mol), self.crem_db_path, **self.mutate_crem_kwargs))
+                mutants = list(mutate_mol(Chem.AddHs(individual.mol), self.crem_db_path, **mutate_crem_kwargs_to_work_with))
                 # Remove the Hs and place a dummy 0 as first element in the tuple.
                 mutants = [(0, Chem.RemoveHs(mutant)) for _, mutant in mutants]
             else:
-                mutants = list(mutate_mol(individual.mol, self.crem_db_path, **self.mutate_crem_kwargs))
+                mutants = list(mutate_mol(individual.mol, self.crem_db_path, **mutate_crem_kwargs_to_work_with))
 
             # Bias the searching to similar molecules
             if self.get_similar:
