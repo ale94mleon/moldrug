@@ -924,44 +924,17 @@ class GA:
         # We need to return the molecule, so we override the possible user definition respect to this keyword
         self.mutate_crem_kwargs['return_mol'] = True
 
-        # Guess if we need to add explicit hydrogens in the mutate operation
-        self.AddExplicitHs = False
-        if 'min_size' in self.mutate_crem_kwargs:
-            if self.mutate_crem_kwargs['min_size'] == 0:
-                self.AddExplicitHs = True
-        elif 'max_size' in self.mutate_crem_kwargs:
-            if self.mutate_crem_kwargs['max_size'] == 0:
-                self.AddExplicitHs = True
-
         # Initialize Population
         # In case that the populating exist there is not need to initialize.
         if len(self.pop) == 1:
-            if self.get_similar:
-                # Bias the searching to similar molecules
-                #=============================================================
-                # !!!!!!!!!! I have to add the correct crem keywords, when protectead an all of that.....
-                #=============================================================
-                GenInitStructs = list(
-                    grow_mol(
-                        self.InitIndividual.mol,
-                        self.crem_db_path,
-                        radius=3,
-                        min_atoms=1, max_atoms = 4,
-                        return_mol= True,
-                        ncores = self.mutate_crem_kwargs['ncores']
-                        )
+            GenInitStructs = list(
+                mutate_mol(
+                    self.InitIndividual.mol,
+                    self.crem_db_path,
+                    **self.mutate_crem_kwargs,
                     )
-                GenInitStructs = get_similar_mols(mols = [Chem.RemoveHs(item[1]) for item in GenInitStructs], ref_mol=self.InitIndividual.mol, pick=self.popsize, beta=0.01)
-
-            else:
-                GenInitStructs = list(
-                    mutate_mol(
-                        self.InitIndividual.mol,
-                        self.crem_db_path,
-                        **self.mutate_crem_kwargs,
-                        )
-                    )
-                GenInitStructs = [Chem.RemoveHs(mol) for (_, mol) in GenInitStructs]
+                )
+            GenInitStructs = [mol for (_, mol) in GenInitStructs]
 
             # Checking for possible scenarios
             if len(GenInitStructs) == 0:
@@ -1118,22 +1091,14 @@ class GA:
         elif 'protected_ids' in self.mutate_crem_kwargs:
             _, mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(self.InitIndividual.mol, individual.mol, parent_protected_ids=self.mutate_crem_kwargs['protected_ids'])
 
-
         try:
-            if self.AddExplicitHs:
-                mutants = list(mutate_mol(Chem.AddHs(individual.mol), self.crem_db_path, **mutate_crem_kwargs_to_work_with))
-                # Remove the Hs and place a dummy 0 as first element in the tuple.
-                mutants = [(0, Chem.RemoveHs(mutant)) for _, mutant in mutants]
-            else:
-                mutants = list(mutate_mol(individual.mol, self.crem_db_path, **mutate_crem_kwargs_to_work_with))
-
+            mutants = list(mutate_mol(individual.mol, self.crem_db_path, **mutate_crem_kwargs_to_work_with))
             # Bias the searching to similar molecules
             if self.get_similar:
                 mol = get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
                 smiles = Chem.MolToSmiles(mol)
             else:
-                _, mol = random.choice(mutants)
-                smiles = Chem.MolToSmiles(mol)
+                smiles, mol = random.choice(mutants)
         except Exception:
             print('The mutation did not work, we returned the same individual')
             smiles, mol = individual.smiles, individual.mol
