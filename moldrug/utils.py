@@ -808,7 +808,7 @@ class Local:
     def __call__(self, njobs:int = 1, pick:int = None):
         self.grow_crem_kwargs.update({'return_mol':True})
         new_mols = list(grow_mol(
-            self.mol,
+            self.seed_mol,
             self.crem_db_path,
             **self.grow_crem_kwargs
             ))
