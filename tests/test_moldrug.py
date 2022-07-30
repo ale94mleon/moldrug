@@ -33,7 +33,7 @@ def test_single_receptor_command_line():
         "01_grow": {
             "type": "GA",
             "njobs": 3,
-            "seed_smiles": ligands.r_x0161,
+            "seed_mol": ligands.r_x0161,
             "costfunc": "Cost",
             "costfunc_kwargs": {
                 "vina_executable": "vina",
@@ -84,7 +84,8 @@ def test_single_receptor_command_line():
 
 def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     out = utils.GA(
-        seed_smiles=ligands.r_x0161,
+        seed_mol=Chem.MolFromSmiles(ligands.r_x0161),
+        AddHs= False,
         maxiter=maxiter,
         popsize=popsize,
         crem_db_path = crem_db_path,
@@ -92,7 +93,6 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
         get_similar = True,
         mutate_crem_kwargs = {
             'radius':3,
-            'max_size':0,
             'min_inc':-5,
             'max_inc':3,
         },
@@ -136,7 +136,7 @@ def test_local_command_line():
             "type": "Local",
             "njobs": 1,
             "pick": 2,
-            "mol": Chem.MolToSmiles(Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161))),
+            "seed_mol": Chem.MolToSmiles(Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161))),
             "costfunc": "CostOnlyVina",
             "costfunc_kwargs": {
                 "vina_executable": "vina",
@@ -171,8 +171,7 @@ def test_local_command_line():
 
 
 def test_CostOnlyVina():
-    ligand_smiles = ligands.r_x0161
-    I = utils.Individual(ligand_smiles)
+    I = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
     receptor_paths = [r_x0161_file,r_6lu7_file]
     boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
     boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
@@ -209,11 +208,11 @@ def test_lipinski():
 
 
 def test_Individual():
-    I1 = utils.Individual('CC', cost=10)
-    I2 = utils.Individual('CCO', cost=2)
+    I1 = utils.Individual(Chem.MolFromSmiles('CC'), cost=10)
+    I2 = utils.Individual(Chem.MolFromSmiles('CCO'), cost=2)
     I3 = copy.copy(I1)
     I4 = copy.deepcopy(I2)
-    I5 = utils.Individual('CC', cost = 10, pdbqt=I1.pdbqt)
+    I5 = utils.Individual(Chem.MolFromSmiles('CC'), cost = 10, pdbqt=I1.pdbqt)
     assert I3 + I4 == 12
     assert I5 - I2 == 8
     assert I1 > I2
@@ -246,4 +245,4 @@ def test_miscellanea():
 
 
 if __name__ == '__main__':
-    test_local_command_line()
+    test_multi_receptor()
