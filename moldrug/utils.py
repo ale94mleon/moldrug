@@ -728,11 +728,12 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
 
         import tempfile, os
         from moldrug import utils
+        from rdkit import Chem
         # Create some temporal dir
         tmp_path = tempfile.TemporaryDirectory()
         # Creating two individuals
-        I1 = utils.Individual('CCCCl')
-        I2 = utils.Individual('CCOCCCF')
+        I1 = utils.Individual(Chem.MolFromSmiles('CCCCl'))
+        I2 = utils.Individual(Chem.MolFromSmiles('CCOCCCF'))
         # Creating the pdbqts attribute with the pdbqt attribute (this is just a silly example)
         I1.pdbqts = [I1.pdbqt, I1.pdbqt]
         I2.pdbqts = [I2.pdbqt, I2.pdbqt]

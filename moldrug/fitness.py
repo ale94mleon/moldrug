@@ -81,11 +81,12 @@ def Cost(
     .. ipython:: python
 
         from moldrug import utils, fitness
+        from rdkit import Chem
         import tempfile, os
         from moldrug.data import ligands, boxes, receptors
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_smiles = ligands.r_x0161
-        I = utils.Individual(ligand_smiles)
+        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        I = utils.Individual(ligand_mol)
         receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
         with open(receptor_path, 'w') as r: r.write(receptors.r_x0161)
         box = boxes.r_x0161['A']
@@ -220,11 +221,12 @@ def CostOnlyVina(
     .. ipython:: python
 
         from moldrug import utils, fitness
+        from rdkit import Chem
         import tempfile, os
         from moldrug.data import ligands, boxes, receptors
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_smiles = ligands.r_x0161
-        I = utils.Individual(ligand_smiles)
+        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        I = utils.Individual(ligand_mol)
         receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
         with open(receptor_path, 'w') as r: r.write(receptors.r_x0161)
         box = boxes.r_x0161['A']
@@ -371,11 +373,12 @@ def CostMultiReceptors(
     .. ipython:: python
 
         from moldrug import utils, fitness
+        from rdkit import Chem
         import tempfile, os
         from moldrug.data import ligands, boxes, receptors
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_smiles = ligands.r_x0161
-        I = utils.Individual(ligand_smiles)
+        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        I = utils.Individual(ligand_mol)
         receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
         with open(receptor_paths[0], 'w') as r: r.write(receptors.r_x0161)
         with open(receptor_paths[1], 'w') as r: r.write(receptors.r_6lu7)
@@ -547,11 +550,12 @@ def CostMultiReceptorsOnlyVina(
     .. ipython:: python
 
         from moldrug import utils, fitness
+        from rdkit import Chem
         import tempfile, os
         from moldrug.data import ligands, boxes, receptors
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_smiles = ligands.r_x0161
-        I = utils.Individual(ligand_smiles)
+        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        I = utils.Individual(ligand_mol)
         receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
         with open(receptor_paths[0], 'w') as r: r.write(receptors.r_x0161)
         with open(receptor_paths[1], 'w') as r: r.write(receptors.r_6lu7)
