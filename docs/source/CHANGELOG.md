@@ -17,13 +17,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unused code in `moldrug.home` module.
 - 3D conformation in the `mol` attribute of the Individual during initialization.
 - The use of `grow_mol` in the initialization of the populating when `get_similar = True`. Now the population is initialized with `mutate_mol` and the same set of crem parameters used during the searching.
-- The automatic addition of Hs in the case where `min_size` and/or `max_size` were equal to zero. Now if your intention is work with the hydrogens, you must provided a SMILES with the explicit Hs. In the future the input could be just a RDKit mol.
+- The automatic addition of Hs in the case where `min_size` and/or `max_size` were equal to zero. Now if your intention is work with the hydrogens, you must provided a SMILES with the explicit Hs. In the future the input could be just a RDKit mol. Now you must specify if you would like to add explicit Hs to the molecule withe keyword `AddHs`; default is False and is used for both `moldrug.utils.GA` and `moldrug.utils.Local`.
 
 ### Added
 
 - Handling vina RuntimeError and keeping track for debug. This feature is used to identify what is the error. In the future will be removed.
 - Two new fitness functions: `moldrug.fitness.CostOnlyVina` and `moldrug.fitness.CostMultiReceptorsOnlyVina`. They only use the information of vina scoring function. See the [docs](https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html) for more info about it.
 - Tracking of atom indexes during generations in order to use `protected_ids` and `replace_ids` options of `mutate_mol` function of [CReM](https://github.com/DrrDom/crem). Before it was not possible; the use of these features generate undesired solutions because the indexes are not static over generations. Even so, there are still some problems for symmetric molecules. We are working on it.
+
+### Changed
+
+- The whole MolDrug works base on the RDKit mol instead of the SMILES string:
+    1. `moldrug.utils.Individual` is now initialized `mol` instead `smiles`. Now the SMILES string is generated internally, it still used as identifying for the instance.
+    2. `moldrug.utils.GA` changed `smiles` for `seed_mol` and it is not needed the `mol` variable any more.
+    3. `moldrug.utils.Local` changed `mol` for `seed_mol` in the initialization variables..
+    4. `moldrug.utils.confgen` changed smiles for `mol` variable.
+
 
 ## [0.1.0] - 2022-07-25
 
