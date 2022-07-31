@@ -34,6 +34,7 @@ def test_single_receptor_command_line():
             "type": "GA",
             "njobs": 3,
             "seed_mol": ligands.r_x0161,
+            "AddHs": True,
             "costfunc": "Cost",
             "costfunc_kwargs": {
                 "vina_executable": "vina",
@@ -78,14 +79,15 @@ def test_single_receptor_command_line():
     with open(os.path.join(tmp_path.name, "test_single_receptor.yml"), 'w') as c:
         yaml.dump(Config, c)
     os.chdir(tmp_path.name)
-    utils.run('moldrug test_single_receptor.yml', Popen=True)
+    p = utils.run('moldrug test_single_receptor.yml')
+    print(p.stdout)
     os.chdir(cwd)
 
 
 def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     out = utils.GA(
         seed_mol=Chem.MolFromSmiles(ligands.r_x0161),
-        AddHs= False,
+        AddHs= True,
         maxiter=maxiter,
         popsize=popsize,
         crem_db_path = crem_db_path,
@@ -93,8 +95,10 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
         get_similar = True,
         mutate_crem_kwargs = {
             'radius':3,
+            'min_size':0,
             'min_inc':-5,
             'max_inc':3,
+            'replace_ids': [3, 4, 5, 7],
         },
         costfunc = fitness.CostMultiReceptors,
         costfunc_kwargs = {
@@ -135,7 +139,7 @@ def test_local_command_line():
         "main": {
             "type": "Local",
             "njobs": 1,
-            "pick": 2,
+            "pick": 1,
             "seed_mol": Chem.MolToSmiles(Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161))),
             "costfunc": "CostOnlyVina",
             "costfunc_kwargs": {
@@ -170,18 +174,20 @@ def test_local_command_line():
     os.chdir(cwd)
 
 
-def test_CostOnlyVina():
+def test_Cost_CostOnlyVina():
     I = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
     receptor_paths = [r_x0161_file,r_6lu7_file]
     boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
     boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
     vina_score_types = ['min', 'max']
+    
+    fitness.Cost(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
 
-    fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
-    fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+    fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
+    fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
 
-    fitness.CostOnlyVina(Individual = I,wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
-    fitness.CostOnlyVina(Individual = I,wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+    fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+    fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
 
 
 
