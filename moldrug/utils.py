@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from re import L
 from rdkit import Chem
 from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors, rdFMCS
 from meeko import MoleculePreparation, PDBQTMolecule
@@ -42,8 +41,8 @@ def timeit(method: object):
     return timed
 
 
-def run(command: str, shell: bool = True, executable: str = '/bin/bash', Popen: bool = False):
-    """This function is just a useful wrapper around subprocess.Popen, subprocess.run
+def run(command: str, shell: bool = True, executable: str = '/bin/bash'):
+    """This function is just a useful wrapper around subprocess.run
 
     Parameters
     ----------
@@ -53,28 +52,23 @@ def run(command: str, shell: bool = True, executable: str = '/bin/bash', Popen: 
         keyword of ``subprocess.Popen`` and ``subprocess.Popen``, by default True
     executable : str, optional
         keyword of ``subprocess.Popen`` and ``subprocess.Popen``, by default '/bin/bash'
-    Popen : bool, optional
-        If True it will launch popen if not Run, by default False
 
     Returns
     -------
     object
-        The processes returned by Popen or Run.
+        The processes returned by Run.
 
     Raises
     ------
     RuntimeError
         In case of non-zero exit status on the provided command.
     """
-    if Popen:
-        # In this case you could access the pid as: run.pid
-        process = subprocess.Popen(command, shell=shell, executable=executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    else:
-        process = subprocess.run(command, shell=shell, executable=executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        returncode = process.returncode
-        if returncode != 0:
-            print(f'Command {command} returned non-zero exit status {returncode}')
-            raise RuntimeError(process.stderr)
+
+    process = subprocess.run(command, shell=shell, executable=executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    returncode = process.returncode
+    if returncode != 0:
+        print(f'Command {command} returned non-zero exit status {returncode}')
+        raise RuntimeError(process.stderr)
     return process
 
 
