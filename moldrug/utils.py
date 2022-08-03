@@ -103,7 +103,7 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, pa
     """This function will find the difference between offspring and parent based on the Maximum Common Substructure (MCS).
     This difference will be consider offspring_replace_ids.
     Because after a reaction the indexes of the product could change respect to the reactant, the parent_replace_ids could change.
-    The function will map the index of the parent to the offspring based on MCS. If on those indexes some of the 
+    The function will map the index of the parent to the offspring based on MCS. If on those indexes some of the
     parent_replace_ids are still present, they will be updated based on the offspring and added to offspring_replace_ids also.
     Similarly will be done for the parent_protected_ids.
 
@@ -123,7 +123,7 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, pa
         The function returns a tuple composed by two list of integers.
         The first list is offspring_replace_ids and the second one  offspring_protected_ids.
     """
-    
+
     # Finding Maximum Common Substructure (MCS) and getting the SMARTS
     mcs = rdFMCS.FindMCS([parent,offspring])
     mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
@@ -138,7 +138,7 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, pa
     for atom in offspring.GetAtoms():
         if atom.GetIdx() not in match_offspring:
             offspring_replace_ids.append(atom.GetIdx())
-    
+
     # Because after a reaction the index could change we must update the original index.
     # If the try raise exception is because the parent_replace_ids are not present in the MCS what means that they were already submitted to a reaction
     # Therefore we dont need to update them neither add to the offspring_replace_ids
@@ -783,12 +783,12 @@ class Local:
     """For local search
     """
     def __init__(self, seed_mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:Dict = {}, costfunc_kwargs:Dict = {}, AddHs:bool = False) -> None:
-        
+
         if AddHs:
             self.seed_mol = Chem.AddHs(seed_mol)
         else:
             self.seed_mol = seed_mol
-        
+
         self.InitIndividual = Individual(self.seed_mol, idx = 0)
         if not self.InitIndividual.pdbqt:
             raise Exception(f"For some reason, it was not possible to create for the class Individula a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
@@ -871,13 +871,13 @@ class GA:
 
     """
     def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
-        
+
         self.AddHs = AddHs
         if self.AddHs:
             self.InitIndividual = Individual(Chem.AddHs(seed_mol), idx = 0)
         else:
             self.InitIndividual = Individual(seed_mol, idx=0)
-        
+
         if not self.InitIndividual.pdbqt:
             raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.costfunc = costfunc
@@ -1083,7 +1083,7 @@ class GA:
         return self.costfunc(individual, **kwargs)
 
     def mutate(self, individual):
-        
+
         # Here is were I have to check if replace_ids or protected_ids where provided.
         mutate_crem_kwargs_to_work_with = self.mutate_crem_kwargs.copy()
         if 'replace_ids' in self.mutate_crem_kwargs and 'protected_ids' in self.mutate_crem_kwargs:
@@ -1101,7 +1101,7 @@ class GA:
             else:
                 _, mol = random.choice(mutants)
         except Exception:
-            print('The mutation did not work, we returned the same individual')
+            print(f'Note: The mutation on {individual} did not work, it will be returned the same individual')
             mol = individual.mol
         if self.AddHs:
             mol = Chem.AddHs(mol)
