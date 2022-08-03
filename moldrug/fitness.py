@@ -5,6 +5,7 @@ from rdkit.Chem import QED, Descriptors
 import os
 import numpy as np
 from typing import Dict, List
+import warnings
 
 
 
@@ -129,11 +130,15 @@ def Cost(
             'boxcenter': boxcenter,
             'boxsize': boxsize,
         }
-        utils.compressed_pickle('error', error)
-        raise RuntimeError(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
-            f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called error.pbz2"\
+        utils.compressed_pickle(f'{Individual.idx}_error', error)
+        warnings.warn(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
+            f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
             "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
             "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
+
+        Individual.vina_score = np.inf
+        Individual.cost = np.inf
+        return Individual
 
     # Getting the information
     best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
@@ -239,7 +244,7 @@ def CostOnlyVina(
             Individual.vina_score = np.inf
             Individual.cost = np.inf
             return Individual
-    
+
     # Getting Vina score
     cmd = f"{vina_executable} --receptor {receptor_path} --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
@@ -267,9 +272,9 @@ def CostOnlyVina(
             'boxcenter': boxcenter,
             'boxsize': boxsize,
         }
-        utils.compressed_pickle('error', error)
-        raise RuntimeError(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
-            f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called error.pbz2"\
+        utils.compressed_pickle(f'{Individual.idx}_error', error)
+        warnings.warn(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
+            f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
             "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
             "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
 
@@ -407,7 +412,7 @@ def CostMultiReceptors(
         # Creating the ligand pdbqt
         with open(os.path.join(wd, f'{Individual.idx}_{i}.pdbqt'), 'w') as l:
             l.write(Individual.pdbqt)
-        
+
         try:
             utils.run(cmd)
         except Exception as e:
@@ -424,11 +429,17 @@ def CostMultiReceptors(
                 'boxcenter': boxcenters[i],
                 'boxsize': boxsizes[i],
             }
-            utils.compressed_pickle('error', error)
-            raise RuntimeError(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
-                f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called error.pbz2"\
+            utils.compressed_pickle(f'{Individual.idx}_error', error)
+            warnings.warn(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
+                f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
                 "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
                 f"Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box for the receptor with index: {i}.")
+
+            for _ in range(len(receptor_paths)):
+                Individual.pdbqts.append(Individual.pdbqt)
+                Individual.vina_scores.append(np.inf)
+            Individual.cost = np.inf
+            return Individual
 
         # Getting the information
         best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_{i}_out.pdbqt')).BestEnergy()
@@ -588,7 +599,7 @@ def CostMultiReceptorsOnlyVina(
         # Creating the ligand pdbqt
         with open(os.path.join(wd, f'{Individual.idx}_{i}.pdbqt'), 'w') as l:
             l.write(Individual.pdbqt)
-        
+
         try:
             utils.run(cmd)
         except Exception as e:
@@ -605,9 +616,9 @@ def CostMultiReceptorsOnlyVina(
                 'boxcenter': boxcenters[i],
                 'boxsize': boxsizes[i],
             }
-            utils.compressed_pickle('error', error)
-            raise RuntimeError(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
-                f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called error.pbz2"\
+            utils.compressed_pickle(f'{Individual.idx}_error', error)
+            warnings.warn(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
+                f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
                 "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
                 f"Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box for the receptor with index: {i}.")
 

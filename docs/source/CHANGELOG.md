@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `Popen` option in `moldrug.utils.run`.
 
+### Changed
+
+- `RuntimeError` by `warnings.warn` when vina run fails and save every error as `idx_error.pbz2`. Where idx is the index of the failed individual.
+
 ## [1.0.0] - 2022.07.30
 
 ### Fixed
