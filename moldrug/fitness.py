@@ -278,6 +278,9 @@ def CostOnlyVina(
             "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
             "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
 
+        Individual.vina_score = np.inf
+        Individual.cost = np.inf
+        return Individual
     # Getting the information
     best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
     # Changing the 3D conformation by the conformation of the binding pose
@@ -621,6 +624,12 @@ def CostMultiReceptorsOnlyVina(
                 f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
                 "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
                 f"Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box for the receptor with index: {i}.")
+
+            for _ in range(len(receptor_paths)):
+                Individual.pdbqts.append(Individual.pdbqt)
+                Individual.vina_scores.append(np.inf)
+            Individual.cost = np.inf
+            return Individual
 
         # Getting the information
         best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_{i}_out.pdbqt')).BestEnergy()
