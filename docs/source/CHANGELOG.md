@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [1.0.2] - 2022.08.08
+
 ### Removed
 
 - `Popen` option in `moldrug.utils.run`.
@@ -14,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - `RuntimeError` by `warnings.warn` when vina run fails and save every error as `idx_error.pbz2`. Where idx is the index of the failed individual.
-- Format of the printing when `mutate` fails inside of `moldrug.utils.GA`
+- Print format when `mutate` fails inside of `moldrug.utils.GA`
 
 ### Added
 
@@ -71,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/1.0.0...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/1.0.2...HEAD
+[1.0.2]: https://github.com/ale94mleon/MolDrug/compare/1.0.0...1.0.2
 [1.0.0]: https://github.com/ale94mleon/MolDrug/compare/0.1.0...1.0.0
 [0.1.0]: https://github.com/ale94mleon/MolDrug/compare/0.0.4...0.1.0
 [0.0.4]: https://github.com/ale94mleon/MolDrug/compare/0.0.3...0.0.4
