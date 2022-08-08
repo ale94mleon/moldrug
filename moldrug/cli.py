@@ -114,7 +114,7 @@ def moldrug_cmd():
     # Initialize the class
     ResultsClass = TypeOfRun(**InitArgs)
     # Call the class
-    print(f'You are using moldrug: {__version__}\n. The main job is being executed.')
+    print(f'You are using moldrug: {__version__}.\n\nThe main job is being executed.')
     ResultsClass(**CallArgs)
     # Saving data
     if MainConfig['type'].lower() == 'local':
