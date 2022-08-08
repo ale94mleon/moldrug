@@ -66,10 +66,10 @@ def moldrug_cmd():
         TypeOfRun = utils.Local
     else:
         raise NotImplementedError(f"\"{MainConfig['type']}\" it is not a possible type. Select from: GA or Local")
-    
+
     # Convert the SMILES to RDKit mol
     MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
-    
+
     InitArgs = MainConfig.copy()
 
     # Modifying InitArgs
@@ -114,7 +114,7 @@ def moldrug_cmd():
     # Initialize the class
     ResultsClass = TypeOfRun(**InitArgs)
     # Call the class
-    print(f'The main job is being executed.')
+    print(f'You are using moldrug: {__version__}\n. The main job is being executed.')
     ResultsClass(**CallArgs)
     # Saving data
     if MainConfig['type'].lower() == 'local':
