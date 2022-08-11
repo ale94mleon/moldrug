@@ -942,7 +942,7 @@ class GA:
         # Tracking parameters
         self.NumCalls = 0
         self.NumGens = 0
-        self.SawIndividuals = []
+        self.SawIndividuals = set()
 
     @timeit
     def __call__(self, njobs:int = 1):
@@ -1018,9 +1018,7 @@ class GA:
             self.avg_cost = []
 
         # Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.
-        for individual in self.pop:
-            if individual not in self.SawIndividuals:
-                self.SawIndividuals.append(individual)
+        self.SawIndividuals.update(set(self.pop))
 
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
@@ -1085,9 +1083,7 @@ class GA:
             self.avg_cost.append(np.mean(self.pop))
 
             # Saving tracking variables
-            for individual in popc:
-                #Tracking variables. There is not need to check if the individual is in self.SawIndividual. It was already checked above.
-                self.SawIndividuals.append(individual)
+            self.SawIndividuals.update(set(popc))
 
             # Saving population in disk if it was required
             if self.save_pop_every_gen:
