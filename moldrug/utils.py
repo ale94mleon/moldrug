@@ -581,13 +581,38 @@ class VINA_OUT:
 class Individual:
     """
     Base class to work with GA, Local and all the fitness functions.
-    Individual is a mutable object. It uses the smiles string for '=='
-    operator and the cost attribute for arithmetic operations.
+    Individual is a mutable object. Only the attribute smiles it is not mutable and is used
+    for hash. Therefore this class is hashable based on the smiles attribute. This one is also used for '==' comparison
+    If two Individuals has the same smiles not matter if the rest of the elements are different, they will be considered the same.
+    The cost attribute is used for arithmetic operations.
+    It also admit copy and deepcopy operations.
     Known issue, in case that we would like to use a numpy array of individuals. It is needed to change the ditype of the generated arrays
-    In order to use other operations, or cast to a list
-    array = np.array([c1,c2])
-    array_2 = (array*2).astype('float64')
-    It also admit copy and deepcopy operations
+
+    Example
+    -------
+    .. ipython:: python
+
+        from moldrug import utils, fitness
+        import numpy as np
+        from copy import copy, deepcopy
+        from rdkit import Chem
+        i1 = utils.Individual(mol = Chem.MolFromSmiles('CC'), idx = 1, cost = 5)
+        i2 = utils.Individual(mol = Chem.MolFromSmiles('CC'), idx = 2, cost = 4)
+        i3 = utils.Individual(mol = Chem.MolFromSmiles('CCC'), idx = 3, cost = 4)
+        # Show the '==' operation
+        print(i1 == i2, i1 == i3)
+        # Show that Individual is a hashable object based on the smiles
+        print(set([i1,i2,i3]))
+        # Show arithmetic operations
+        print(i1+i2)
+        # How to work with numpy
+        array = np.array([i1,i2, i3])
+        array_2 = (array*2).astype('float64')
+        print(array_2)
+        # Show copy
+        print(copy(i3), deepcopy(i3))
+
+
     """
     def __init__(self, mol:Chem.rdchem.Mol, idx:int = 0, pdbqt:str = None, cost:float = np.inf) -> None:
         """This is the constructor of the class.
@@ -605,8 +630,6 @@ class Individual:
         """
         self.mol = mol
 
-        self.smiles = Chem.MolToSmiles(self.mol)
-
         if not pdbqt:
             try:
                 self.pdbqt = confgen(self.mol)
@@ -619,8 +642,15 @@ class Individual:
 
         self.idx = idx
 
+    @property
+    def smiles(self):
+        return Chem.MolToSmiles(self.mol)
+
     def __repr__(self):
         return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {Chem.MolToSmiles(Chem.RemoveHs(self.mol))}, cost = {self.cost})"
+
+    def __hash__(self):
+        return hash(self.smiles)
 
     def __eq__(self, other: object) -> bool:
         if self.__class__ is other.__class__:
