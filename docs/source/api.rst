@@ -4,7 +4,7 @@ Summary
 Input data
 ----------
 
-Currently, MolDrug only accepts valid RDKit SMILES and valid pdbqt files that
+Currently, MolDrug only accepts valid RDKit molecules and valid pdbqt files that
 will be processed by Vina.
 
 The idea
@@ -13,12 +13,13 @@ The idea is simple: we want the best drug for some application. The problem is
 that it is not as simple as it sounds. The chemical space is enormous and the estimation
 of the fitness is also a term of concern.
 
-Here we address this problem using a GA. The inputs are:
+Here we address this problem using a `moldrug.utils.GA <https://moldrug.readthedocs.io/en/latest/source/modules/utils.html#moldrug.utils.GA>`_ or
+. The inputs are:
 
 #. Biological target (pdbqt format).
 #. SMILES string of some known (or guessing) drug.
 #. Definition of the binding pocket.
-#. Definition of the GA running variables.
+#. Definition of the `moldrug.utils.GA <https://moldrug.readthedocs.io/en/latest/source/modules/utils.html#moldrug.utils.GA>`_ running variables.
 
 With the initial SMILES, a random population of ``popsize``
 individuals will be generated through the `CReM <https://github.com/DrrDom/crem>`_
@@ -28,10 +29,18 @@ The offsprings will be merge with the current population, sorted respect to the 
 and the first ``popsize`` individuals will be kept for the next generation.
 This cycle will run for ``maxiter`` generations.
 
+Alternatively there is also the class `moldrug.utils.Local <https://moldrug.readthedocs.io/en/latest/source/modules/utils.html#moldrug.utils.Local>`_
+
 Fitness functions
 -----------------
 
-The default fitness function could be access through.
+The default fitness functions could be access through the module `moldrug.fitness <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#module-moldrug.fitness>`_.
+There are currently four implemented:
+
+#. `Cost <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.Cost>`_ (standard).
+#. `CostOnlyVina <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostOnlyVina>`_.
+#. `CostMultiReceptors <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostMultiReceptors>`_.
+#. `CostOnlyVinaMultiReceptors <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostMultiReceptorsOnlyVina>`_.
 
 .. code-block:: python
 

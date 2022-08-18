@@ -96,6 +96,6 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
 ..  |license| image:: https://badgen.net/pypi/license/moldrug/
     :target: https://pypi.python.org/pypi/moldrug/
     :alt: license
-..  |downloads| image:: https://static.pepy.tech/personalized-badge/moldrug?period=month&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
+..  |downloads| image:: https://static.pepy.tech/personalized-badge/moldrug?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
     :target: https://pepy.tech/project/moldrug
     :alt: download
