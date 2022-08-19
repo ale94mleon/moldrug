@@ -3,7 +3,7 @@
 
 import moldrug, os, sys, inspect
 
-# See if it works
+
 def home(dataDir=None):
     """Return the pathname of the moldrug root directory (or a data subdirectory).
     Parameters
