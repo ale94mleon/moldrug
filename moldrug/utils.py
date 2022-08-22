@@ -104,7 +104,7 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, pa
     This difference will be consider offspring_replace_ids.
     Because after a reaction the indexes of the product could change respect to the reactant, the parent_replace_ids could change.
     The function will map the index of the parent to the offspring based on MCS. If on those indexes some of the
-    parent_replace_ids are still present, they will be updated based on the offspring and added to offspring_replace_ids also.
+    parent_replace_ids are still present, they will be updated based on the offspring and also added to offspring_replace_ids.
     Similarly will be done for the parent_protected_ids.
 
     Parameters
@@ -121,11 +121,11 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, pa
     -------
     tuple[list[int]]
         The function returns a tuple composed by two list of integers.
-        The first list is offspring_replace_ids and the second one  offspring_protected_ids.
+        The first list is offspring_replace_ids and the second one offspring_protected_ids.
     """
 
     # Finding Maximum Common Substructure (MCS) and getting the SMARTS
-    mcs = rdFMCS.FindMCS([parent,offspring])
+    mcs = rdFMCS.FindMCS([parent,offspring], matchValences = True, ringMatchesRingOnly=True)
     mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
 
     # Get the index corresponding to the MCS for both parent and offspring
