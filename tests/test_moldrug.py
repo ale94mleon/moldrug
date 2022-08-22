@@ -177,6 +177,7 @@ def test_local_command_line():
     os.chdir(cwd)
 
 
+@pytest.mark.filterwarnings("ignore:Dear")
 def test_fitness_module():
     I = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
     I_corrupted = copy.deepcopy(I)
