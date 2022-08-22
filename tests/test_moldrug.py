@@ -4,6 +4,7 @@ from rdkit import Chem
 from moldrug import utils, fitness, home
 from moldrug.data import receptors, ligands, boxes
 import tempfile, os, gzip, shutil, requests, yaml, copy, sys
+import pytest
 from multiprocessing import cpu_count
 
 
@@ -99,6 +100,7 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
             'min_inc':-5,
             'max_inc':3,
             'replace_ids': [3, 4, 5, 7],
+            'protected_ids': [0],
         },
         costfunc = fitness.CostMultiReceptors,
         costfunc_kwargs = {
@@ -140,6 +142,7 @@ def test_local_command_line():
             "type": "Local",
             "njobs": 1,
             "pick": 1,
+            "AddHs": True,
             "seed_mol": Chem.MolToSmiles(Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161))),
             "costfunc": "CostOnlyVina",
             "costfunc_kwargs": {
@@ -174,20 +177,29 @@ def test_local_command_line():
     os.chdir(cwd)
 
 
-def test_Cost_CostOnlyVina():
+def test_fitness_module():
     I = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
+    I_corrupted = copy.deepcopy(I)
+    I_corrupted.pdbqt = 'This is a corrupted pdbqt'
     receptor_paths = [r_x0161_file,r_6lu7_file]
     boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
     boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
     vina_score_types = ['min', 'max']
     
     fitness.Cost(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+    fitness.Cost(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+
+    fitness.CostMultiReceptors(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
+
 
     fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
     fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+    fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
+
 
     fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
     fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+    fitness.CostOnlyVina(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
 
 
 
