@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [1.1.0]
+
 ### Changed
 
 - `moldrug.utils.Individual` now is a hashable object.
@@ -26,6 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - `moldrug.utils.timeit`. No longer needed.
+
+### Added
+
+- Documentation.
 
 ## [1.0.2] - 2022.08.08
 
@@ -93,7 +99,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/1.0.2...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/ale94mleon/MolDrug/compare/1.0.2...1.1.0
 [1.0.2]: https://github.com/ale94mleon/MolDrug/compare/1.0.0...1.0.2
 [1.0.0]: https://github.com/ale94mleon/MolDrug/compare/0.1.0...1.0.0
 [0.1.0]: https://github.com/ale94mleon/MolDrug/compare/0.0.4...0.1.0

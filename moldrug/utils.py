@@ -790,7 +790,28 @@ class Local:
     """For local search
     """
     def __init__(self, seed_mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:Dict = {}, costfunc_kwargs:Dict = {}, AddHs:bool = False) -> None:
+        """Creator
 
+        Parameters
+        ----------
+        seed_mol : Chem.rdchem.Mol
+            The seed molecule from which the population will be generated.
+        crem_db_path : str
+            The pathway to the CReM data base.
+        costfunc : object
+            The cost function to work with (any from :mod:`moldrug.fitness` or a valid user defined).
+        grow_crem_kwargs : Dict, optional
+            The keywords of the grow_mol function of CReM, by default {}
+        costfunc_kwargs : Dict, optional
+            The keyword arguments of the selected cost function, by default {}
+        AddHs : bool, optional
+            If True the explicit hyrgones will be added, by default False
+
+        Raises
+        ------
+        Exception
+            In case that some problem occured during the creation of the Individula from the Seed_mol
+        """
         if AddHs:
             self.seed_mol = Chem.AddHs(seed_mol)
         else:
@@ -808,7 +829,15 @@ class Local:
 
 
     def __call__(self, njobs:int = 1, pick:int = None):
-        ts = time.time()
+        """Call deffinition
+
+        Parameters
+        ----------
+        njobs : int, optional
+            The number of jobs for parallelization, the module multiprocessing will be used, by default 1
+        pick : int, optional
+            How many molecules take from the generated throgh the grow_mol CReM operation, by default None which means all generated.
+        """
         self.grow_crem_kwargs.update({'return_mol':True})
         new_mols = list(grow_mol(
             self.seed_mol,
@@ -853,7 +882,16 @@ class Local:
         #This is just to use the progress bar on pool.imap
         return self.costfunc(Individual, **kwargs)
 
-    def pickle(self,title, compress = False):
+    def pickle(self,title:str, compress:bool = False):
+        """Method to pickle the whole Local class
+
+        Parameters
+        ----------
+        title : str
+            Name of the object which will be compleated with the correposnding extension depending if compress is set to True or False.
+        compress : bool, optional
+            Use compression, by default False. If True :meth:`moldrug.utils.compressed_pickle` will be used; if not :meth:`moldrug.utils.full_pickle` will be used instead.
+        """
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
@@ -863,6 +901,13 @@ class Local:
             full_pickle(title, result)
 
     def to_dataframe(self):
+        """Create a DataFrame of the genereated population.
+
+        Returns
+        -------
+        pandas.DataFrame
+            The DataFrame
+        """
         list_of_dictionaries = []
         for individual in self.pop:
             dictionary = individual.__dict__.copy()
@@ -874,7 +919,42 @@ class GA:
     """An implementation of genetic algorithm to search in the chemical space.
     """
     def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
+        """This is the generator
 
+        Parameters
+        ----------
+        seed_mol : Chem.rdchem.Mol
+            The seed molecule submited to genetic algorith optimazation on the chemical space.
+        costfunc : object
+            The cost function to work with (any from :mod:`moldrug.fitness` or a valid user defined).
+        costfunc_kwargs : Dict
+            The keyword arguments of the selected cost function
+        crem_db_path : str
+            The pathway to the CReM data base.
+        maxiter : int
+            Maximum number of iteration (or generation).
+        popsize : int
+            Population size.
+        beta : float, optional
+            Selection pressure, by default 0.001
+        pc : float, optional
+            Proportion of children, by default 1
+        get_similar : bool, optional
+            IF True the searching will be bias to similar molecules, by default False
+        mutate_crem_kwargs : Dict, optional
+            Parameters for mutate_mol of CReM, by default {}
+        save_pop_every_gen : int, optional
+            Frequency to save the population, by default 0
+        deffnm : str, optional
+            Default name for all generated files, by default 'ga'
+        AddHs : bool, optional
+           If True the explicit hyrgones will be added, by default False
+
+        Raises
+        ------
+        Exception
+            In case that some problem occured during the creation of the Individula from the Seed_mol
+        """
         self.AddHs = AddHs
         if self.AddHs:
             self.InitIndividual = Individual(Chem.AddHs(seed_mol), idx = 0)
@@ -918,6 +998,18 @@ class GA:
         self.SawIndividuals = set()
 
     def __call__(self, njobs:int = 1):
+        """Call deffinition
+
+        Parameters
+        ----------
+        njobs : int, optional
+            The number of jobs for parallelization, the module multiprocessing will be used, by default 1,
+
+        Raises
+        ------
+        RuntimeError
+            Error during the initialization of the population.
+        """
         ts = time.time()
         # Counting the calls
         self.NumCalls += 1
@@ -1084,7 +1176,19 @@ class GA:
         #This is just to use the progress bar on pool.imap
         return self.costfunc(individual, **kwargs)
 
-    def mutate(self, individual):
+    def mutate(self, individual:Individual):
+        """Genetic operators
+
+        Parameters
+        ----------
+        individual : Individual
+            The individula to mutate.
+
+        Returns
+        -------
+        Individual
+            A new Individual.
+        """
 
         # Here is were I have to check if replace_ids or protected_ids where provided.
         mutate_crem_kwargs_to_work_with = self.mutate_crem_kwargs.copy()
@@ -1110,13 +1214,34 @@ class GA:
         return Individual(mol)
 
 
-    def roulette_wheel_selection(self, p):
+    def roulette_wheel_selection(self, p:List[float]):
+        """Function to select the offsprings based on their fitness.
+
+        Parameters
+        ----------
+        p : list[float]
+            Probabilities
+
+        Returns
+        -------
+        int
+            The selected index
+        """
         c = np.cumsum(p)
         r = sum(p)*np.random.rand()
         ind = np.argwhere(r <= c)
         return ind[0][0]
 
-    def pickle(self, title, compress = False):
+    def pickle(self, title:str, compress = False):
+        """Method to pickle the whole GA class
+
+        Parameters
+        ----------
+        title : str
+            Name of the object which will be compleated with the correposnding extension depending if compress is set to True or False.
+        compress : bool, optional
+            Use compression, by default False. If True :meth:`moldrug.utils.compressed_pickle` will be used; if not :meth:`moldrug.utils.full_pickle` will be used instead.
+        """
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
@@ -1126,6 +1251,13 @@ class GA:
             full_pickle(title, result)
 
     def to_dataframe(self):
+        """Create a DataFrame of the self.SawIndividuals.
+
+        Returns
+        -------
+        pandas.DataFrame
+            The DataFrame
+        """
         list_of_dictionaries = []
         for individual in self.SawIndividuals:
             dictionary = individual.__dict__.copy()
