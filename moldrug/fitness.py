@@ -46,7 +46,11 @@ def Cost(
         }
     }
     ):
-    """This is the main Cost function of the module
+    """This is the main Cost function of the module. It use the concept of desirability functions. The response variables are:
+
+    #. `Vina score. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/>`_
+    #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
+    #. `Synthetic accessibility score.  <https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)>`_
 
     Parameters
     ----------
@@ -76,7 +80,7 @@ def Cost(
     Returns
     -------
     utils.Individual
-        A new instance of the original Individual with the the new attributes: pdbqt, qed, vina_score, sa_score and cost
+        A new instance of the original Individual with the the new attributes: pdbqt, qed, vina_score, sa_score and cost. cost attribute will be a number between 0 and 1, been 0 the optimal value.
     Example
     -------
     .. ipython:: python
@@ -189,7 +193,7 @@ def CostOnlyVina(
     num_modes:int = 1,
     wt_cutoff:float = None,
     ):
-    """This Cost function performs Docking and return the vina_score as cost
+    """This Cost function performs Docking and return the vina_score as cost.
 
     Parameters
     ----------
@@ -220,7 +224,7 @@ def CostOnlyVina(
     Returns
     -------
     utils.Individual
-        A new instance of the original Individual with the the new attributes: pdbqt, vina_score and cost
+        A new instance of the original Individual with the the new attributes: pdbqt, vina_score and cost. In this case cost = vina_score, the lowest the values the best individual.
     Example
     -------
     .. ipython:: python
@@ -341,7 +345,13 @@ def CostMultiReceptors(
         }
     }
     ):
-    """This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility to work with more than one receptor.
+    """This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility to work with more than one receptor. It also use the concept of desirability and the response variables are:
+    
+    #. `Vina scores. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/>`_
+    #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
+    #. `Synthetic accessibility score.  <https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)>`_
+
+    In this case every vina score (for all the provided receptors) will be used for the construction of the desirability.
 
     Parameters
     ----------
@@ -374,7 +384,7 @@ def CostMultiReceptors(
     Returns
     -------
     utils.Individual
-        A new instance of the original Individual with the the new attributes: pdbqts [a list of pdbqt], qed, vina_scores [a list of vina_score], sa_score and cost
+        A new instance of the original Individual with the the new attributes: pdbqts [a list of pdbqt], qed, vina_scores [a list of vina_score], sa_score and cost. cost attribute will be a number between 0 and 1, been 0 the optimal value.
 
     Example
     -------
@@ -523,7 +533,8 @@ def CostMultiReceptorsOnlyVina(
     },
     wt_cutoff = None,
     ):
-    """In this case we only use the information of vina Score and from there construct the desirabilities.
+    """This function is similar to :meth:`moldrug.fitness.CostOnlyVina` but it will add the possibility to work with more than one receptor. It also use the concept of desirability.
+    The response variables are the vina scores on each receptor.
 
     Parameters
     ----------
@@ -557,7 +568,7 @@ def CostMultiReceptorsOnlyVina(
     Returns
     -------
     utils.Individual
-        A new instance of the original Individual with the the new attributes: pdbqts [a list of pdbqt], vina_scores [a list of vina_score], and cost
+        A new instance of the original Individual with the the new attributes: pdbqts [a list of pdbqt], vina_scores [a list of vina_score], and cost. cost attribute will be a number between 0 and 1, been 0 the optimal value.
 
     Example
     -------
