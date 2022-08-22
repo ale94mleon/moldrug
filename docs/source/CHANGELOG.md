@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
     Before the results was: `([0, 2, 3], [])`. Now it is: `([0, 1, 2, 3], [])`. The behavior was because the `ringMatchesRingOnly` is set to `False` by default inside RDKit.
 
+### Removed
+
+- `moldrug.utils.timeit`. No longer needed.
+
 ## [1.0.2] - 2022.08.08
 
 ### Removed

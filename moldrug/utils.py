@@ -8,7 +8,7 @@ from crem.crem import mutate_mol, grow_mol
 from copy import deepcopy
 from inspect import getfullargspec
 import multiprocessing as mp
-import tempfile, subprocess, random, time, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
+import tempfile, subprocess, random, time, datetime, os, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
 from typing import List, Dict
 
 from rdkit import RDLogger
@@ -17,29 +17,6 @@ RDLogger.DisableLog('rdApp.*')
 ######################################################################################################################################
 #                                   Here are some important functions to work with                                                   #
 ######################################################################################################################################
-
-
-def timeit(method: object):
-    """Calculate the time of a process.
-    Useful as decorator of functions
-
-    Parameters
-    ----------
-    method : object
-        A python function
-    """
-    def timed(*args, **kw):
-        ts = time.time()
-        result = method(*args, **kw)
-        te = time.time()
-        if 'log_time' in kw:
-            name = kw.get('log_name', method.__name__.upper())
-            kw['log_time'][name] = int((te - ts) * 1000)
-        else:
-            print('%r  %2.2f ms' % (method.__name__, (te - ts) * 1000))
-        return result
-    return timed
-
 
 def run(command: str, shell: bool = True, executable: str = '/bin/bash'):
     """This function is just a useful wrapper around subprocess.run
@@ -831,6 +808,7 @@ class Local:
 
 
     def __call__(self, njobs:int = 1, pick:int = None):
+        ts = time.time()
         self.grow_crem_kwargs.update({'return_mol':True})
         new_mols = list(grow_mol(
             self.seed_mol,
@@ -866,6 +844,9 @@ class Local:
         pool.close()
 
         if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
+        
+        # Printing how long was the simulation
+        print(f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
         Individual, kwargs = args_list
@@ -891,14 +872,6 @@ class Local:
 
 class GA:
     """An implementation of genetic algorithm to search in the chemical space.
-
-    Attributes
-    ----------
-    -   pop:
-    -   SawIndividuals:
-    -   NumCalls:
-    -   NumGens:
-
     """
     def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
 
@@ -944,8 +917,8 @@ class GA:
         self.NumGens = 0
         self.SawIndividuals = set()
 
-    @timeit
     def __call__(self, njobs:int = 1):
+        ts = time.time()
         # Counting the calls
         self.NumCalls += 1
 
@@ -1102,6 +1075,9 @@ class GA:
         print(f"Final Individual: {self.pop[0]}")
         print(f"The cost function droped in {self.InitIndividual - self.pop[0]} units.")
         print(f"\n{50*'=+'}\n")
+        
+        # Printing how long was the simulation
+        print(f"Total time for generation {self.NumGens}: {time.time() - ts:>5.2f} (s).\nFinished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
         individual, kwargs = args_list
