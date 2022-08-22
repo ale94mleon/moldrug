@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `moldrug.utils.Individual` now is a hashable object.
 - `moldrug.utils.GA.SawIndividuals` now is a `set` instead of a `list`
+- `moldrug.utils.update_reactant_zone` sets the keywords `matchValences` and `ringMatchesRingOnly` to True on rdFMCS.FindMCS. This prevent undesired effects. E.g:
+
+    ```python
+    from moldrug.utils import update_reactant_zone
+    from rdkit import Chem
+    mol1 = Chem.MolFromSmiles('c1ccccc1')
+    mol2 = Chem.MolFromSmiles('CCCN')
+    update_reactant_zone(parent=mol1,offspring=mol2 parent_replace_ids = [0,2])
+    ```
+
+    Before the results was: `([0, 2, 3], [])`. Now it is: `([0, 1, 2, 3], [])`. The behavior was because the `ringMatchesRingOnly` is set to `False` by default inside RDKit.
 
 ## [1.0.2] - 2022.08.08
 
