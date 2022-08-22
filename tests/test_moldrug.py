@@ -266,4 +266,4 @@ def test_miscellanea():
 
 
 if __name__ == '__main__':
-    test_multi_receptor()
+    test_fitness_module()

@@ -135,7 +135,7 @@ def Cost(
             'boxsize': boxsize,
         }
         utils.compressed_pickle(f'{Individual.idx}_error', error)
-        warnings.warn(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
+        warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
             f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
             "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
             "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
@@ -277,7 +277,7 @@ def CostOnlyVina(
             'boxsize': boxsize,
         }
         utils.compressed_pickle(f'{Individual.idx}_error', error)
-        warnings.warn(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
+        warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
             f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
             "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
             "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
@@ -443,7 +443,7 @@ def CostMultiReceptors(
                 'boxsize': boxsizes[i],
             }
             utils.compressed_pickle(f'{Individual.idx}_error', error)
-            warnings.warn(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
+            warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
                 f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
                 "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
                 f"Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box for the receptor with index: {i}.")
@@ -631,7 +631,7 @@ def CostMultiReceptorsOnlyVina(
                 'boxsize': boxsizes[i],
             }
             utils.compressed_pickle(f'{Individual.idx}_error', error)
-            warnings.warn(f"Dear {os.getlogin()}, as you know MolDrug is still in development and need your help to improve."\
+            warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
                 f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
                 "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
                 f"Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box for the receptor with index: {i}.")
