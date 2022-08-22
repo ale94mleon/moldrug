@@ -201,6 +201,8 @@ def test_fitness_module():
     fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
     fitness.CostOnlyVina(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
 
+    # Clean
+    os.remove('0_error.pbz2')
 
 
 def test_home():
