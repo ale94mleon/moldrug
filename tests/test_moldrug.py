@@ -186,7 +186,7 @@ def test_fitness_module():
     boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
     boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
     vina_score_types = ['min', 'max']
-    
+
     fitness.Cost(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
     fitness.Cost(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_path = r_x0161_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
 

@@ -1167,9 +1167,9 @@ class GA:
         print(f"Final Individual: {self.pop[0]}")
         print(f"The cost function droped in {self.InitIndividual - self.pop[0]} units.")
         print(f"\n{50*'=+'}\n")
-        
+
         # Printing how long was the simulation
-        print(f"Total time for generation {self.NumGens}: {time.time() - ts:>5.2f} (s).\nFinished at {datetime.datetime.now().strftime('%c')}.\n")
+        print(f"Total time ({self.NumGens} generations): {time.time() - ts:>5.2f} (s).\nFinished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
         individual, kwargs = args_list
