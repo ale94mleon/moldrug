@@ -88,7 +88,49 @@ class ProteinLigandClashFilter:
         return False
 
 
-def main():
+def main(pdb:str, smi:str, fix:str, out:str, max:int = 25, rms:float = 0.01, bump:float = 1.5):
+    """_summary_
+
+    Parameters
+    ----------
+    pdb : str
+        Protein pdb file
+    smi : str
+        Input SMILES file name
+    fix : str
+        File with fixed piece of the molecule
+    out : str
+        Output file name
+    max : int, optional
+        Maximum number of conformers to generate, by default 25
+    rms : float, optional
+        RMS cutoff, by default 0.01
+    bump : float, optional
+        Bump cutoff, by default 1.5
+    """
+
+    ref = Chem.MolFromMolFile(fix)
+    suppl = Chem.SmilesMolSupplier(smi, titleLine=False)
+    writer = Chem.SDWriter(out)
+
+    clash_filter = ProteinLigandClashFilter(pdb, distance=bump)
+
+    for mol in tqdm(suppl):
+        # generate conformers
+        out_mol = generate_conformers(mol, ref,
+                                      max,
+                                      ref_smi=Chem.MolToSmiles(ref),
+                                      minimum_conf_rms=rms)
+
+        # remove conformers that clash with the protein
+        clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
+        [out_mol.RemoveConformer(clashId) for clashId in clashIds]
+
+        # write out the surviving conformers
+        for conf in out_mol.GetConformers():
+            writer.write(out_mol, confId=conf.GetId())
+
+def constraintconf_cmd():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         '--pdb',
@@ -116,46 +158,27 @@ def main():
     )
     parser.add_argument(
         '--max',
-        help = 'Maximum number of conformers to generate; default %(default)s',
+        help = 'Maximum number of conformers to generate, by default %(default)s',
         dest = 'max',
         default = 25,
         type = int,
     )
     parser.add_argument(
         '--rms',
-        help = 'RMS cutoff; default %(default)s',
+        help = 'RMS cutoff, by default %(default)s',
         dest = 'rms',
         default = 0.01,
         type = float,
     )
     parser.add_argument(
         '--bump',
-        help = 'Bump cutoff default %(default)s',
+        help = 'Bump cutoff, by default %(default)s',
         dest = 'bump',
         default = 1.5,
         type = float,
     )
     args = parser.parse_args()
-    ref = Chem.MolFromMolFile(args.fix)
-    suppl = Chem.SmilesMolSupplier(args.smi, titleLine=False)
-    writer = Chem.SDWriter(args.out)
-
-    clash_filter = ProteinLigandClashFilter(args.pdb, distance=args.bump)
-
-    for mol in tqdm(suppl):
-        # generate conformers
-        out_mol = generate_conformers(mol, ref,
-                                      args.max,
-                                      ref_smi=Chem.MolToSmiles(ref),
-                                      minimum_conf_rms=args.rms)
-
-        # remove conformers that clash with the protein
-        clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
-        [out_mol.RemoveConformer(clashId) for clashId in clashIds]
-
-        # write out the surviving conformers
-        for conf in out_mol.GetConformers():
-            writer.write(out_mol, confId=conf.GetId())
+    main(args.pdb, args.smi, args.fix, args.out, args.max, args.rms, args.bump)
 
 
 if __name__ == "__main__":
