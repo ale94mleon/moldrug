@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from moldrug import utils
+from random import betavariate
+from moldrug import utils, constraintconf
+from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
 import os
 import numpy as np
 from typing import Dict, List
 import warnings
+from meeko import MoleculePreparation
 
 
 
@@ -112,7 +115,7 @@ def Cost(
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
         f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
         f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
-    #print(cmd)
+
     # Creating the ligand pdbqt
     with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
         l.write(Individual.pdbqt)
@@ -254,7 +257,7 @@ def CostOnlyVina(
         f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
         f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
         f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
-    #print(cmd)
+
     # Creating the ligand pdbqt
     with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
         l.write(Individual.pdbqt)
@@ -346,7 +349,7 @@ def CostMultiReceptors(
     }
     ):
     """This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility to work with more than one receptor. It also use the concept of desirability and the response variables are:
-    
+
     #. `Vina scores. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/>`_
     #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
     #. `Synthetic accessibility score.  <https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)>`_
@@ -421,7 +424,7 @@ def CostMultiReceptors(
             f"--center_x {boxcenters[i][0]} --center_y {boxcenters[i][1]} --center_z {boxcenters[i][2]} "\
             f"--size_x {boxsizes[i][0]} --size_y {boxsizes[i][1]} --size_z {boxsizes[i][2]} "\
             f"--out {os.path.join(wd, f'{Individual.idx}_{i}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
-        #print(cmd)
+
         # Creating the ligand pdbqt
         with open(os.path.join(wd, f'{Individual.idx}_{i}.pdbqt'), 'w') as l:
             l.write(Individual.pdbqt)
@@ -609,7 +612,7 @@ def CostMultiReceptorsOnlyVina(
             f"--center_x {boxcenters[i][0]} --center_y {boxcenters[i][1]} --center_z {boxcenters[i][2]} "\
             f"--size_x {boxsizes[i][0]} --size_y {boxsizes[i][1]} --size_z {boxsizes[i][2]} "\
             f"--out {os.path.join(wd, f'{Individual.idx}_{i}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
-        #print(cmd)
+
         # Creating the ligand pdbqt
         with open(os.path.join(wd, f'{Individual.idx}_{i}.pdbqt'), 'w') as l:
             l.write(Individual.pdbqt)
@@ -674,5 +677,168 @@ def CostMultiReceptorsOnlyVina(
     Individual.cost = 1 - D
     return Individual
 
+# Now I will implement some cost function with constrain Docking
+
+def CostOnlyVinaUnderDev(
+    Individual:utils.Individual,
+    wd:str = '.vina_jobs',
+    vina_executable:str = 'vina',
+    receptor_pdbqt_path:str = None,
+    boxcenter:List[float] = None,
+    boxsize:List[float] =None,
+    exhaustiveness:int = 8,
+    ncores:int = 1,
+    num_modes:int = 1,
+    wt_cutoff:float = None,
+    constraint:bool = False,
+    ref_constraint:Chem.rdchem.Mol = None,
+    receptor_pdb_path:str = None,
+    ):
+    """This Cost function performs Docking and return the vina_score as cost.
+
+    Parameters
+    ----------
+    Individual : utils.Individual
+        A Individual with the pdbqt attribute
+    wd : str, optional
+        The working directory to execute the docking jobs, by default '.vina_jobs'
+    vina_executable : str, optional
+        This is the name of the vina executable, could be a path to the binary object (x, y, z),  by default 'vina'
+    receptor_path : str, optional
+        Where the receptor pdbqt file is located, by default None
+    boxcenter : list[float], optional
+        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+    boxsize : list[float], optional
+        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+    exhaustiveness : int, optional
+        Parameter of vina that controls the accuracy of the docking searching, by default 8
+    ncores : int, optional
+        Number of cpus to use in Vina, by default 1
+    num_modes : int, optional
+        How many modes should Vina export, by default 1
+    desirability : dict, optional
+        The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
+        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`]
+        ,by default { 'qed': { 'w': 1, 'LargerTheBest': { 'LowerLimit': 0.1, 'Target': 0.75, 'r': 1 } }, 'sa_score': { 'w': 1, 'SmallerTheBest': { 'Target': 3, 'UpperLimit': 7, 'r': 1 } }, 'vina_score': { 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } } }
+    wt_cutoff : float, optional
+        If some number is provided the molecules with a molecular weight higher than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
+    constraint : bool, optional
+        If True the ref_constraint part of Individual will be hold fix. In this case only an evaluation of Vina will be performed (maybe we could also use as parameter if --local_only, --score_only) for now only score_only, by default False
+
+    Returns
+    -------
+    utils.Individual
+        A new instance of the original Individual with the the new attributes: pdbqt, vina_score and cost. In this case cost = vina_score, the lowest the values the best individual.
+    Example
+    -------
+    .. ipython:: python
+
+        from moldrug import utils, fitness
+        from rdkit import Chem
+        import tempfile, os
+        from moldrug.data import ligands, boxes, receptors
+        tmp_path = tempfile.TemporaryDirectory()
+        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        I = utils.Individual(ligand_mol)
+        receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
+        with open(receptor_path, 'w') as r: r.write(receptors.r_x0161)
+        box = boxes.r_x0161['A']
+        NewI = fitness.CostOnlyVina(Individual = I,wd = tmp_path.name,receptor_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
+        print(NewI.cost, NewI.vina_score)
+    """
+    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add the pdbqt to pdbqts and np.inf to vina_scores
+    if wt_cutoff:
+        if Descriptors.MolWt(Individual.mol) > wt_cutoff:
+            Individual.vina_score = np.inf
+            Individual.cost = np.inf
+            return Individual
+
+    # Generate constrained conformer
+    out_mol = constraintconf.generate_conformers(Individual.mol, ref_constraint,
+                                100,
+                                ref_smi=Chem.MolToSmiles(ref_constraint),
+                                minimum_conf_rms=0.01)
+
+    # Remove conformers that clash with the protein
+    clash_filter = constraintconf.ProteinLigandClashFilter(receptor_pdb_path, distance=1.5)
+    clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
+    [out_mol.RemoveConformer(clashId) for clashId in clashIds]
+
+    # Write out the surviving conformers
+    for conf in out_mol.GetConformers():
+        Chem.SDWriter(os.path.join(wd, 'suppl.sdf')).write(out_mol, confId=conf.GetId())
+
+    # Reading again as molecule objects. No so clean solution.
+    for (i, mol) in enumerate(Chem.SDMolSupplier(os.path.join(wd, 'suppl.sdf'))):
+
+        preparator = MoleculePreparation()
+        preparator.prepare(mol)
+        preparator.write_pdbqt_file(os.path.join(wd, f'{Individual.idx}_conf_{i}.pdbqt'))
+
+        # Getting Vina score
+        cmd = f"{vina_executable} --score_only --receptor {receptor_pdbqt_path} --ligand {os.path.join(wd, f'{Individual.idx}_conf_{i}.pdbqt')} "\
+            f"--center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]} "\
+            f"--size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]} "\
+            f"--out {os.path.join(wd, f'{Individual.idx}_conf_{i}_out.pdbqt')} --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+
+        try:
+            vina_cmd = utils.run(cmd)
+        except Exception as e:
+            if os.path.isfile(receptor_pdbqt_path):
+                with open(receptor_pdbqt_path, 'r') as f:
+                    receptor_str = f.read()
+            else:
+                receptor_str = None
+
+            error = {
+                'Exception': e,
+                'Individual': Individual,
+                'receptor_str': receptor_str,
+                'boxcenter': boxcenter,
+                'boxsize': boxsize,
+            }
+            utils.compressed_pickle(f'{Individual.idx}_error', error)
+            warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
+                f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
+                "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
+                "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
+
+            Individual.vina_score = np.inf
+            Individual.cost = np.inf
+            return Individual
+        # Getting the information
+        #best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_conf_{i}_out.pdbqt')).BestEnergy()
+        vina_score = np.inf
+        for line in vina_cmd.stdout.split('\n'):
+            if line.startswith('Affinity'):
+                vina_score = float(line.split()[1])
+                break
+        if vina_score <= Individual.cost: # in this case the cost is the vina_score
+            # Getting the Scoring function of Vina
+            Individual.vina_score = vina_score
+            Individual.cost = vina_score
+
+    return Individual
+
 if __name__ == '__main__':
     pass
+    from moldrug import utils, fitness
+    from rdkit import Chem
+    import tempfile, os
+    from moldrug.data import ligands, boxes, receptors
+    tmp_path = tempfile.TemporaryDirectory()
+    ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+    I = utils.Individual(ligand_mol)
+    receptor_pdbqt_path = os.path.join(tmp_path.name,'receptor.pdbqt')
+    with open(receptor_pdbqt_path, 'w') as r: r.write(receptors.r_x0161)
+    box = boxes.r_x0161['A']
+    NewI = fitness.CostOnlyVinaUnderDev(
+        Individual = I,
+        wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
+        boxcenter = box['boxcenter'],
+        boxsize = box['boxsize'],
+        exhaustiveness = 4,
+        ncores = 4,
+        ref_constraint = Chem.MolFromMolFile('/home/ale/TEST/t/x0161_lig.sdf'),
+        receptor_pdb_path = '/home/ale/TEST/t/x0161_prot.pdb',)
+    print(NewI.cost, NewI.vina_score)
