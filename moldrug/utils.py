@@ -779,7 +779,10 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
         with Chem.SDWriter(f"{sdf_name}.sdf") as w:
             for individual in individuals:
                 with open(pdbqt_tmp.name, 'w') as f:
-                    f.write(individual.pdbqt)
+                    if len(NumbOfpdbqt) == 0:
+                        f.write(individual.pdbqt)
+                    else:
+                        f.write(individual.pdbqt[0])
                 pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
                 mol = pdbqt_mol.export_rdkit_mol()
                 mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
