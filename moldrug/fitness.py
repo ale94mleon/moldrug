@@ -403,15 +403,15 @@ def Cost(
         from moldrug import utils, fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptors
+        from moldrug.data import ligands, boxes, receptor_pdbqt
         tmp_path = tempfile.TemporaryDirectory()
         ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
         I = utils.Individual(ligand_mol)
         receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
-        with open(receptor_path, 'w') as r: r.write(receptors.r_x0161)
+        with open(receptor_path, 'w') as r: r.write(receptor_pdbqt.r_x0161)
         box = boxes.r_x0161['A']
         # Using the default desirability
-        NewI = fitness.Cost(Individual = I,wd = tmp_path.name,receptor_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
+        NewI = fitness.Cost(Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
     """
     sascorer = utils.import_sascorer()
@@ -523,14 +523,14 @@ def CostOnlyVina(
         from moldrug import utils, fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptors
+        from moldrug.data import ligands, boxes, receptor_pdbqt
         tmp_path = tempfile.TemporaryDirectory()
         ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
         I = utils.Individual(ligand_mol)
         receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
-        with open(receptor_path, 'w') as r: r.write(receptors.r_x0161)
+        with open(receptor_path, 'w') as r: r.write(receptor_pdbqt.r_x0161)
         box = boxes.r_x0161['A']
-        NewI = fitness.CostOnlyVina(Individual = I,wd = tmp_path.name,receptor_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
+        NewI = fitness.CostOnlyVina(Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score)
     """
     # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add the pdbqt to pdbqts and np.inf to vina_scores
@@ -665,19 +665,19 @@ def CostMultiReceptors(
         from moldrug import utils, fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptors
+        from moldrug.data import ligands, boxes, receptor_pdbqt
         tmp_path = tempfile.TemporaryDirectory()
         ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
         I = utils.Individual(ligand_mol)
         receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
-        with open(receptor_paths[0], 'w') as r: r.write(receptors.r_x0161)
-        with open(receptor_paths[1], 'w') as r: r.write(receptors.r_6lu7)
-        boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
-        boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
-        vina_score_types = ['min', 'max']
+        with open(receptor_paths[0], 'w') as r: r.write(receptor_pdbqt.r_x0161)
+        with open(receptor_paths[1], 'w') as r: r.write(receptor_pdbqt.r_6lu7)
+        boxcenter = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
+        boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
+        vina_score_type = ['min', 'max']
         # Using the default desirability
-        NewI = fitness.CostMultiReceptors(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
-        print(NewI.cost, NewI.vina_scores, NewI.qed, NewI.sa_score)
+        NewI = fitness.CostMultiReceptors(Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_paths, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
     """
     sascorer = utils.import_sascorer()
     Individual.qed = QED.weights_mean(Individual.mol)
@@ -846,19 +846,19 @@ def CostMultiReceptorsOnlyVina(
         from moldrug import utils, fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptors
+        from moldrug.data import ligands, boxes, receptor_pdbqt
         tmp_path = tempfile.TemporaryDirectory()
         ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
         I = utils.Individual(ligand_mol)
         receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
-        with open(receptor_paths[0], 'w') as r: r.write(receptors.r_x0161)
-        with open(receptor_paths[1], 'w') as r: r.write(receptors.r_6lu7)
-        boxcenters = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
-        boxsizes = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
-        vina_score_types = ['min', 'max']
+        with open(receptor_paths[0], 'w') as r: r.write(receptor_pdbqt.r_x0161)
+        with open(receptor_paths[1], 'w') as r: r.write(receptor_pdbqt.r_6lu7)
+        boxcenter = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
+        boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
+        vina_score_type = ['min', 'max']
         # Using the default desirability
-        NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_paths = receptor_paths, vina_score_types = vina_score_types, boxcenters = boxcenters,boxsizes = boxsizes,exhaustiveness = 4,ncores = 4)
-        print(NewI.cost, NewI.vina_scores)
+        NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_paths, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        print(NewI.cost, NewI.vina_score)
     """
     pdbqt_list = []
     Individual.vina_score = []
