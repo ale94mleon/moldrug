@@ -24,6 +24,7 @@ Welcome to moldrug's documentation!
    notebooks/quickstart
    notebooks/how_to
    notebooks/advance_topics
+   notebooks/oncoming
 
 .. toctree::
    :caption: Documentation
