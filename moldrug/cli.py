@@ -70,6 +70,10 @@ def moldrug_cmd():
     # Convert the SMILES to RDKit mol
     MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
 
+    # Convert if needed constraint_ref
+    if 'constraint_ref' in MainConfig['costfunc_kwargs']:
+        MainConfig['costfunc_kwargs']['constraint_ref'] = Chem.MolFromMolFile(MainConfig['costfunc_kwargs']['constraint_ref'])
+
     InitArgs = MainConfig.copy()
 
     # Modifying InitArgs
