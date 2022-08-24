@@ -9,8 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Added
 
-- `moldrug.constraintconf` module. The code was borrowed from [Pat Walters](https://github.com/PatWalters/fragment_expansion/blob/master/rdkit_eval/rd_gen_restricted_confs.py). It is used if constrain Docking is needed.
+- The functions duplicate_conformers, get_mcs, generate_conformers, constraintconf and constraintconf_cmd and the class ProteinLigandClashFilter. The code was borrowed from [Pat Walters](https://github.com/PatWalters/fragment_expansion/blob/master/rdkit_eval/rd_gen_restricted_confs.py). It is used if constraint docking is needed.
 - `constraintconf` can be called from the command line.
+- `moldrug.fitness.vinadock()` a simple wrapper around vina. This function will be used for all the implemented cost functions inside of the module `moldrug.fitness`. It could be used for constraint docking.
+- `moldrug.data.constraintref`. This module is used for testing in case constraint docking is needed. It has two MolBlock strings: `r_6lu7` and `r_x0161`. That could be easily converted in RDKit molecules..
+
+    ```python
+    from rdkit import Chem
+    from moldrug.data import constraintref
+    mol = Chem.MolFromMolBlock(constraintref.r_x0161)
+    ```
+
+    This molecule is needed for the keyword argument `constraint_ref` of the functions of the `moldrug.fitness` module in case of constraint docking is used.
+- Constraint docking capability in all implemented cost functions of the module `moldrug.fitness`.
+- `moldrug.data.receptor_pdb`. This module is similar to `moldrug.data.receptor_pdbqt` but in pdb format.
+
+## Changed
+
+- `moldrug.utils.make_sdf` only will create the sdf file based on the `pdbqt` attribute. If `pdbqt` is a list, it will work as previous version works with `pdbqts` attribute.
+- Name of the module `moldrug.data.receptors` to `moldrug.data.receptor_pdbqt`.
+- Name of keyword argument `receptor_path` to `receptor_pdbqt_path` on the cost functions: `moldrug.fitness.Cost` and `moldrug.fitness.CostOnlyVina`.
+- Name of keyword arguments `receptor_path`, `vina_score_types`, `boxcenters` and `boxsizes` to `receptor_pdbqt_path`, `vina_score_type`, `boxcenter` and `boxsize` respectively  on the cost functions: `moldrug.fitness.CostMultiReceptors` and `moldrug.fitness.CostMultiReceptorsOnlyVina`.
 
 ## [1.1.0] - 2022.08.23
 
