@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from copy import deepcopy
+from genericpath import isfile
 from moldrug import utils
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors, AllChem, rdFMCS
@@ -271,15 +272,19 @@ def vinadock(
                     "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
                 vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                 return vina_score_pdbqt
-
+            
+            vina_score = np.inf
             for line in cmd_vina_result.stdout.split('\n'):
                 if line.startswith('Affinity'):
                     vina_score = float(line.split()[1])
                     break
             if vina_score < vina_score_pdbqt[0]:
                 if constraint_type == 'local_only':
-                    best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')).BestEnergy()
-                    vina_score_pdbqt = (vina_score, ''.join(best_energy.chunk))
+                    if os.path.isfile(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')):
+                        pdbqt = ''.join(utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')).BestEnergy())
+                    else:
+                        pdbqt = Individual.pdbqt
+                    vina_score_pdbqt = (vina_score, pdbqt)
                 else:
                     vina_score_pdbqt = (vina_score, preparator.write_pdbqt_string())
     # "Normal" docking
