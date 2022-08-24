@@ -735,19 +735,19 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
         # Creating two individuals
         I1 = utils.Individual(Chem.MolFromSmiles('CCCCl'))
         I2 = utils.Individual(Chem.MolFromSmiles('CCOCCCF'))
-        # Creating the pdbqts attribute with the pdbqt attribute (this is just a silly example)
-        I1.pdbqts = [I1.pdbqt, I1.pdbqt]
-        I2.pdbqts = [I2.pdbqt, I2.pdbqt]
+        # Creating the pdbqt attribute as a list with the pdbqt attribute (this is just a silly example)
+        I1.pdbqt = [I1.pdbqt, I1.pdbqt]
+        I2.pdbqt = [I2.pdbqt, I2.pdbqt]
         utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
         # Two files were created
-        # In the other hand, if the attribute pdbqts is not present, only one file is going to be created
-        # Delete the pdbqts attribute
-        delattr(I1, 'pdbqts')
-        delattr(I2, 'pdbqts')
+        # In the other hand, if the attribute pdbqt is not a list, only one file is going to be created
+        # Set pdbqt to the original value
+        I1.pdbqt = I1.pdbqt[0]
+        I2.pdbqt = I2.pdbqt[0]
         utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
-        # Only one file will be created if the pdbqts has not len in some of the individuals or they presents different lens as well. In this case the pdbqts will be completely ignored and pdbqt attribute will be used for the construction of the sdf file
-        I1.pdbqts = [I1.pdbqt, I1.pdbqt, I1.pdbqt]
-        I2.pdbqts = [I2.pdbqt, I2.pdbqt]
+        # Only one file will be created if the pdbqt has not len in some of the individuals or they presents different lens as well. In this case the pdbqts will be completely ignored and pdbqt attribute will be used for the construction of the sdf file
+        I1.pdbqt = [I1.pdbqt, I1.pdbqt, I1.pdbqt]
+        I2.pdbqt = [I2.pdbqt, I2.pdbqt]
         utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
     """
     pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
@@ -756,12 +756,12 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
     check = True
     NumbOfpdbqt = set()
     for individual in individuals:
-        if 'pdbqts' in dir(individual):
-            NumbOfpdbqt.add(len(individual.pdbqts))
+        if isinstance(individual.pdbqt, List):
+            NumbOfpdbqt.add(len(individual.pdbqt))
         else:
             check = False
             break
-    if len(NumbOfpdbqt) == 0 or len(NumbOfpdbqt) > 1:
+    if len(NumbOfpdbqt) > 1:
         check = False
 
     if check == True:
@@ -769,7 +769,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
             with Chem.SDWriter(f"{sdf_name}_{i+1}.sdf") as w:
                 for individual in individuals:
                     with open(pdbqt_tmp.name, 'w') as f:
-                        f.write(individual.pdbqts[i])
+                        f.write(individual.pdbqt[i])
                     pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
                     mol = pdbqt_mol.export_rdkit_mol()
                     mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
