@@ -621,10 +621,10 @@ class Individual:
 
     @property
     def smiles(self):
-        return Chem.MolToSmiles(self.mol)
+        return Chem.MolToSmiles(Chem.RemoveHs(self.mol))
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {Chem.MolToSmiles(Chem.RemoveHs(self.mol))}, cost = {self.cost})"
+        return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {self.smiles}, cost = {self.cost})"
 
     def __hash__(self):
         return hash(self.smiles)
