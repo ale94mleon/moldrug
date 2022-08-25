@@ -24,10 +24,26 @@ and the class ProteinLigandClashFilter:
     https://github.com/JoshuaMeyers/Snippets/blob/master/200405_constrained_conformers.ipynb
     and that code was adapted from Tim Dudgeon
     https://github.com/InformaticsMatters/pipelines/blob/master/src/python/pipelines/rdkit/constrained_conf_gen.py
-    All I've done is change the commandline wrapper and modify how to remove conformers that clash with the protein
+    All I've done is change the command line wrapper, modify how to remove conformers that clash with the protein and add documentation.
 """
 
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
+    """Check if a conformer with index new_onf_idx it is duplicated based on rms_limit
+
+    Parameters
+    ----------
+    m : Chem.rdchem.Mol
+        An RDKit molecule with conformers.
+    new_conf_idx : int
+        Index of the conformer to check.
+    rms_limit : float, optional
+        Threshold of rms to consider duplicate structure, by default 0.5.
+
+    Returns
+    -------
+    bool
+        True if the conformer new_conf_idx id is duplicate. false otherwise.
+    """
     rmslist = []
     for i in range(m.GetNumConformers()):
         if i == new_conf_idx:
@@ -37,7 +53,20 @@ def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float
     return any(i < rms_limit for i in rmslist)
 
 def get_mcs(mol_one: Chem.rdchem.Mol, mol_two: Chem.rdchem.Mol) -> str:
-    """Code to find the maximum common substructure between two molecules."""
+    """Code to find the maximum common substructure between two molecules.
+
+    Parameters
+    ----------
+    mol_one : Chem.rdchem.Mol
+        The first molecule.
+    mol_two : Chem.rdchem.Mol
+        The second molecule.
+
+    Returns
+    -------
+    str
+        The SMILES string of the Maximum Common Substructure (MCS).
+    """
     return Chem.MolToSmiles(
         Chem.MolFromSmarts(
             rdFMCS.FindMCS([mol_one, mol_two], completeRingsOnly=True, matchValences=True).smartsString
@@ -50,6 +79,26 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                         ref_smi: str = None,
                         minimum_conf_rms: Optional[float] = None,
                         ) -> List[Chem.rdchem.Mol]:
+    """Generate constrained conformers
+
+    Parameters
+    ----------
+    mol : Chem.rdchem.Mol
+        The molecule for which the conformer will be generated.
+    ref_mol : Chem.rdchem.Mol
+        The reference structure from which the reference coordinates will be taken.
+    num_conf : int
+        Maximum number of conformer to generate.
+    ref_smi : str, optional
+        part of the molecule to keep fix. If ref_smi is not given, assume to the MCS between mol and ref_mol, by default None
+    minimum_conf_rms : Optional[float], optional
+        Threshold of rms to consider duplicate structure, by default None
+
+    Returns
+    -------
+    List[Chem.rdchem.Mol]
+        _description_
+    """
     # if SMILES to be fixed are not given, assume to the MCS
     if not ref_smi:
         ref_smi = get_mcs(mol, ref_mol)
@@ -77,18 +126,41 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                 outmol.RemoveConformer(conf_idx)
     if dup_count:
         pass
-    # print(f'removed {dup_count} duplicated conformations')
+        # print(f'removed {dup_count} duplicated conformations')
     return outmol
 
 
 class ProteinLigandClashFilter:
+    """Class used to eliminate clash between a ligand and a protein.
+    """
     def __init__(self, protein_pdbpath: str, distance: float = 1.5):
+        """This is the constructor of the class
+
+        Parameters
+        ----------
+        protein_pdbpath : str
+            Path top the protein pdb file
+        distance : float, optional
+            Threshold of distance to consider a clash, by default 1.5
+        """
         parser = PDB.PDBParser(QUIET=True, PERMISSIVE=True)
         s = parser.get_structure('protein', protein_pdbpath)
         self.kd = PDB.NeighborSearch(list(s.get_atoms()))
         self.radius = distance
 
     def __call__(self, conf: Chem.rdchem.Conformer) -> bool:
+        """Call deffinition
+
+        Parameters
+        ----------
+        conf : Chem.rdchem.Conformer
+            The conformer to be evaluated
+
+        Returns
+        -------
+        bool
+            True if there clash, False otherwise.
+        """
         for coord in conf.GetPositions():
             res = self.kd.search(coord, radius=self.radius)
             if len(res):
@@ -138,6 +210,8 @@ def constraintconf(pdb:str, smi:str, fix:str, out:str, max:int = 25, rms:float =
             writer.write(out_mol, confId=conf.GetId())
 
 def constraintconf_cmd():
+    """Command line implementation for the function constraintconf
+    """
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         '--pdb',
@@ -204,6 +278,52 @@ def vinadock(
     constraint_receptor_pdb_path:str = None,
     constraint_num_conf:int = 100,
     constraint_minimum_conf_rms:int = 0.01):
+    """This function is intend to be used to perform docking fro all the cost functions implemented on :mod:`moldrug.fitness`
+
+    Parameters
+    ----------
+    Individual : utils.Individual
+        An Individual with the pdbqt attribute (only needed for non constraint docking).
+    wd : str, optional
+        The working directory to execute the docking jobs, by default '.vina_jobs'
+    vina_executable : str, optional
+        This is the name of the vina executable, could be a path to the binary object, by default 'vina'
+    receptor_pdbqt_path : str, optional
+         Where the receptor pdbqt file is located, by default None
+    boxcenter : List[float], optional
+        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+    boxsize : List[float], optional
+        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+    exhaustiveness : int, optional
+         Parameter of vina that controls the accuracy of the docking searching, by default 8
+    ncores : int, optional
+        Number of cpus to use in Vina, by default 1
+    num_modes : int, optional
+        How many modes should Vina export, by default 1
+    constraint : bool, optional
+        Controls if constraint docking will be perform, by default False
+    constraint_type : str, optional
+        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+    constraint_ref : Chem.rdchem.Mol, optional
+        The part of the molecule that we would like to constraint, by default None
+    constraint_receptor_pdb_path : str, optional
+        The same as constraint_receptor_pdbqt_path but in pdb format, by default None
+    constraint_num_conf : int, optional
+        Maximum number of conformer to be generated internally by MolDrug , by default 100
+    constraint_minimum_conf_rms : int, optional
+        RMS to filter duplicate conformers, by default 0.01
+
+    Returns
+    -------
+    tuple
+        A tuple with two elements:
+        (vina score, pdbqt string)
+
+    Raises
+    ------
+    Exception
+        Inappropriate constraint_type. must be local_only or score_only. Only will be checked if constraint is set to True.
+    """
     # Creating the command line for vina
     cmd_vina_str = f"{vina_executable} --receptor {receptor_pdbqt_path}"\
         f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
@@ -382,8 +502,8 @@ def Cost(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object (x, y, z),  by default 'vina'
-    receptor_path : str, optional
+        This is the name of the vina executable, could be a path to the binary object,  by default 'vina'
+    receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : list[float], optional
         A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
@@ -395,6 +515,18 @@ def Cost(
         Number of cpus to use in Vina, by default 1
     num_modes : int, optional
         How many modes should Vina export, by default 1
+    constraint : bool, optional
+        Controls if constraint docking will be perform, by default False
+    constraint_type : str, optional
+        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+    constraint_ref : Chem.rdchem.Mol, optional
+        The part of the molecule that we would like to constraint, by default None
+    constraint_receptor_pdb_path : str, optional
+        The same as constraint_receptor_pdbqt_path but in pdb format, by default None
+    constraint_num_conf : int, optional
+        Maximum number of conformer to be generated internally by MolDrug , by default 100
+    constraint_minimum_conf_rms : int, optional
+        RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`]
@@ -514,6 +646,18 @@ def CostOnlyVina(
         Number of cpus to use in Vina, by default 1
     num_modes : int, optional
         How many modes should Vina export, by default 1
+    constraint : bool, optional
+        Controls if constraint docking will be perform, by default False
+    constraint_type : str, optional
+        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+    constraint_ref : Chem.rdchem.Mol, optional
+        The part of the molecule that we would like to constraint, by default None
+    constraint_receptor_pdb_path : str, optional
+        The same as constraint_receptor_pdbqt_path but in pdb format, by default None
+    constraint_num_conf : int, optional
+        Maximum number of conformer to be generated internally by MolDrug , by default 100
+    constraint_minimum_conf_rms : int, optional
+        RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`]
@@ -584,7 +728,7 @@ def CostMultiReceptors(
     num_modes:int = 1,
     constraint:bool = False,
     constraint_type = 'score_only', # score_only, local_only
-    constraint_ref:List[Chem.rdchem.Mol] = None,
+    constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:List[str] = None,
     constraint_num_conf:int = 100,
     constraint_minimum_conf_rms:int = 0.01,
@@ -643,7 +787,7 @@ def CostMultiReceptors(
         This is the name of the vina executable, could be a path to the binary object (x, y, z), by default 'vina'
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
-    vina_score_types : list[str], optional
+    vina_score_type : list[str], optional
         This is a list with the keywords 'min' and/or 'max'. E.g. If two receptor were provided and for the first one we would like to find a minimum in the vina scoring function and for the other one a maximum (selectivity for the first receptor); we must provided the list: ['min', 'max'], by default None
     boxcenter : list[float], optional
         A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
@@ -655,6 +799,18 @@ def CostMultiReceptors(
          Number of cpus to use in Vina, by default 1
     num_modes : int, optional
         How many modes should Vina export, by default 1
+    constraint : bool, optional
+        Controls if constraint docking will be perform, by default False
+    constraint_type : str, optional
+        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+    constraint_ref : Chem.rdchem.Mol, optional
+        The part of the molecule that we would like to constraint, by default None
+    constraint_receptor_pdb_path : list[str], optional
+        The same as constraint_receptor_pdbqt_path but in pdb format, by default None
+    constraint_num_conf : int, optional
+        Maximum number of conformer to be generated internally by MolDrug , by default 100
+    constraint_minimum_conf_rms : int, optional
+        RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_scores].
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
@@ -711,7 +867,7 @@ def CostMultiReceptors(
                 num_modes = num_modes,
                 constraint = constraint,
                 constraint_type = constraint_type,
-                constraint_ref = constraint_ref[i],
+                constraint_ref = constraint_ref,
                 constraint_receptor_pdb_path = constraint_receptor_pdb_path[i],
                 constraint_num_conf = constraint_num_conf,
                 constraint_minimum_conf_rms = constraint_minimum_conf_rms,
@@ -786,7 +942,7 @@ def CostMultiReceptorsOnlyVina(
     num_modes:int = 1,
     constraint:bool = False,
     constraint_type = 'score_only', # score_only, local_only
-    constraint_ref:List[Chem.rdchem.Mol] = None,
+    constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:List[str] = None,
     constraint_num_conf:int = 100,
     constraint_minimum_conf_rms:int = 0.01,
@@ -821,13 +977,13 @@ def CostMultiReceptorsOnlyVina(
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
         This is the name of the vina executable, could be a path to the binary object (x, y, z), by default 'vina'
-    receptor_paths : list[str], optional
+    receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
-    vina_score_types : list[str], optional
+    vina_score_type : list[str], optional
         This is a list with the keywords 'min' and/or 'max'. E.g. If two receptor were provided and for the first one we would like to find a minimum in the vina scoring function and for the other one a maximum (selectivity for the first receptor); we must provided the list: ['min', 'max'], by default None
-    boxcenters : list[float], optional
+    boxcenter : list[float], optional
         A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
-    boxsizes : list[float], optional
+    boxsize : list[float], optional
         A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
@@ -835,6 +991,18 @@ def CostMultiReceptorsOnlyVina(
          Number of cpus to use in Vina, by default 1
     num_modes : int, optional
         How many modes should Vina export, by default 1
+    constraint : bool, optional
+        Controls if constraint docking will be perform, by default False
+    constraint_type : str, optional
+        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+    constraint_ref : Chem.rdchem.Mol, optional
+        The part of the molecule that we would like to constraint, by default None
+    constraint_receptor_pdb_path : list[str], optional
+        The same as constraint_receptor_pdbqt_path but in pdb format, by default None
+    constraint_num_conf : int, optional
+        Maximum number of conformer to be generated internally by MolDrug , by default 100
+    constraint_minimum_conf_rms : int, optional
+        RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
         The definition of the desirability when min or max is used.
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
@@ -900,7 +1068,7 @@ def CostMultiReceptorsOnlyVina(
                 num_modes = num_modes,
                 constraint = constraint,
                 constraint_type = constraint_type,
-                constraint_ref = constraint_ref[i],
+                constraint_ref = constraint_ref,
                 constraint_receptor_pdb_path = constraint_receptor_pdb_path[i],
                 constraint_num_conf = constraint_num_conf,
                 constraint_minimum_conf_rms = constraint_minimum_conf_rms,
