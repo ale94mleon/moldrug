@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+
+## [2.0.0] - 2022.08.25
+
 ## Added
 
 - The functions `duplicate_conformers`, `get_mcs`, `generate_conformers`, `constraintconf` and `constraintconf_cmd` and the class `ProteinLigandClashFilter`. The code was borrowed from [Pat Walters](https://github.com/PatWalters/fragment_expansion/blob/master/rdkit_eval/rd_gen_restricted_confs.py). It is used if constraint docking is needed.
@@ -125,7 +128,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/1.1.0...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/2.0.0...HEAD
+[2.0.0]: https://github.com/ale94mleon/MolDrug/compare/1.1.0...2.0.0
 [1.1.0]: https://github.com/ale94mleon/MolDrug/compare/1.0.2...1.1.0
 [1.0.2]: https://github.com/ale94mleon/MolDrug/compare/1.0.0...1.0.2
 [1.0.0]: https://github.com/ale94mleon/MolDrug/compare/0.1.0...1.0.0
