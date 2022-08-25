@@ -8,7 +8,7 @@ from crem.crem import mutate_mol, grow_mol
 from copy import deepcopy
 from inspect import getfullargspec
 import multiprocessing as mp
-import tempfile, subprocess, random, time, datetime, os, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
+import tempfile, subprocess, random, time, datetime, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
 from typing import List, Dict
 
 from rdkit import RDLogger
@@ -752,7 +752,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
     """
     pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
 
-    # Check for the attribute pdbqts in all passed individuals and that all of them have the same number of pdbqt
+    # Check for the attribute pdbqt in all passed individuals and that all of them have the same number of pdbqt
     check = True
     NumbOfpdbqt = set()
     for individual in individuals:
@@ -770,10 +770,14 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                 for individual in individuals:
                     with open(pdbqt_tmp.name, 'w') as f:
                         f.write(individual.pdbqt[i])
-                    pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
-                    mol = pdbqt_mol.export_rdkit_mol()
-                    mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
-                    w.write(mol)
+                    try:
+                        pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
+                        mol = pdbqt_mol.export_rdkit_mol()
+                        mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
+                        w.write(mol)
+                    except Exception:
+                        # Should be that the pdbqt is not valid
+                        print(f"{individual} does not have a valid pdbqt.")
             print(f" File {sdf_name}_{i+1}.sdf was createad!")
     else:
         with Chem.SDWriter(f"{sdf_name}.sdf") as w:
@@ -783,10 +787,14 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                         f.write(individual.pdbqt)
                     else:
                         f.write(individual.pdbqt[0])
-                pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
-                mol = pdbqt_mol.export_rdkit_mol()
-                mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
-                w.write(mol)
+                try:
+                    pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
+                    mol = pdbqt_mol.export_rdkit_mol()
+                    mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
+                    w.write(mol)
+                except Exception:
+                    # Should be that the pdbqt is not valid
+                    print(f"{individual} does not have a valid pdbqt.")
         print(f"File {sdf_name}.sdf was createad!")
 
 class Local:
@@ -876,7 +884,7 @@ class Local:
         pool.close()
 
         if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
-        
+
         # Printing how long was the simulation
         print(f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
 

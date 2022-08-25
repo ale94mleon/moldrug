@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from copy import deepcopy
-from genericpath import isfile
 from moldrug import utils
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors, AllChem, rdFMCS
 import os, argparse
 import numpy as np
 from typing import Dict, List, Optional
-import warnings, tempfile
+import warnings
 from meeko import MoleculePreparation
 from tqdm import tqdm
 from copy import deepcopy
@@ -199,7 +198,7 @@ def vinadock(
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
-    constraint:bool = False, 
+    constraint:bool = False,
     constraint_type = 'score_only', # score_only, local_only
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:str = None,
@@ -210,17 +209,17 @@ def vinadock(
         f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
         f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
         f" --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
-    
+
     if constraint:
         # Check for the correct type of docking
         if constraint_type in ['score_only', 'local_only']:
             cmd_vina_str += f" --{constraint_type}"
         else:
             raise Exception(f"constraint_type only admit two possible values: score_only, local_only.")
-    
+
         # Generate constrained conformer
         out_mol = generate_conformers(
-            mol = Chem.RemoveHs(Individual.mol), 
+            mol = Chem.RemoveHs(Individual.mol),
             ref_mol = Chem.RemoveHs(constraint_ref),
             num_conf = constraint_num_conf,
             #ref_smi=Chem.MolToSmiles(constraint_ref),
@@ -231,62 +230,66 @@ def vinadock(
         clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
         [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
-        vina_score_pdbqt = (np.inf, Individual.pdbqt)
-        for conf in out_mol.GetConformers():
-            temp_mol = deepcopy(out_mol)
-            temp_mol.RemoveAllConformers()
-            temp_mol.AddConformer(out_mol.GetConformer(conf.GetId()), assignId=True)
+        # Check first if some valid conformer exist
+        if len(out_mol.GetConformers()):
+            vina_score_pdbqt = (np.inf, Individual.pdbqt)
+            for conf in out_mol.GetConformers():
+                temp_mol = deepcopy(out_mol)
+                temp_mol.RemoveAllConformers()
+                temp_mol.AddConformer(out_mol.GetConformer(conf.GetId()), assignId=True)
 
-            preparator = MoleculePreparation()
-            preparator.prepare(temp_mol)
-            preparator.write_pdbqt_file(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt'))
+                preparator = MoleculePreparation()
+                preparator.prepare(temp_mol)
+                preparator.write_pdbqt_file(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt'))
 
-            # Make a copy to the vina command string and add the out (is needed) and ligand options
-            cmd_vina_str_tmp = cmd_vina_str[:]
-            cmd_vina_str_tmp += f" --ligand {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt')}"
-            if constraint_type == 'local_only':
-                cmd_vina_str_tmp += f" --out {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')}"
-
-            try:
-                cmd_vina_result = utils.run(cmd_vina_str_tmp)
-            except Exception as e:
-                if os.path.isfile(receptor_pdbqt_path):
-                    with open(receptor_pdbqt_path, 'r') as f:
-                        receptor_str = f.read()
-                else:
-                    receptor_str = None
-
-                error = {
-                    'Exception': e,
-                    'Individual': Individual,
-                    f'used_mol_conf_{conf.GetId()}': temp_mol,
-                    f'used_ligand_pdbqt_conf_{conf.GetId()}': preparator.write_pdbqt_string(),
-                    'receptor_str': receptor_str,
-                    'boxcenter': boxcenter,
-                    'boxsize': boxsize,
-                }
-                utils.compressed_pickle(f'{Individual.idx}_conf_{conf.GetId()}_error', error)
-                warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
-                    f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_conf_{conf.GetId()}_error.pbz2"\
-                    "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
-                    "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
-                vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
-                return vina_score_pdbqt
-            
-            vina_score = np.inf
-            for line in cmd_vina_result.stdout.split('\n'):
-                if line.startswith('Affinity'):
-                    vina_score = float(line.split()[1])
-                    break
-            if vina_score < vina_score_pdbqt[0]:
+                # Make a copy to the vina command string and add the out (is needed) and ligand options
+                cmd_vina_str_tmp = cmd_vina_str[:]
+                cmd_vina_str_tmp += f" --ligand {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt')}"
                 if constraint_type == 'local_only':
-                    if os.path.isfile(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')):
-                        pdbqt = ''.join(utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')).BestEnergy())
+                    cmd_vina_str_tmp += f" --out {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')}"
+
+                try:
+                    cmd_vina_result = utils.run(cmd_vina_str_tmp)
+                except Exception as e:
+                    if os.path.isfile(receptor_pdbqt_path):
+                        with open(receptor_pdbqt_path, 'r') as f:
+                            receptor_str = f.read()
                     else:
-                        pdbqt = Individual.pdbqt
-                    vina_score_pdbqt = (vina_score, pdbqt)
-                else:
-                    vina_score_pdbqt = (vina_score, preparator.write_pdbqt_string())
+                        receptor_str = None
+
+                    error = {
+                        'Exception': e,
+                        'Individual': Individual,
+                        f'used_mol_conf_{conf.GetId()}': temp_mol,
+                        f'used_ligand_pdbqt_conf_{conf.GetId()}': preparator.write_pdbqt_string(),
+                        'receptor_str': receptor_str,
+                        'boxcenter': boxcenter,
+                        'boxsize': boxsize,
+                    }
+                    utils.compressed_pickle(f'{Individual.idx}_conf_{conf.GetId()}_error', error)
+                    warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
+                        f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_conf_{conf.GetId()}_error.pbz2"\
+                        "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
+                        "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
+                    vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
+                    return vina_score_pdbqt
+
+                vina_score = np.inf
+                for line in cmd_vina_result.stdout.split('\n'):
+                    if line.startswith('Affinity'):
+                        vina_score = float(line.split()[1])
+                        break
+                if vina_score < vina_score_pdbqt[0]:
+                    if constraint_type == 'local_only':
+                        if os.path.isfile(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')):
+                            pdbqt = ''.join(utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')).BestEnergy())
+                        else:
+                            pdbqt = Individual.pdbqt
+                        vina_score_pdbqt = (vina_score, pdbqt)
+                    else:
+                        vina_score_pdbqt = (vina_score, preparator.write_pdbqt_string())
+        else:
+            vina_score_pdbqt = (np.inf, "NonValidConformer")
     # "Normal" docking
     else:
         cmd_vina_str += f" --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} --out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')}"
@@ -333,7 +336,7 @@ def Cost(
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
-    constraint:bool = False, 
+    constraint:bool = False,
     constraint_type = 'score_only', # score_only, local_only
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:str = None,
@@ -438,7 +441,7 @@ def Cost(
         exhaustiveness = exhaustiveness,
         ncores = ncores,
         num_modes = num_modes,
-        constraint = constraint, 
+        constraint = constraint,
         constraint_type = constraint_type,
         constraint_ref = constraint_ref,
         constraint_receptor_pdb_path = constraint_receptor_pdb_path,
@@ -481,7 +484,7 @@ def CostOnlyVina(
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
-    constraint:bool = False, 
+    constraint:bool = False,
     constraint_type = 'score_only', # score_only, local_only
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:str = None,
@@ -556,7 +559,7 @@ def CostOnlyVina(
         exhaustiveness = exhaustiveness,
         ncores = ncores,
         num_modes = num_modes,
-        constraint = constraint, 
+        constraint = constraint,
         constraint_type = constraint_type,
         constraint_ref = constraint_ref,
         constraint_receptor_pdb_path = constraint_receptor_pdb_path,
@@ -579,7 +582,7 @@ def CostMultiReceptors(
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
-    constraint:bool = False, 
+    constraint:bool = False,
     constraint_type = 'score_only', # score_only, local_only
     constraint_ref:List[Chem.rdchem.Mol] = None,
     constraint_receptor_pdb_path:List[str] = None,
@@ -706,7 +709,7 @@ def CostMultiReceptors(
                 exhaustiveness = exhaustiveness,
                 ncores = ncores,
                 num_modes = num_modes,
-                constraint = constraint, 
+                constraint = constraint,
                 constraint_type = constraint_type,
                 constraint_ref = constraint_ref[i],
                 constraint_receptor_pdb_path = constraint_receptor_pdb_path[i],
@@ -781,7 +784,7 @@ def CostMultiReceptorsOnlyVina(
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
-    constraint:bool = False, 
+    constraint:bool = False,
     constraint_type = 'score_only', # score_only, local_only
     constraint_ref:List[Chem.rdchem.Mol] = None,
     constraint_receptor_pdb_path:List[str] = None,
@@ -895,7 +898,7 @@ def CostMultiReceptorsOnlyVina(
                 exhaustiveness = exhaustiveness,
                 ncores = ncores,
                 num_modes = num_modes,
-                constraint = constraint, 
+                constraint = constraint,
                 constraint_type = constraint_type,
                 constraint_ref = constraint_ref[i],
                 constraint_receptor_pdb_path = constraint_receptor_pdb_path[i],
@@ -946,47 +949,3 @@ def CostMultiReceptorsOnlyVina(
 
 if __name__ == '__main__':
     pass
-    from moldrug import utils
-    from rdkit import Chem
-    import tempfile
-    tmp_path = tempfile.TemporaryDirectory()
-    I = utils.Individual(Chem.MolFromSmiles('Cn1c(=O)c2c(ncn2C)n(C)c1=O'))
-    vina_score, pdbqt = vinadock(
-        Individual = I,
-        wd = tmp_path.name,receptor_pdbqt_path = '/home/ale/mnt/smaug/BI/challenges/v2.0.0/Cost/caffeine/3rfm_H.pdbqt',
-        boxcenter = [7.76,-33.41,-32.85],
-        boxsize = [23.4,23.4,23.4],
-        exhaustiveness = 4,
-        ncores = 4,
-        constraint= True,
-        constraint_type= 'score_only',
-        constraint_ref = Chem.MolFromMolFile('/home/ale/mnt/smaug/BI/challenges/v2.0.0/Cost/caffeine/ligand_H.sdf'),
-        constraint_receptor_pdb_path = '/home/ale/mnt/smaug/BI/challenges/v2.0.0/Cost/caffeine/3rfm.pdb',
-        constraint_num_conf = 100,
-        constraint_minimum_conf_rms = 0.01,       
-        )
-    # print(pdbqt)
-    print(vina_score)
-    # from meeko import PDBQTMolecule
-    # pdbqtfile = os.path.join(tmp_path.name, 'pdbqt.pdbqt')
-
-    # pdbqt_mol = PDBQTMolecule.from_file(os.path.join(tmp_path.name, '0_out.pdbqt')).export_rdkit_mol()
-    
-    # print(Chem.MolToMolBlock(pdbqt_mol))
-    # NewI = fitness.CostMultiReceptorsOnlyVina(
-    #     Individual = I,
-    #     wd = tmp_path.name,
-    #     receptor_pdbqt_path = [receptor_pdbqt_path, receptor_pdbqt_path],
-    #     vina_score_type = ['min', 'max'],
-    #     boxcenter = [box['boxcenter'], box['boxcenter']],
-    #     boxsize = [box['boxsize'], box['boxsize']],
-    #     exhaustiveness = 4,
-    #     ncores = 4,
-    #     constraint= True,
-    #     constraint_type= 'local_only',
-    #     constraint_ref = [Chem.MolFromMolFile('/home/ale/TEST/t/x0161_lig.sdf'), Chem.MolFromMolFile('/home/ale/TEST/t/x0161_lig.sdf')],
-    #     constraint_receptor_pdb_path = ['/home/ale/TEST/t/x0161_prot.pdb', '/home/ale/TEST/t/x0161_prot.pdb'],
-    #     constraint_num_conf = 100,
-    #     constraint_minimum_conf_rms = 0.01,       
-    #     )
-    # print(NewI.cost, NewI.vina_score)
