@@ -23,6 +23,7 @@ Welcome to moldrug's documentation!
 
    notebooks/quickstart
    notebooks/how_to
+   notebooks/constraint_docking
    notebooks/advance_topics
    notebooks/oncoming
 
