@@ -387,10 +387,7 @@ def vinadock(
                         'boxsize': boxsize,
                     }
                     utils.compressed_pickle(f'{Individual.idx}_conf_{conf.GetId()}_error', error)
-                    warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
-                        f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_conf_{conf.GetId()}_error.pbz2"\
-                        "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
-                        "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
+                    warnings.warn(f"vina failed. Check: f'{Individual.idx}_conf_{conf.GetId()}_error', error")
                     vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                     return vina_score_pdbqt
 
