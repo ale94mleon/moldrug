@@ -10,7 +10,7 @@ from inspect import getfullargspec
 import multiprocessing as mp
 import tempfile, subprocess, random, time, datetime, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
 from typing import List, Dict
-
+from scipy.special import softmax
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
@@ -1108,8 +1108,9 @@ class GA:
             self.NumGens += 1
 
             # Probabilities Selections
-            factors = (-self.beta * np.array(self.pop)).astype('float64')
-            probs = np.exp(factors) / np.exp(factors).sum()
+            probs = softmax((-self.beta * np.array(self.pop)).astype('float64'))
+            if any(np.isnan(probs)):
+                probs = np.nan_to_num(probs)
 
             popc = []
             for _ in range(self.nc):

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Bug during the calculation of probabilities when costs are larger numbers.
+
 ## [2.0.0] - 2022.08.25
 
 ## Added
