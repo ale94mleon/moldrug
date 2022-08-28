@@ -10,15 +10,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Bug during the calculation of probabilities when costs are larger numbers.
+- Expose hidden error if some Exception ocurred during parallel run.
+
+### Added
+
+- Raise `ValueError` if `ref_smi` is invalid in `moldrug.utils.fitness.generate_conformers`.
+
+### Changed
+
+- In case `constraint = True` in `moldrug.fitness.vinadock`, `ref_smi` will be the SMILES string of `constraint_ref` when `moldrug.fitness.generate_conformers` is internally called. This is in order to avoid error when `moldrug.utils.fitness.generate_conformers` tries to guess `ref_smi` based on MCS, [see this RDKit bug](https://github.com/rdkit/rdkit/issues/5518). The work around for constraint docking is explained here: [Constraint Docking](https://moldrug.readthedocs.io/en/latest/notebooks/constraint_docking.html).
+- `moldrug.fitness.generate_conformers` does not fail. In case of Exception it returns the same `mol` without conformers and write the error in a log file into the working directory.
 
 ## [2.0.0] - 2022.08.25
 
-## Added
+### Added
 
 - The functions `duplicate_conformers`, `get_mcs`, `generate_conformers`, `constraintconf` and `constraintconf_cmd` and the class `ProteinLigandClashFilter`. The code was borrowed from [Pat Walters](https://github.com/PatWalters/fragment_expansion/blob/master/rdkit_eval/rd_gen_restricted_confs.py). It is used if constraint docking is needed.
 - `constraintconf` can be called from the command line.
 - `moldrug.fitness.vinadock()` a simple wrapper around vina. This function will be used for all the implemented cost functions inside of the module `moldrug.fitness`. It could be used for constraint docking.
-- `moldrug.data.constraintref`. This module is used for testing in case constraint docking is needed. It has two MolBlock strings: `r_6lu7` and `r_x0161`. That could be easily converted in RDKit molecules..
+- `moldrug.data.constraintref`. This module is used for testing in case constraint docking is needed. It has two MolBlock strings: `r_6lu7` and `r_x0161`. That could be easily converted in RDKit molecules.
 
     ```python
     from rdkit import Chem
@@ -31,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `moldrug.data.receptor_pdb`. This module is similar to `moldrug.data.receptor_pdbqt` but in pdb format.
 - Documentation and tutorials.
 
-## Changed
+### Changed
 
 - `moldrug.utils.make_sdf` only will create the sdf file based on the `pdbqt` attribute. If `pdbqt` is a list, it will work as previous version works with `pdbqts` attribute.
 - Name of the module `moldrug.data.receptors` to `moldrug.data.receptor_pdbqt`.
