@@ -1208,7 +1208,7 @@ class GA:
         print(f"\n{50*'=+'}\n")
 
         # Printing how long was the simulation
-        print(f"Total time ({self.NumGens} generations): {time.time() - ts:>5.2f} (s).\nFinished at {datetime.datetime.now().strftime('%c')}.\n")
+        print(f"Total time ({self.maxiter} generations): {time.time() - ts:>5.2f} (s).\nFinished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
         individual, kwargs = args_list
