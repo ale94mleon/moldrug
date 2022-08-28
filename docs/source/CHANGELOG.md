@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - In case `constraint = True` in `moldrug.fitness.vinadock`, `ref_smi` will be the SMILES string of `constraint_ref` when `moldrug.fitness.generate_conformers` is internally called. This is in order to avoid error when `moldrug.utils.fitness.generate_conformers` tries to guess `ref_smi` based on MCS, [see this RDKit bug](https://github.com/rdkit/rdkit/issues/5518). The work around for constraint docking is explained here: [Constraint Docking](https://moldrug.readthedocs.io/en/latest/notebooks/constraint_docking.html).
 - `moldrug.fitness.generate_conformers` does not fail. In case of Exception it returns the same `mol` without conformers and write the error in a log file into the working directory.
+- The attribute name `bestcost` by `best_cost` of `moldrug.utils.GA`.
 
 ## [2.0.0] - 2022.08.25
 
