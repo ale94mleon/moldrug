@@ -1105,7 +1105,7 @@ class GA:
             self.InitIndividual = deepcopy(self.pop[0])
 
             # Best Cost of Iterations
-            self.bestcost = []
+            self.best_cost = []
             self.avg_cost = []
 
         # Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.
@@ -1117,7 +1117,7 @@ class GA:
             make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
 
         # Main Loop
-        number_of_previous_generations = len(self.bestcost) # Another control variable. In case that the __call__ method is used more than ones.
+        number_of_previous_generations = len(self.best_cost) # Another control variable. In case that the __call__ method is used more than ones.
         for iter in range(self.maxiter):
             # Saving Number of Generations
             self.NumGens += 1
@@ -1181,7 +1181,7 @@ class GA:
             self.pop = self.pop[:self.popsize]
 
             # Store Best Cost
-            self.bestcost.append(self.pop[0].cost)
+            self.best_cost.append(self.pop[0].cost)
 
             # Store Average cost
             self.avg_cost.append(np.mean(self.pop))
