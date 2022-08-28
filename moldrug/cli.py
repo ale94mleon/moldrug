@@ -127,7 +127,7 @@ def moldrug_cmd():
     else:
         ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
         utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
-    print(f'The main job finished!.')
+    print(f'The main job finished!')
     # In case that follows jobs were defined
     if FollowConfig:
         for job in FollowConfig:
@@ -154,4 +154,4 @@ def moldrug_cmd():
             # Saving data
             ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
             utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
-            print(f'The job {job} finished!.')
+            print(f'The job {job} finished!')
