@@ -9,6 +9,7 @@ from copy import deepcopy
 from inspect import getfullargspec
 import multiprocessing as mp
 import tempfile, subprocess, random, time, datetime, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
+from warnings import warn
 from typing import List, Dict
 from scipy.special import softmax
 from rdkit import RDLogger
@@ -1076,9 +1077,23 @@ class GA:
                 args_list.append((individual, kwargs_copy))
 
             print(f'\n\nCreating the first population with {self.popsize} members:')
-            pool = mp.Pool(njobs)
-            self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
-            pool.close()
+            try:
+                pool = mp.Pool(njobs)
+                self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
+                pool.close()
+            except Exception as e1:
+                warn(f"Parallelization did not work. Trying with serial...")
+                try:
+                    self.pop = [self.__costfunc__(args) for args in tqdm.tqdm(args_list, total=len(args_list))]
+                except Exception as e2:
+                    raise RuntimeError(
+                        "Serial did not work either. Here are the ucurred exceptions:\n"\
+                        f"=========Parellel=========:\n {e1}\n"\
+                        f"==========Serial==========:\n {e2}"
+                        )
+                    
+
+
 
             if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
 
@@ -1126,7 +1141,7 @@ class GA:
 
             if popc: # Only if there are new members
                 # Calculating cost of each offspring individual (Doing Docking)
-                pool = mp.Pool(njobs)
+                
                 # Creating the arguments
                 args_list = []
                 # Make a copy of the self.costfunc_kwargs
@@ -1144,8 +1159,20 @@ class GA:
                 print(f'Evaluating generation {self.NumGens} / {self.maxiter + number_of_previous_generations}:')
 
                 # Calculating cost fucntion in parallel
-                popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
-                pool.close()
+                try:
+                    pool = mp.Pool(njobs)
+                    popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
+                    pool.close()
+                except Exception as e1:
+                    warn(f"Parallelization did not work. Trying with serial...")
+                    try:
+                        popc = [self.__costfunc__(args) for args in tqdm.tqdm(args_list, total=len(args_list))]
+                    except Exception as e2:
+                        raise RuntimeError(
+                            "Serial did not work either. Here are the ucurred exceptions:\n"\
+                            f"=========Parellel=========:\n {e1}\n"\
+                            f"==========Serial==========:\n {e2}"
+                            )
                 if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
 
             # Merge, Sort and Select

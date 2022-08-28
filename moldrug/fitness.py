@@ -78,7 +78,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                         num_conf: int,
                         ref_smi: str = None,
                         minimum_conf_rms: Optional[float] = None,
-                        ) -> List[Chem.rdchem.Mol]:
+                        ) -> Chem.rdchem.Mol:
     """Generate constrained conformers
 
     Parameters
@@ -96,38 +96,55 @@ def generate_conformers(mol: Chem.rdchem.Mol,
 
     Returns
     -------
-    List[Chem.rdchem.Mol]
-        _description_
+    Chem.rdchem.Mol
+        mol with with generated conformers. In case some Exception ocurred, it returns mol without conformers and write in the
+        current directory generate_conformers_error.log with the nature of the Exception.
     """
     # if SMILES to be fixed are not given, assume to the MCS
-    if not ref_smi:
+    if ref_smi:
+        if not Chem.MolFromSmiles(ref_smi):
+            raise ValueError(f"The provided ref_smi is not valid.")
+    else:
         ref_smi = get_mcs(mol, ref_mol)
+        if not Chem.MolFromSmiles(ref_smi):
+            raise ValueError(f"generate_conformers fails generating ref_smi based on the MCS between mol and ref_mol")
 
-    # Creating core of reference ligand #
-    core_with_wildcards = AllChem.ReplaceSidechains(ref_mol, Chem.MolFromSmiles(ref_smi))
-    core1 = AllChem.DeleteSubstructs(core_with_wildcards, Chem.MolFromSmiles('*'))
-    core1.UpdatePropertyCache()
+    try:
+        # Creating core of reference ligand #
+        core_with_wildcards = AllChem.ReplaceSidechains(ref_mol, Chem.MolFromSmiles(ref_smi))
+        core1 = AllChem.DeleteSubstructs(core_with_wildcards, Chem.MolFromSmiles('*'))
+        core1.UpdatePropertyCache()
 
-    # Add Hs so that conf gen is improved
-    mol.RemoveAllConformers()
-    outmol = deepcopy(mol)
-    mol_wh = Chem.AddHs(mol)
+        # Add Hs so that conf gen is improved
+        mol.RemoveAllConformers()
+        outmol = deepcopy(mol)
+        mol_wh = Chem.AddHs(mol)
 
-    # Generate conformers with constrained embed
-    dup_count = 0
-    for i in range(num_conf):
-        temp_mol = Chem.Mol(mol_wh)  # copy to avoid inplace changes
-        AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
-        temp_mol = Chem.RemoveHs(temp_mol)
-        conf_idx = outmol.AddConformer(temp_mol.GetConformer(0), assignId=True)
-        if minimum_conf_rms is not None:
-            if duplicate_conformers(outmol, conf_idx, rms_limit=minimum_conf_rms):
-                dup_count += 1
-                outmol.RemoveConformer(conf_idx)
-    if dup_count:
-        pass
-        # print(f'removed {dup_count} duplicated conformations')
-    return outmol
+        # Generate conformers with constrained embed
+        dup_count = 0
+        for i in range(num_conf):
+            temp_mol = Chem.Mol(mol_wh)  # copy to avoid inplace changes
+            AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
+            temp_mol = Chem.RemoveHs(temp_mol)
+            conf_idx = outmol.AddConformer(temp_mol.GetConformer(0), assignId=True)
+            if minimum_conf_rms is not None:
+                if duplicate_conformers(outmol, conf_idx, rms_limit=minimum_conf_rms):
+                    dup_count += 1
+                    outmol.RemoveConformer(conf_idx)
+        if dup_count:
+            pass
+            # print(f'removed {dup_count} duplicated conformations')
+        return outmol
+    except Exception as e:
+        cwd = os.getcwd()
+        warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, 'generate_conformers_error.log')}")
+        with open(os.path.join(cwd, 'generate_conformers_error.log'), 'w') as f:
+            f.write(e)
+        mol.RemoveAllConformers()
+        return mol
+
+
+
 
 
 class ProteinLigandClashFilter:
@@ -342,7 +359,7 @@ def vinadock(
             mol = Chem.RemoveHs(Individual.mol),
             ref_mol = Chem.RemoveHs(constraint_ref),
             num_conf = constraint_num_conf,
-            #ref_smi=Chem.MolToSmiles(constraint_ref),
+            ref_smi=Chem.MolToSmiles(constraint_ref),
             minimum_conf_rms=constraint_minimum_conf_rms)
 
         # Remove conformers that clash with the protein
@@ -387,7 +404,7 @@ def vinadock(
                         'boxsize': boxsize,
                     }
                     utils.compressed_pickle(f'{Individual.idx}_conf_{conf.GetId()}_error', error)
-                    warnings.warn(f"vina failed. Check: f'{Individual.idx}_conf_{conf.GetId()}_error', error")
+                    warnings.warn(f"vina failed. Check: {Individual.idx}_conf_{conf.GetId()}_error.pbz2 file.")
                     vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                     return vina_score_pdbqt
 
