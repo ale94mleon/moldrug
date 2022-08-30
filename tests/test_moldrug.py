@@ -306,7 +306,20 @@ def test_miscellanea():
 #     print(os.listdir(tmp_path.name))
 
 #     print(local.to_dataframe())
+def test_constraintconf():
+    from moldrug.constraintconf import constraintconf
+    with Chem.SDWriter(os.path.join(tmp_path.name, 'fix.sdf')) as w:
+        mol = Chem.MolFromMolBlock(constraintref.r_x0161)
+        w.write(mol)
+    with open(os.path.join(tmp_path.name, 'mol.smi'), 'w') as f:
+        f.write(ligands.r_x0161)
 
+    constraintconf(
+        pdb=r_x0161_pdb_file,
+        smi = os.path.join(tmp_path.name, 'mol.smi'),
+        fix= os.path.join(tmp_path.name, 'fix.sdf'),
+        out = os.path.join(tmp_path.name, 'conf.sdf')
+
+    )
 if __name__ == '__main__':
     pass
-    test_fitness_module()

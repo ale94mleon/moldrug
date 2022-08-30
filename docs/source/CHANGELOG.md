@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [2.1.0] - 2022.08.30
+
 ### Fixed
 
 - Bug during the calculation of probabilities when costs are larger numbers.
@@ -145,7 +147,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/2.0.0...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/2.1.0...HEAD
+[2.1.0]: https://github.com/ale94mleon/MolDrug/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/ale94mleon/MolDrug/compare/1.1.0...2.0.0
 [1.1.0]: https://github.com/ale94mleon/MolDrug/compare/1.0.2...1.1.0
 [1.0.2]: https://github.com/ale94mleon/MolDrug/compare/1.0.0...1.0.2
