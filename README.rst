@@ -33,13 +33,6 @@ Description
 It use a Genetic Algorithm (GA) as searching engine in the chemical space and
 `CReM <https://github.com/DrrDom/crem>`__ library as chemical structure generator.
 
-In a general way **MolDrug** will try to minimize:
-
-.. math::
-    cost = f(\vec{X})
-
-Where :math:`\vec{X}` is some description of the chemical structure of the molecule which be mapped to the
-:math:`\mathbb{R}` numbers throug the function :math:`f`. This function will be called cost function.
 
 You can try it out prior to any installation on `Binder <https://mybinder.org/v2/gh/ale94mleon/moldrug/HEAD?labpath=%2Fdocs%2Fnotebooks%2F>`__.
 

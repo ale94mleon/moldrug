@@ -29,6 +29,14 @@ The offsprings will be merge with the current population, sorted respect to the 
 and the first ``popsize`` individuals will be kept for the next generation.
 This cycle will run for ``maxiter`` generations.
 
+In a general way **MolDrug** will try to minimize:
+
+.. math::
+    cost = f(\vec{X})
+
+Where :math:`\vec{X}` is some description of the chemical structure of the molecule which be mapped to the
+:math:`\mathbb{R}` numbers throug the function :math:`f`. This function will be called cost function.
+
 Alternatively there is also the class `moldrug.utils.Local <https://moldrug.readthedocs.io/en/latest/source/modules/utils.html#moldrug.utils.Local>`_.
 In this case only an initial population is created and exported.
 
