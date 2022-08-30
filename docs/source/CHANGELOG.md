@@ -14,13 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Raise `ValueError` if `ref_smi` is invalid in `moldrug.utils.fitness.generate_conformers`.
+- `moldrug.constrainconf` module.
+- Raise `ValueError` if `ref_smi` is invalid in `moldrug.utils.constrainconf.generate_conformers`.
 
 ### Changed
 
-- In case `constraint = True` in `moldrug.fitness.vinadock`, `ref_smi` will be the SMILES string of `constraint_ref` when `moldrug.fitness.generate_conformers` is internally called. This is in order to avoid error when `moldrug.utils.fitness.generate_conformers` tries to guess `ref_smi` based on MCS, [see this RDKit bug](https://github.com/rdkit/rdkit/issues/5518). The work around for constraint docking is explained here: [Constraint Docking](https://moldrug.readthedocs.io/en/latest/notebooks/constraint_docking.html).
+- In case `constraint = True` in `moldrug.fitness.vinadock`, `ref_smi` will be the SMILES string of `constraint_ref` when `moldrug.constrainconf.generate_conformers` is internally called. This is in order to avoid error when `moldrug.utils.constrainconf.generate_conformers` tries to guess `ref_smi` based on MCS and fails, [see this RDKit bug](https://github.com/rdkit/rdkit/issues/5518). The work around for constraint docking is explained here: [Constraint Docking](https://moldrug.readthedocs.io/en/latest/notebooks/constraint_docking.html).
 - `moldrug.fitness.generate_conformers` does not fail. In case of Exception it returns the same `mol` without conformers and write the error in a log file into the working directory.
 - The attribute name `bestcost` by `best_cost` of `moldrug.utils.GA`.
+- The functions `duplicate_conformers`, `get_mcs`, `generate_conformers`, `constraintconf` and `constraintconf_cmd` and the class `ProteinLigandClashFilter` were moved from `moldrug.fitness` module to `moldrug.constrainconf` module.
+- Entrance point constraintconf now it is link to `moldrug.constrainconf.constraintconf_cmd` instead `moldrug.fitness.constraintconf_cmd`
 
 ## [2.0.0] - 2022.08.25
 
