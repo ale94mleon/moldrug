@@ -90,7 +90,7 @@ def vinadock(
             mol = Chem.RemoveHs(Individual.mol),
             ref_mol = Chem.RemoveHs(constraint_ref),
             num_conf = constraint_num_conf,
-            ref_smi=Chem.MolToSmiles(constraint_ref),
+            #ref_smi=Chem.MolToSmiles(constraint_ref),
             minimum_conf_rms=constraint_minimum_conf_rms)
 
         # Remove conformers that clash with the protein
@@ -135,10 +135,10 @@ def vinadock(
                         'boxsize': boxsize,
                     }
                     utils.compressed_pickle(f'{Individual.idx}_conf_{conf.GetId()}_error', error)
-                    warnings.warn(f"vina failed. Check: {Individual.idx}_conf_{conf.GetId()}_error.pbz2 file.")
+                    warnings.warn(f"\nVina failed! Check: {Individual.idx}_conf_{conf.GetId()}_error.pbz2 file.")
                     vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                     return vina_score_pdbqt
-
+       
                 vina_score = np.inf
                 for line in cmd_vina_result.stdout.split('\n'):
                     if line.startswith('Affinity'):

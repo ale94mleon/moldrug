@@ -8,7 +8,8 @@ and the class ProteinLigandClashFilter:
     https://github.com/JoshuaMeyers/Snippets/blob/master/200405_constrained_conformers.ipynb
     and that code was adapted from Tim Dudgeon
     https://github.com/InformaticsMatters/pipelines/blob/master/src/python/pipelines/rdkit/constrained_conf_gen.py
-    All I've done is change the command line wrapper, modify how to remove conformers that clash with the protein and add documentation.
+    All I've done is change the command line wrapper, modify how to remove conformers that clash with the protein, add documentation and
+    handle some possible run time exceptions.
 """
 from copy import deepcopy
 from rdkit import Chem
@@ -18,7 +19,7 @@ from typing import  Optional
 import warnings
 from tqdm import tqdm
 import Bio.PDB as PDB
-
+from moldrug.utils import compressed_pickle
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
     """Check if a conformer with index new_onf_idx it is duplicated based on rms_limit
 
@@ -59,11 +60,13 @@ def get_mcs(mol_one: Chem.rdchem.Mol, mol_two: Chem.rdchem.Mol) -> str:
     str
         The SMILES string of the Maximum Common Substructure (MCS).
     """
-    return Chem.MolToSmiles(
-        Chem.MolFromSmarts(
-            rdFMCS.FindMCS([mol_one, mol_two], completeRingsOnly=True, matchValences=True).smartsString
-        )
-    )
+    mcs_smarts = Chem.MolFromSmarts(rdFMCS.FindMCS([mol_one, mol_two], completeRingsOnly=True, matchValences=True).smartsString)
+    mcs_smi = Chem.MolToSmiles(mcs_smarts)
+    # Workaround in case of fails
+    if not Chem.MolFromSmiles(mcs_smi):
+        valid_atoms = mol_one.GetSubstructMatch(mcs_smarts)
+        mcs_smi = Chem.MolFragmentToSmiles(mol_one, atomsToUse=valid_atoms)
+    return mcs_smi
 
 def generate_conformers(mol: Chem.rdchem.Mol,
                         ref_mol: Chem.rdchem.Mol,
@@ -129,9 +132,9 @@ def generate_conformers(mol: Chem.rdchem.Mol,
         return outmol
     except Exception as e:
         cwd = os.getcwd()
-        warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, 'generate_conformers_error.log')}")
-        with open(os.path.join(cwd, 'generate_conformers_error.log'), 'w') as f:
-            f.write(e)
+        warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, 'generate_conformers_error.pbz2')}")
+        with open(os.path.join(cwd, 'generate_conformers_error.log'), 'wb') as f:
+            compressed_pickle('generate_conformers_error', e)
         mol.RemoveAllConformers()
         return mol
 

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Bug on `moldrug.fitness.vinadock` during searching of MCS between `Individual.mol` and `constraint_ref`. Before was needed to manually specified the atom ids of the `seed_mol` that match `constraint_ref`, now it is not needed any more.
+- Bug during handling exception in `moldrug.constraintconf.generate_conformers`.
+
+### Changed
+
+- In case `constraint = True` in `moldrug.fitness.vinadock`, `ref_smi` will be the the MCF between `individual.mol` amd `constraint_ref` instead the SMILES string of `constraint_ref` when `moldrug.constrainconf.generate_conformers` is internally called.
+
+
 ## [2.1.0] - 2022.08.30
 
 ### Fixed
@@ -25,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `moldrug.fitness.generate_conformers` does not fail. In case of Exception it returns the same `mol` without conformers and write the error in a log file into the working directory.
 - The attribute name `bestcost` by `best_cost` of `moldrug.utils.GA`.
 - The functions `duplicate_conformers`, `get_mcs`, `generate_conformers`, `constraintconf` and `constraintconf_cmd` and the class `ProteinLigandClashFilter` were moved from `moldrug.fitness` module to `moldrug.constrainconf` module.
-- Entrance point constraintconf now it is link to `moldrug.constrainconf.constraintconf_cmd` instead `moldrug.fitness.constraintconf_cmd`
+- Entrance point constraintconf now it is link to `moldrug.constrainconf.constraintconf_cmd` instead `moldrug.fitness.constraintconf_cmd`.
 
 ## [2.0.0] - 2022.08.25
 
