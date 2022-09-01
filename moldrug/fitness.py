@@ -10,6 +10,95 @@ from typing import Dict, List
 import warnings
 from meeko import MoleculePreparation
 
+def get_mol_cost(
+    mol,
+    wd:str = '.vina_jobs',
+    vina_executable:str = 'vina',
+    receptor_pdbqt_path:str = None,
+    boxcenter:List[float] = None,
+    boxsize:List[float] = None,
+    desirability:Dict = {
+        'qed': {
+            'w': 1,
+            'LargerTheBest': {
+                'LowerLimit': 0.1,
+                'Target': 0.75,
+                'r': 1
+            }
+        },
+        'sa_score': {
+            'w': 1,
+            'SmallerTheBest': {
+                'Target': 3,
+                'UpperLimit': 7,
+                'r': 1
+            }
+        },
+        'vina_score': {
+            'w': 1,
+            'SmallerTheBest': {
+                'Target': -12,
+                'UpperLimit': -6,
+                'r': 1
+            }
+        }
+    }
+    ):
+    if not os.path.exists(wd):
+        os.makedirs(wd)
+    # Initializing result dict
+    results = dict()
+    # Importing sascorer
+    sascorer = utils.import_sascorer()
+    # multicriteria optimization,Optimization of Several Response Variables
+
+    # Getting estimate of drug-likness
+    results['qed'] = QED.weights_mean(mol)
+
+    # Getting synthetic accessibility score
+    results['sa_score'] = sascorer.calculateScore(mol)
+
+    # Getting vina_score and update pdbqt
+    # Making the ligand pdbqt
+    preparator = MoleculePreparation()
+    preparator.prepare(mol)
+    preparator.write_pdbqt_file(os.path.join(wd, 'ligand.pdbqt'))
+
+    # Creating the command line for vina
+    cmd_vina_str = f"{vina_executable} --receptor {receptor_pdbqt_path}"\
+        f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
+        f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
+        f" --score_only --ligand {os.path.join(wd, 'ligand.pdbqt')}"
+
+    cmd_vina_result = utils.run(cmd_vina_str)
+    results['vina_score'] = None
+    for line in cmd_vina_result.stdout.split('\n'):
+        if line.startswith('Affinity'):
+            results['vina_score'] = float(line.split()[1])
+            break
+    # Getting the desirability
+    base = 1
+    exponent = 0
+    for variable in desirability:
+        for key in desirability[variable]:
+            if key == 'w':
+                w = desirability[variable][key]
+            elif key in utils.DerringerSuichDesirability():
+                d = utils.DerringerSuichDesirability()[key](results[variable], **desirability[variable][key])
+            else:
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
+        base *= d**w
+        exponent += w
+    # Average
+    #D = (w_qed*d_qed + w_sa_score*d_sa_score + w_vina_score*d_vina_score) / (w_qed + w_sa_score + w_vina_score)
+    # Geometric mean
+    # D = (d_qed**w_qed * d_sa_score**w_sa_score * d_vina_score**w_vina_score)**(1/(w_qed + w_sa_score + w_vina_score))
+    # We are using Geometric mean
+    D = base**(1/exponent)
+    #  And because we are minimizing we have to return
+    results['desirability'] = 1 - D
+    return results
+
 def vinadock(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
@@ -72,6 +161,10 @@ def vinadock(
     Exception
         Inappropriate constraint_type. must be local_only or score_only. Only will be checked if constraint is set to True.
     """
+
+    # Creating the working directory if needed
+    if not os.path.exists(wd):
+        os.makedirs(wd)
     # Creating the command line for vina
     cmd_vina_str = f"{vina_executable} --receptor {receptor_pdbqt_path}"\
         f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
@@ -138,7 +231,7 @@ def vinadock(
                     warnings.warn(f"\nVina failed! Check: {Individual.idx}_conf_{conf.GetId()}_error.pbz2 file.")
                     vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                     return vina_score_pdbqt
-       
+
                 vina_score = np.inf
                 for line in cmd_vina_result.stdout.split('\n'):
                     if line.startswith('Affinity'):

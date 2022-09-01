@@ -1062,6 +1062,7 @@ class GA:
                 else:
                     individual = Individual(mol, idx = i + 1) # 0 is the InitIndividual
                 if individual.pdbqt:
+                    individual.genID = self.NumGens
                     self.pop.append(individual)
 
             # Calculating cost of each individual
@@ -1091,7 +1092,7 @@ class GA:
                         f"=========Parellel=========:\n {e1}\n"\
                         f"==========Serial==========:\n {e2}"
                         )
-                    
+
 
 
 
@@ -1137,11 +1138,13 @@ class GA:
 
                 # Save offspring population
                 # I will save only those offsprings that were not seen and that have a correct pdbqt file
-                if children not in self.SawIndividuals and children.pdbqt: popc.append(children)
+                if children not in self.SawIndividuals and children.pdbqt:
+                    children.genID = self.NumGens
+                    popc.append(children)
 
             if popc: # Only if there are new members
                 # Calculating cost of each offspring individual (Doing Docking)
-                
+
                 # Creating the arguments
                 args_list = []
                 # Make a copy of the self.costfunc_kwargs

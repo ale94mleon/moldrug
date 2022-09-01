@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - In case `constraint = True` in `moldrug.fitness.vinadock`, `ref_smi` will be the the MCF between `individual.mol` amd `constraint_ref` instead the SMILES string of `constraint_ref` when `moldrug.constrainconf.generate_conformers` is internally called.
 
+### Added
+
+- `moldrug.fitness.get_mol_cost` function.
+- Attribute `genID` to the generated individuals during a `moldrug.utils.GA` run.
+
 
 ## [2.1.0] - 2022.08.30
 
