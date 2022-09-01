@@ -179,12 +179,16 @@ def vinadock(
             raise Exception(f"constraint_type only admit two possible values: score_only, local_only.")
 
         # Generate constrained conformer
-        out_mol = constraintconf.generate_conformers(
-            mol = Chem.RemoveHs(Individual.mol),
-            ref_mol = Chem.RemoveHs(constraint_ref),
-            num_conf = constraint_num_conf,
-            #ref_smi=Chem.MolToSmiles(constraint_ref),
-            minimum_conf_rms=constraint_minimum_conf_rms)
+        try:
+            out_mol = constraintconf.generate_conformers(
+                mol = Chem.RemoveHs(Individual.mol),
+                ref_mol = Chem.RemoveHs(constraint_ref),
+                num_conf = constraint_num_conf,
+                #ref_smi=Chem.MolToSmiles(constraint_ref),
+                minimum_conf_rms=constraint_minimum_conf_rms)
+        except Exception as e:
+            vina_score_pdbqt = (np.inf, "NonValidConformer")
+            return vina_score_pdbqt
 
         # Remove conformers that clash with the protein
         clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath = constraint_receptor_pdb_path, distance=1.5)
@@ -228,7 +232,7 @@ def vinadock(
                         'boxsize': boxsize,
                     }
                     utils.compressed_pickle(f'{Individual.idx}_conf_{conf.GetId()}_error', error)
-                    warnings.warn(f"\nVina failed! Check: {Individual.idx}_conf_{conf.GetId()}_error.pbz2 file.")
+                    warnings.warn(f"\nVina failed! Check: {Individual.idx}_conf_{conf.GetId()}_error.pbz2 file.\n")
                     vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                     return vina_score_pdbqt
 
@@ -270,10 +274,7 @@ def vinadock(
                 'boxsize': boxsize,
             }
             utils.compressed_pickle(f'{Individual.idx}_error', error)
-            warnings.warn(f"Dear user, as you know MolDrug is still in development and need your help to improve."\
-                f"For some reason vina fails and prompts the following error: {e}. In the directory {os.getcwd()} there is file called {Individual.idx}_error.pbz2"\
-                "Please, if you don't figure it out what could be the problem, please open an issue in https://github.com/ale94mleon/MolDrug/issues. We will try to help you"\
-                "Have at hand the file error.pbz2, we will needed to try to understand the error. The file has the following info: the exception, the current Individual, the receptor pdbqt string as well the definition of the box.")
+            warnings.warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file.\n")
 
             vina_score_pdbqt = (np.inf, Individual.pdbqt)
             return vina_score_pdbqt
