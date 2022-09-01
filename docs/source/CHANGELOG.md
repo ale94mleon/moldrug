@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bug on `moldrug.fitness.vinadock` during searching of MCS between `Individual.mol` and `constraint_ref`. Before was needed to manually specified the atom ids of the `seed_mol` that match `constraint_ref`, now it is not needed any more.
 - Bug during handling exception in `moldrug.constraintconf.generate_conformers`.
 - Bug during handling exception `moldrug.constraintconf.generate_conformers` in `moldrug.fitness.vinadock`.
+- Bug when constraint docking is used on different vina versions. The output of vina is not the same and therefore `moldrug.fitness.vinadock` failed.
 
 ### Changed
 
@@ -21,7 +22,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `moldrug.fitness.get_mol_cost` function.
 - Attribute `genID` to the generated individuals during a `moldrug.utils.GA` run.
-
 
 ## [2.1.0] - 2022.08.30
 

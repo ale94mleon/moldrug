@@ -197,7 +197,7 @@ def vinadock(
 
         # Check first if some valid conformer exist
         if len(out_mol.GetConformers()):
-            vina_score_pdbqt = (np.inf, Individual.pdbqt)
+            vina_score_pdbqt = (np.inf, None)
             for conf in out_mol.GetConformers():
                 temp_mol = deepcopy(out_mol)
                 temp_mol.RemoveAllConformers()
@@ -238,9 +238,13 @@ def vinadock(
 
                 vina_score = np.inf
                 for line in cmd_vina_result.stdout.split('\n'):
+                    # Check over different vina versions
                     if line.startswith('Affinity'):
                         vina_score = float(line.split()[1])
                         break
+                    elif 'Estimated Free Energy of Binding' in line:
+                        vina_score = float(line.split(':')[1])
+                        break                        
                 if vina_score < vina_score_pdbqt[0]:
                     if constraint_type == 'local_only':
                         if os.path.isfile(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')):
