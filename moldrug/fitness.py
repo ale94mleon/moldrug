@@ -243,7 +243,7 @@ def vinadock(
                         vina_score = float(line.split()[1])
                         break
                     elif 'Estimated Free Energy of Binding' in line:
-                        vina_score = float(line.split(':')[1])
+                        vina_score = float(line.split(':')[1].split()[0])
                         break                        
                 if vina_score < vina_score_pdbqt[0]:
                     if constraint_type == 'local_only':
