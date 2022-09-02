@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [2.1.7]
+
 ### Fixed
 
 - Bug on `moldrug.fitness.vinadock` during searching of MCS between `Individual.mol` and `constraint_ref`. Before was needed to manually specified the atom ids of the `seed_mol` that match `constraint_ref`, now it is not needed any more.
@@ -163,7 +165,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/2.1.0...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/2.1.7...HEAD
+[2.1.7]: https://github.com/ale94mleon/MolDrug/compare/2.1.0...2.1.7
 [2.1.0]: https://github.com/ale94mleon/MolDrug/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/ale94mleon/MolDrug/compare/1.1.0...2.0.0
 [1.1.0]: https://github.com/ale94mleon/MolDrug/compare/1.0.2...1.1.0
