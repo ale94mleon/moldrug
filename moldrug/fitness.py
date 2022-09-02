@@ -71,11 +71,14 @@ def get_mol_cost(
         f" --score_only --ligand {os.path.join(wd, 'ligand.pdbqt')}"
 
     cmd_vina_result = utils.run(cmd_vina_str)
-    results['vina_score'] = None
     for line in cmd_vina_result.stdout.split('\n'):
+        # Check over different vina versions
         if line.startswith('Affinity'):
             results['vina_score'] = float(line.split()[1])
             break
+        elif 'Estimated Free Energy of Binding' in line:
+            results['vina_score'] = float(line.split(':')[1].split()[0])
+            break    
     # Getting the desirability
     base = 1
     exponent = 0
