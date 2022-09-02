@@ -248,7 +248,8 @@ def vinadock(
                 if vina_score < vina_score_pdbqt[0]:
                     if constraint_type == 'local_only':
                         if os.path.isfile(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')):
-                            pdbqt = ''.join(utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')).BestEnergy().chunk)
+                            with open(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt'), 'r') as f:
+                                pdbqt = f.read()
                         else:
                             pdbqt = "NonExistedFileToRead"
                         vina_score_pdbqt = (vina_score, pdbqt)
