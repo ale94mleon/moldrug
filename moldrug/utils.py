@@ -1099,7 +1099,7 @@ class GA:
             if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
 
             # Print some information of the initial population
-            print(f"Initial Population: Best individual: {min(self.pop)}")
+            print(f"Initial Population: Best Individual: {min(self.pop)}")
             # Updating the info of the first individual (parent) to print at the end how well performed the method (cost function)
             # Because How the population was initialized and because we are using pool.imap (ordered). The parent is the first Individual of self.pop.
             # We have to use deepcopy because Individual is a mutable object
