@@ -8,7 +8,7 @@ import os
 import numpy as np
 from typing import Dict, List
 import warnings
-from meeko import MoleculePreparation
+from meeko import MoleculePreparation, PDBQTMolecule
 
 def get_mol_cost(
     mol,
@@ -17,6 +17,7 @@ def get_mol_cost(
     receptor_pdbqt_path:str = None,
     boxcenter:List[float] = None,
     boxsize:List[float] = None,
+    score_only = True,
     desirability:Dict = {
         'qed': {
             'w': 1,
@@ -68,17 +69,27 @@ def get_mol_cost(
     cmd_vina_str = f"{vina_executable} --receptor {receptor_pdbqt_path}"\
         f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
         f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
-        f" --score_only --ligand {os.path.join(wd, 'ligand.pdbqt')}"
-
+        f" --ligand {os.path.join(wd, 'ligand.pdbqt')}"
+    if score_only:
+        cmd_vina_str += " --score_only"
+    else:
+        cmd_vina_str += f" --out {os.path.join(wd, 'ligand_out.pdbqt')}"
     cmd_vina_result = utils.run(cmd_vina_str)
-    for line in cmd_vina_result.stdout.split('\n'):
-        # Check over different vina versions
-        if line.startswith('Affinity'):
-            results['vina_score'] = float(line.split()[1])
-            break
-        elif 'Estimated Free Energy of Binding' in line:
-            results['vina_score'] = float(line.split(':')[1].split()[0])
-            break    
+    if score_only:
+        for line in cmd_vina_result.stdout.split('\n'):
+            # Check over different vina versions
+            if line.startswith('Affinity'):
+                results['vina_score'] = float(line.split()[1])
+                break
+            elif 'Estimated Free Energy of Binding' in line:
+                results['vina_score'] = float(line.split(':')[1].split()[0])
+                break
+    else:
+        best_energy = utils.VINA_OUT(os.path.join(wd, 'ligand_out.pdbqt')).BestEnergy()
+        results['vina_score'] = best_energy.freeEnergy
+        pdbqt_mol = PDBQTMolecule.from_file(os.path.join(wd, 'ligand_out.pdbqt'), skip_typing=True)
+        with Chem.SDWriter(os.path.join(wd, 'ligand_out.sdf')) as w:
+            w.write(pdbqt_mol.export_rdkit_mol())
     # Getting the desirability
     base = 1
     exponent = 0
@@ -247,7 +258,7 @@ def vinadock(
                         break
                     elif 'Estimated Free Energy of Binding' in line:
                         vina_score = float(line.split(':')[1].split()[0])
-                        break                        
+                        break
                 if vina_score < vina_score_pdbqt[0]:
                     if constraint_type == 'local_only':
                         if os.path.isfile(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')):
