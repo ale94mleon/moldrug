@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- score_only bool parameter to `moldrug.fitness.get_mol_cost`
+- score_only bool parameter to `moldrug.fitness.get_mol_cost`.
+- Print starting date when MolDrug is called from the command line.
 
 ## [2.1.7] - 2022.09.02
 

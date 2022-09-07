@@ -5,7 +5,7 @@
     Source Code: https://github.com/ale94mleon/moldrug
 """
 from moldrug import utils, __version__
-import yaml, argparse, inspect, os, sys
+import yaml, argparse, inspect, os, sys, datetime
 from rdkit import Chem
 def moldrug_cmd():
     parser = argparse.ArgumentParser(description=__doc__,
@@ -118,7 +118,7 @@ def moldrug_cmd():
     # Initialize the class
     ResultsClass = TypeOfRun(**InitArgs)
     # Call the class
-    print(f'You are using moldrug: {__version__}.\n\nThe main job is being executed.')
+    print(f"You are using moldrug: {__version__}.\n\nThe main job is being executed.\n\nStarted at {datetime.datetime.now().strftime('%c')}")
     ResultsClass(**CallArgs)
     # Saving data
     if MainConfig['type'].lower() == 'local':
