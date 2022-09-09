@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - score_only bool parameter to `moldrug.fitness.get_mol_cost`.
 - Print starting date when MolDrug is called from the command line.
 
+### Removed
+
+- Type Hints `int` for attribute `idx` on`moldrug.utils.Individual`.
+
 ## [2.1.7] - 2022.09.02
 
 ### Fixed

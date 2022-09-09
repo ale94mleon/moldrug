@@ -14,7 +14,8 @@ from typing import List, Dict
 from scipy.special import softmax
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
-
+# # in order to pickle the isotope properties of the molecule
+# Chem.SetDefaultPickleProperties(Chem.PropertyPickleOptions.AllProps)
 ######################################################################################################################################
 #                                   Here are some important functions to work with                                                   #
 ######################################################################################################################################
@@ -592,14 +593,14 @@ class Individual:
 
 
     """
-    def __init__(self, mol:Chem.rdchem.Mol, idx:int = 0, pdbqt:str = None, cost:float = np.inf) -> None:
+    def __init__(self, mol:Chem.rdchem.Mol, idx = 0, pdbqt:str = None, cost:float = np.inf) -> None:
         """This is the constructor of the class.
 
         Parameters
         ----------
         mol : Chem.rdchem.Mol, optional
             A valid RDKit molecule.
-        idx : int, optional
+        idx : int(or str), optional
             An identification, by default 0
         pdbqt : str, optional
             A valid pdbqt string. If it is not provided it will be generated from mol through utils.confgen and the mol attribute will be update with the 3D model, by default None
