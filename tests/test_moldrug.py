@@ -179,7 +179,7 @@ def test_local_command_line():
     os.chdir(cwd)
 
 
-@pytest.mark.filterwarnings("ignore:Dear")
+@pytest.mark.filterwarnings("ignore:\nVina failed")
 def test_fitness_module():
     I = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
     I_corrupted = copy.deepcopy(I)
@@ -216,6 +216,8 @@ def test_fitness_module():
     fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
     fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
     fitness.CostOnlyVina(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+
+    fitness.get_mol_cost(mol = Chem.MolFromMolBlock(constraintref.r_x0161),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],)
 
     # Clean
     os.remove('0_error.pbz2')
@@ -319,7 +321,6 @@ def test_constraintconf():
         smi = os.path.join(tmp_path.name, 'mol.smi'),
         fix= os.path.join(tmp_path.name, 'fix.sdf'),
         out = os.path.join(tmp_path.name, 'conf.sdf')
-
     )
 if __name__ == '__main__':
     pass
