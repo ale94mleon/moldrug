@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Type Hints `int` for attribute `idx` on`moldrug.utils.Individual`.
 
+### Changed
+
+- If vina fails inside `moldrug.fitness.vinadock`; give as pdbqt the string "VinaFailed".
+- If the molecule has a molecular weight highest than `wt_cutoff` when `moldrug.fitness.CostOnlyVina` (or `moldrug.fitness.CostMultiReceptorsOnlyVina`) is called; the pdbqt attribute of the returned Individual will be the string "TooHeavy" (or the list of strings List["TooHeavy"])
+
 ## [2.1.7] - 2022.09.02
 
 ### Fixed

@@ -295,7 +295,7 @@ def vinadock(
             utils.compressed_pickle(f'{Individual.idx}_error', error)
             warnings.warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file.\n")
 
-            vina_score_pdbqt = (np.inf, Individual.pdbqt)
+            vina_score_pdbqt = (np.inf, 'VinaFailed')
             return vina_score_pdbqt
 
         # Getting the information
@@ -548,6 +548,7 @@ def CostOnlyVina(
         if Descriptors.MolWt(Individual.mol) > wt_cutoff:
             Individual.vina_score = np.inf
             Individual.cost = np.inf
+            Individual.pdbqt = 'TooHeavy'
             return Individual
 
     # Getting vina_score and update pdbqt
@@ -897,11 +898,11 @@ def CostMultiReceptorsOnlyVina(
     pdbqt_list = []
     Individual.vina_score = []
 
-    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add the pdbqt to pdbqts and np.inf to vina_scores
+    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add "TooHeavy" string to pdbqts and np.inf to vina_scores
     if wt_cutoff:
         if Descriptors.MolWt(Individual.mol) > wt_cutoff:
             for _ in range(len(receptor_pdbqt_path)):
-                pdbqt_list.append(Individual.pdbqt)
+                pdbqt_list.append('TooHeavy')
                 Individual.vina_score.append(np.inf)
             Individual.cost = np.inf
             # Update the pdbqt attribute
