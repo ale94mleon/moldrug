@@ -780,7 +780,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                     except Exception:
                         # Should be that the pdbqt is not valid
                         print(f"{individual} does not have a valid pdbqt.")
-            print(f" File {sdf_name}_{i+1}.sdf was createad!")
+            print(f" File {sdf_name}_{i+1}.sdf was created!")
     else:
         with Chem.SDWriter(f"{sdf_name}.sdf") as w:
             for individual in individuals:
@@ -1010,6 +1010,19 @@ class GA:
         self.NumGens = 0
         self.SawIndividuals = set()
 
+        # work with the seed molecule
+        self.AddHs = AddHs
+        if self.AddHs:
+            seed_mol = Chem.AddHs(seed_mol)
+        if 'protected_ids' in self.mutate_crem_kwargs or 'replace_ids' in self.mutate_crem_kwargs:
+            [atom.SetIntProp('label_MolDrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
+
+        # Create the first Individual
+        self.InitIndividual = Individual(seed_mol, idx = 0)
+        if not self.InitIndividual.pdbqt:
+            raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
+        self.pop = [self.InitIndividual]
+
     def __call__(self, njobs:int = 1):
         """Call deffinition
 
@@ -1208,7 +1221,7 @@ class GA:
         print(f'The simulation finished successfully after {self.NumGens} generations with a population of {self.popsize} individuals. A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.')
         print(f"Initial Individual: {self.InitIndividual}")
         print(f"Final Individual: {self.pop[0]}")
-        print(f"The cost function droped in {self.InitIndividual - self.pop[0]} units.")
+        print(f"The cost function dropped in {self.InitIndividual - self.pop[0]} units.")
         print(f"\n{50*'=+'}\n")
 
         # Printing how long was the simulation
