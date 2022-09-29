@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [2.1.12] - 2022.09.29
+
 ### Added
 
-- score_only bool parameter to `moldrug.fitness.get_mol_cost`.
+- `score_only` bool parameter to `moldrug.fitness.get_mol_cost`.
 - Print starting date when MolDrug is called from the command line.
 
 ### Removed
@@ -180,6 +182,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better code covered during testing
 
 [unreleased]: https://github.com/ale94mleon/MolDrug/compare/2.1.7...HEAD
+[2.1.12]: https://github.com/ale94mleon/MolDrug/compare/2.1.7...2.1.12
 [2.1.7]: https://github.com/ale94mleon/MolDrug/compare/2.1.0...2.1.7
 [2.1.0]: https://github.com/ale94mleon/MolDrug/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/ale94mleon/MolDrug/compare/1.1.0...2.0.0
