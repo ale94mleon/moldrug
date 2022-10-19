@@ -19,7 +19,7 @@ jobs:
         os: [ubuntu-latest, macOS-latest] #windows-latest (vina is not available for windows in conda-forge),m think about use bioconda autodock-vina
         python-version: [3.8, 3.9, '3.10']
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Setup conda
       uses: s-weigand/setup-conda@v1
       with:
