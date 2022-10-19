@@ -125,7 +125,7 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, pa
         for idx in parent_replace_ids:
             try:
                 offspring_replace_ids.append(mapping[idx])
-            except Exception:
+            except KeyError:
                 pass
 
     offspring_protected_ids = []
@@ -133,7 +133,7 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, pa
         for idx in parent_protected_ids:
             try:
                 offspring_protected_ids.append(mapping[idx])
-            except Exception:
+            except KeyError:
                 pass
     return offspring_replace_ids, offspring_protected_ids
 
@@ -211,7 +211,7 @@ def lipinski_filter(mol: Chem.rdchem.Mol, maxviolation: int = 2):
     bool
         True if the molecule present less than maxviolation violations; otherwise False.
     """
-    filter = {
+    filter_prop = {
         'NumHAcceptors': {'method': Lipinski.NumHAcceptors, 'cutoff': 10},
         'NumHDonors': {'method': Lipinski.NumHDonors, 'cutoff': 5},
         'wt': {'method': Descriptors.MolWt, 'cutoff': 500},
@@ -220,9 +220,9 @@ def lipinski_filter(mol: Chem.rdchem.Mol, maxviolation: int = 2):
         'TPSA': {'method': Chem.MolSurf.TPSA, 'cutoff': 140},
     }
     cont = 0
-    for property in filter:
+    for prop in filter_prop:
 
-        if filter[property]['method'](mol) > filter[property]['cutoff']:
+        if filter_prop[prop]['method'](mol) > filter_prop[prop]['cutoff']:
             cont += 1
         if cont >= maxviolation:
             return False
@@ -266,14 +266,16 @@ def lipinski_profile(mol: Chem.rdchem.Mol):
         'RingCount': {'method':Lipinski.RingCount,'cutoff':None},
     }
     profile = {}
-    for property in properties:
-        profile[property] = properties[property]['method'](mol)
-        #print(f"{property}: {properties[property]['method'](mol)}. cutoff: {properties[property]['cutoff']}")
+    for prop in properties:
+        profile[prop] = properties[prop]['method'](mol)
+        #print(f"{prop}: {properties[prop]['method'](mol)}. cutoff: {properties[prop]['cutoff']}")
     return profile
 
 #Desirability. doi:10.1016/j.chemolab.2011.04.004; https://www.youtube.com/watch?v=quz4NW0uIYw&list=PL6ebkIZFT4xXiVdpOeKR4o_sKLSY0aQf_&index=3
 def LargerTheBest(Value: float, LowerLimit: float, Target: float, r: float = 1)  -> float:
-    """Desirability function used when larger values are the targets. If Value is higher or equal than the target it will return 1; if it is lower than LowerLimit it will return 0; else a number between 0 and 1.
+    """Desirability function used when larger values are the targets. If Value is higher
+    or equal than the target it will return 1; if it is lower than LowerLimit it will return 0;
+    else a number between 0 and 1.
 
     Parameters
     ----------
@@ -299,7 +301,9 @@ def LargerTheBest(Value: float, LowerLimit: float, Target: float, r: float = 1) 
         return 1.0
 
 def SmallerTheBest(Value: float, Target: float, UpperLimit: float, r: float = 1) -> float:
-    """Desirability function used when lower values are the targets. If Value is lower or equal than the target it will return 1; if it is higher than UpperLimit it will return 0; else a number between 0 and 1.
+    """Desirability function used when lower values are the targets. If Value is lower or
+    equal than the target it will return 1; if it is higher than UpperLimit it will return 0;
+    else a number between 0 and 1.
 
     Parameters
     ----------
@@ -325,7 +329,9 @@ def SmallerTheBest(Value: float, Target: float, UpperLimit: float, r: float = 1)
         return 0.0
 
 def NominalTheBest(Value: float, LowerLimit: float, Target:float, UpperLimit: float, r1: float = 1, r2: float = 1) -> float:
-    """Desirability function used when a target value is desired. If Value is lower or equal than the LowerLimit it will return 0; as well values higher or equal than  UpperLimit; else a number between 0 and 1.
+    """Desirability function used when a target value is desired. If Value is
+    lower or equal than the LowerLimit it will return 0; as well values higher or equal than
+    UpperLimit; else a number between 0 and 1.
 
     Parameters
     ----------
@@ -494,8 +500,7 @@ class CHUNK_VINA_OUT:
             if line.startswith("MODEL"):
                 self.run = int(line[5:])
             elif line.startswith("REMARK VINA RESULT:"):
-                    (self.freeEnergy, self.RMSD1, self.RMSD2) = [float(number) for number in line.split(":")[-1].split()]
-
+                (self.freeEnergy, self.RMSD1, self.RMSD2) = [float(number) for number in line.split(":")[-1].split()]
             elif line.startswith("ATOM"):
                 self.atoms.append(Atom(line))
 
@@ -554,7 +559,7 @@ class VINA_OUT:
 
 
 ######################################################################################################################################
-#                                             Classes to work with moldrug                                                                   #
+#                                             Classes to work with moldrug                                                           #
 ######################################################################################################################################
 
 class Individual:
@@ -603,7 +608,8 @@ class Individual:
         idx : int(or str), optional
             An identification, by default 0
         pdbqt : str, optional
-            A valid pdbqt string. If it is not provided it will be generated from mol through utils.confgen and the mol attribute will be update with the 3D model, by default None
+            A valid pdbqt string. If it is not provided it will be generated from mol through utils.confgen
+            and the mol attribute will be update with the 3D model, by default None
         cost : float, optional
             This attribute is used to perform operations between Individuals and should be used for the cost functions, by default np.inf
         """
@@ -747,7 +753,8 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
         I1.pdbqt = I1.pdbqt[0]
         I2.pdbqt = I2.pdbqt[0]
         utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
-        # Only one file will be created if the pdbqt has not len in some of the individuals or they presents different lens as well. In this case the pdbqts will be completely ignored and pdbqt attribute will be used for the construction of the sdf file
+        # Only one file will be created if the pdbqt has not len in some of the individuals or they presents different lens as well.
+        # In this case the pdbqts will be completely ignored and pdbqt attribute will be used for the construction of the sdf file
         I1.pdbqt = [I1.pdbqt, I1.pdbqt, I1.pdbqt]
         I2.pdbqt = [I2.pdbqt, I2.pdbqt]
         utils.make_sdf([I1, I2], sdf_name = os.path.join(tmp_path.name, 'out'))
@@ -766,7 +773,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
     if len(NumbOfpdbqt) > 1:
         check = False
 
-    if check == True:
+    if check is True:
         for i in range(list(NumbOfpdbqt)[0]):
             with Chem.SDWriter(f"{sdf_name}_{i+1}.sdf") as w:
                 for individual in individuals:
@@ -802,7 +809,8 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
 class Local:
     """For local search
     """
-    def __init__(self, seed_mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:Dict = {}, costfunc_kwargs:Dict = {}, AddHs:bool = False) -> None:
+    def __init__(self, seed_mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:Dict = None,
+    costfunc_kwargs:Dict = None, AddHs:bool = False) -> None:
         """Creator
 
         Parameters
@@ -823,8 +831,21 @@ class Local:
         Raises
         ------
         Exception
-            In case that some problem occured during the creation of the Individula from the Seed_mol
+            In case that some problem occured during the creation of the Individula from the seed_mol
+        ValueError
+            In case of incorrect definition of grow_crem_kwargs and/or costfunc_kwargs. They must be None or a dict instance.
         """
+        if grow_crem_kwargs is None:
+            grow_crem_kwargs = dict()
+        elif not isinstance(grow_crem_kwargs, dict):
+            raise ValueError(f'grow_crem_kwargs must be None or a dict instance. {grow_crem_kwargs} was provided')
+
+        if costfunc_kwargs is None:
+            costfunc_kwargs = dict()
+        elif not isinstance(costfunc_kwargs, dict):
+            raise ValueError(f'grow_crem_kwargs must be None or a dict instance. {costfunc_kwargs} was provided')
+
+
         if AddHs:
             self.seed_mol = Chem.AddHs(seed_mol)
         else:
@@ -832,7 +853,8 @@ class Local:
 
         self.InitIndividual = Individual(self.seed_mol, idx = 0)
         if not self.InitIndividual.pdbqt:
-            raise Exception(f"For some reason, it was not possible to create for the class Individula a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
+            raise Exception("For some reason, it was not possible to create for the class Individula "\
+                "a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.crem_db_path = crem_db_path
         self.grow_crem_kwargs = grow_crem_kwargs
         self.costfunc = costfunc
@@ -880,7 +902,7 @@ class Local:
         for individual in self.pop:
             args_list.append((individual, kwargs_copy))
 
-        print(f'Calculating cost function...')
+        print('Calculating cost function...')
         pool = mp.Pool(njobs)
         self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
         pool.close()
@@ -903,7 +925,8 @@ class Local:
         title : str
             Name of the object which will be compleated with the correposnding extension depending if compress is set to True or False.
         compress : bool, optional
-            Use compression, by default False. If True :meth:`moldrug.utils.compressed_pickle` will be used; if not :meth:`moldrug.utils.full_pickle` will be used instead.
+            Use compression, by default False. If True :meth:`moldrug.utils.compressed_pickle` will be used;
+            if not :meth:`moldrug.utils.full_pickle` will be used instead.
         """
         cls = self.__class__
         result = cls.__new__(cls)
@@ -928,10 +951,33 @@ class Local:
             list_of_dictionaries.append(dictionary)
         return pd.DataFrame(list_of_dictionaries)
 
+
+######################################################################################################################################
+#                                             Selection fucntions                                                                    #
+######################################################################################################################################
+
+def roulette_wheel_selection(p:List[float]):
+    """Function to select the offsprings based on their fitness.
+
+    Parameters
+    ----------
+    p : list[float]
+        Probabilities
+
+    Returns
+    -------
+    int
+        The selected index
+    """
+    c = np.cumsum(p)
+    r = sum(p)*np.random.rand()
+    ind = np.argwhere(r <= c)
+    return ind[0][0]
+
 class GA:
     """An implementation of genetic algorithm to search in the chemical space.
     """
-    def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = {}, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
+    def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = None, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
         """This is the generator
 
         Parameters
@@ -967,7 +1013,14 @@ class GA:
         ------
         Exception
             In case that some problem occured during the creation of the Individula from the Seed_mol
+        ValueError
+            In case of incorrect definition of mutate_crem_kwargs. It must be None or a dict instance.
         """
+        if mutate_crem_kwargs is None:
+            mutate_crem_kwargs = dict()
+        elif not isinstance(mutate_crem_kwargs, dict):
+            raise ValueError(f'mutate_crem_kwargs must be None or a dict instance. {mutate_crem_kwargs} was provided')
+
         self.AddHs = AddHs
         if self.AddHs:
             self.InitIndividual = Individual(Chem.AddHs(seed_mol), idx = 0)
@@ -975,7 +1028,8 @@ class GA:
             self.InitIndividual = Individual(seed_mol, idx=0)
 
         if not self.InitIndividual.pdbqt:
-            raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
+            raise Exception("For some reason, it was not possible to create the class Individula was not able to create "\
+                "a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
         self.pop = [self.InitIndividual]
@@ -1015,12 +1069,13 @@ class GA:
         if self.AddHs:
             seed_mol = Chem.AddHs(seed_mol)
         if 'protected_ids' in self.mutate_crem_kwargs or 'replace_ids' in self.mutate_crem_kwargs:
-            [atom.SetIntProp('label_MolDrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
+            _ = [atom.SetIntProp('label_MolDrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
 
         # Create the first Individual
         self.InitIndividual = Individual(seed_mol, idx = 0)
         if not self.InitIndividual.pdbqt:
-            raise Exception(f"For some reason, it was not possible to create the class Individula was not able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
+            raise Exception(f"For some reason, it was not possible to create the class Individula was not "\
+                "able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.pop = [self.InitIndividual]
 
     def __call__(self, njobs:int = 1):
@@ -1058,7 +1113,8 @@ class GA:
 
             # Checking for possible scenarios
             if len(GenInitStructs) == 0:
-                raise RuntimeError('Something really strange happened. The seed SMILES did not generate any new molecule during the initialization of the population. Check the provided crem parameters!')
+                raise RuntimeError('Something really strange happened. The seed SMILES did not '\
+                    'generate any new molecule during the initialization of the population. Check the provided crem parameters!')
             if len(GenInitStructs) < (self.popsize - 1):
                 print('The initial population has repeated elements')
                 # temporal solution
@@ -1097,7 +1153,7 @@ class GA:
                 self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
                 pool.close()
             except Exception as e1:
-                warn(f"Parallelization did not work. Trying with serial...")
+                warn("Parallelization did not work. Trying with serial...")
                 try:
                     self.pop = [self.__costfunc__(args) for args in tqdm.tqdm(args_list, total=len(args_list))]
                 except Exception as e2:
@@ -1133,7 +1189,7 @@ class GA:
 
         # Main Loop
         number_of_previous_generations = len(self.best_cost) # Another control variable. In case that the __call__ method is used more than ones.
-        for iter in range(self.maxiter):
+        for it in range(self.maxiter):
             # Saving Number of Generations
             self.NumGens += 1
 
@@ -1145,7 +1201,7 @@ class GA:
             popc = []
             for _ in range(self.nc):
                 # Perform Roulette Wheel Selection
-                parent = self.pop[self.roulette_wheel_selection(probs)]
+                parent = self.pop[roulette_wheel_selection(probs)]
 
                 # Perform Mutation (this mutation is some kind of crossover but with CReM library)
                 children = self.mutate(parent)
@@ -1209,7 +1265,7 @@ class GA:
             # Saving population in disk if it was required
             if self.save_pop_every_gen:
                 # Save every save_pop_every_gen and always the last population
-                if self.NumGens % self.save_pop_every_gen == 0 or iter + 1 == self.maxiter:
+                if self.NumGens % self.save_pop_every_gen == 0 or it + 1 == self.maxiter:
                     compressed_pickle(f"{self.deffnm}_pop", (self.NumGens, self.pop))
                     make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
 
@@ -1218,7 +1274,8 @@ class GA:
 
         # Printing summary information
         print(f"\n{50*'=+'}\n")
-        print(f'The simulation finished successfully after {self.NumGens} generations with a population of {self.popsize} individuals. A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.')
+        print(f'The simulation finished successfully after {self.NumGens} generations with a population of {self.popsize} individuals.'\
+            f'A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.')
         print(f"Initial Individual: {self.InitIndividual}")
         print(f"Final Individual: {self.pop[0]}")
         print(f"The cost function dropped in {self.InitIndividual - self.pop[0]} units.")
@@ -1249,11 +1306,16 @@ class GA:
         # Here is were I have to check if replace_ids or protected_ids where provided.
         mutate_crem_kwargs_to_work_with = self.mutate_crem_kwargs.copy()
         if 'replace_ids' in self.mutate_crem_kwargs and 'protected_ids' in self.mutate_crem_kwargs:
-            mutate_crem_kwargs_to_work_with['replace_ids'], mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(self.InitIndividual.mol, individual.mol, parent_replace_ids=self.mutate_crem_kwargs['replace_ids'], parent_protected_ids=self.mutate_crem_kwargs['protected_ids'])
+            mutate_crem_kwargs_to_work_with['replace_ids'], mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(
+                self.InitIndividual.mol, individual.mol, parent_replace_ids=self.mutate_crem_kwargs['replace_ids'],
+                parent_protected_ids=self.mutate_crem_kwargs['protected_ids'])
         elif 'replace_ids' in self.mutate_crem_kwargs:
-            mutate_crem_kwargs_to_work_with['replace_ids'], _ = update_reactant_zone(self.InitIndividual.mol, individual.mol, parent_replace_ids=self.mutate_crem_kwargs['replace_ids'])
+            mutate_crem_kwargs_to_work_with['replace_ids'], _ = update_reactant_zone(
+                self.InitIndividual.mol, individual.mol, parent_replace_ids=self.mutate_crem_kwargs['replace_ids'])
         elif 'protected_ids' in self.mutate_crem_kwargs:
-            _, mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(self.InitIndividual.mol, individual.mol, parent_protected_ids=self.mutate_crem_kwargs['protected_ids'])
+            _, mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(
+                self.InitIndividual.mol, individual.mol,
+                parent_protected_ids=self.mutate_crem_kwargs['protected_ids'])
 
         try:
             mutants = list(mutate_mol(individual.mol, self.crem_db_path, **mutate_crem_kwargs_to_work_with))
@@ -1268,25 +1330,6 @@ class GA:
         if self.AddHs:
             mol = Chem.AddHs(mol)
         return Individual(mol)
-
-
-    def roulette_wheel_selection(self, p:List[float]):
-        """Function to select the offsprings based on their fitness.
-
-        Parameters
-        ----------
-        p : list[float]
-            Probabilities
-
-        Returns
-        -------
-        int
-            The selected index
-        """
-        c = np.cumsum(p)
-        r = sum(p)*np.random.rand()
-        ind = np.argwhere(r <= c)
-        return ind[0][0]
 
     def pickle(self, title:str, compress = False):
         """Method to pickle the whole GA class
@@ -1320,7 +1363,7 @@ class GA:
             del dictionary['mol']
             list_of_dictionaries.append(dictionary)
         return pd.DataFrame(list_of_dictionaries)
-######################################################################################################################################
+
 
 if __name__ == '__main__':
     pass

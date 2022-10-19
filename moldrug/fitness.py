@@ -10,7 +10,7 @@ from typing import Dict, List
 import warnings
 from meeko import MoleculePreparation, PDBQTMolecule
 
-def get_mol_cost(
+def __get_mol_cost(
     mol,
     wd:str = '.vina_jobs',
     vina_executable:str = 'vina',
@@ -18,33 +18,37 @@ def get_mol_cost(
     boxcenter:List[float] = None,
     boxsize:List[float] = None,
     score_only = True,
-    desirability:Dict = {
-        'qed': {
-            'w': 1,
-            'LargerTheBest': {
-                'LowerLimit': 0.1,
-                'Target': 0.75,
-                'r': 1
-            }
-        },
-        'sa_score': {
-            'w': 1,
-            'SmallerTheBest': {
-                'Target': 3,
-                'UpperLimit': 7,
-                'r': 1
-            }
-        },
-        'vina_score': {
-            'w': 1,
-            'SmallerTheBest': {
-                'Target': -12,
-                'UpperLimit': -6,
-                'r': 1
+    desirability:Dict = None
+    ):
+
+    if not desirability:
+        desirability = {
+            'qed': {
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': 0.1,
+                    'Target': 0.75,
+                    'r': 1
+                }
+            },
+            'sa_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': 3,
+                    'UpperLimit': 7,
+                    'r': 1
+                }
+            },
+            'vina_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
             }
         }
-    }
-    ):
+
     if not os.path.exists(wd):
         os.makedirs(wd)
     # Initializing result dict
@@ -207,7 +211,7 @@ def vinadock(
         # Remove conformers that clash with the protein
         clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath = constraint_receptor_pdb_path, distance=1.5)
         clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
-        [out_mol.RemoveConformer(clashId) for clashId in clashIds]
+        _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
         # Check first if some valid conformer exist
         if len(out_mol.GetConformers()):
@@ -274,8 +278,8 @@ def vinadock(
     # "Normal" docking
     else:
         cmd_vina_str += f" --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} --out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')}"
-        with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as l:
-            l.write(Individual.pdbqt)
+        with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as lig_pdbqt:
+            lig_pdbqt.write(Individual.pdbqt)
         try:
             utils.run(cmd_vina_str)
         except Exception as e:
@@ -310,7 +314,7 @@ def Cost(
     vina_executable:str = 'vina',
     receptor_pdbqt_path:str = None,
     boxcenter:List[float] = None,
-    boxsize:List[float] =None,
+    boxsize:List[float] = None,
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
@@ -440,7 +444,7 @@ def Cost(
     )
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
-    # Quantitative estimation of drug-likness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible.
+    # Quantitative estimation of drug-likeness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible.
 
     base = 1
     exponent = 0

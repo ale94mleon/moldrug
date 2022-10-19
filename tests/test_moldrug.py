@@ -181,17 +181,17 @@ def test_local_command_line():
 
 @pytest.mark.filterwarnings("ignore:\nVina failed")
 def test_fitness_module():
-    I = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
-    I_corrupted = copy.deepcopy(I)
-    I_corrupted.pdbqt = 'This is a corrupted pdbqt'
+    individual = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
+    individual_corrupted = copy.deepcopy(individual)
+    individual_corrupted.pdbqt = 'This is a corrupted pdbqt'
     receptor_pdbqt_path = [r_x0161_pdbqt_file,r_6lu7_pdbqt_file]
     boxcenter = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
     boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
     vina_score_type = ['min', 'max']
 
-    fitness.Cost(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+    fitness.Cost(Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
     fitness.Cost(
-        Individual = copy.deepcopy(I),
+        Individual = copy.deepcopy(individual),
         wd = tmp_path.name,
         receptor_pdbqt_path = r_x0161_pdbqt_file,
         boxcenter = boxes.r_x0161['A']['boxcenter'],
@@ -203,21 +203,36 @@ def test_fitness_module():
         constraint_receptor_pdb_path = r_x0161_pdb_file,
         )
 
-    fitness.Cost(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+    fitness.Cost(Individual = copy.deepcopy(
+        individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
+        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+    fitness.CostMultiReceptors(
+        Individual = copy.deepcopy(individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
+        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+    fitness.CostMultiReceptorsOnlyVina(
+        Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
+        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+    fitness.CostMultiReceptorsOnlyVina(
+        Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
+        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+    fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(
+        individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
+        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
 
-    fitness.CostMultiReceptors(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
 
+    fitness.CostOnlyVina(
+        Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
+        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+    fitness.CostOnlyVina(
+        Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
+        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+    fitness.CostOnlyVina(
+        Individual = copy.deepcopy(individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
+        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
 
-    fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
-    fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
-    fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
-
-
-    fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
-    fitness.CostOnlyVina(Individual = copy.deepcopy(I),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
-    fitness.CostOnlyVina(Individual = copy.deepcopy(I_corrupted),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
-
-    fitness.get_mol_cost(mol = Chem.MolFromMolBlock(constraintref.r_x0161),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],)
+    fitness.__get_mol_cost(
+        mol = Chem.MolFromMolBlock(constraintref.r_x0161),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
+        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],)
 
     # Clean
     os.remove('0_error.pbz2')
@@ -322,5 +337,7 @@ def test_constraintconf():
         fix= os.path.join(tmp_path.name, 'fix.sdf'),
         out = os.path.join(tmp_path.name, 'conf.sdf')
     )
+
+
 if __name__ == '__main__':
     pass

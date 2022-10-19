@@ -8,6 +8,19 @@ from moldrug import utils, __version__
 import yaml, argparse, inspect, os, sys, datetime
 from rdkit import Chem
 def moldrug_cmd():
+    """This function is only used in as part of the command line interface of MolDrug.
+    It makes possible to use MolDrug form the command line. More detail help is available
+    from the command line `moldrug -h`.
+
+    Raises
+    ------
+    NotImplementedError
+        In case that the type of the calculation differs from Local or GA (currently implementations)
+    ValueError
+        In case that the user ask for followed jobs and Local is selected.
+    ValueError
+        In case that a non-mutable or non-defined argument is given by the user on the follow jobs.
+    """
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
@@ -77,7 +90,7 @@ def moldrug_cmd():
     InitArgs = MainConfig.copy()
 
     # Modifying InitArgs
-    [InitArgs.pop(key, None) for key in ['type', 'njobs', 'pick']]
+    _ = [InitArgs.pop(key, None) for key in ['type', 'njobs', 'pick']]
     InitArgs['costfunc'] = Cost
 
     # Getting call arguments
@@ -85,14 +98,15 @@ def moldrug_cmd():
     for key in ['njobs', 'pick']:
         try:
             CallArgs[key] = MainConfig[key]
-        except Exception:
+        except KeyError:
             pass
 
     # Checking for follow jobs and sanity check on the arguments
     if FollowConfig:
         # Defining the possible mutable arguments with its default values depending on the type of run
         if MainConfig['type'].lower() == 'local':
-            raise ValueError(f"Type = Local does not accept multiple call from the command line! Remove follow jobs from the yaml file (only the main job is possible)")
+            raise ValueError("Type = Local does not accept multiple call from the command line! Remove follow "\
+                "jobs from the yaml file (only the main job is possible)")
         else:
             mutable_args = {
                 'njobs': CallArgs['njobs'],
@@ -113,12 +127,14 @@ def moldrug_cmd():
         for job in FollowConfig:
             for arg in FollowConfig[job]:
                 if arg not in mutable_args:
-                    raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". For now only the following are accepted: {list(mutable_args.keys())}")
+                    raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". "\
+                        "For now only the following are accepted: {list(mutable_args.keys())}")
 
     # Initialize the class
     ResultsClass = TypeOfRun(**InitArgs)
     # Call the class
-    print(f"You are using moldrug: {__version__}.\n\nThe main job is being executed.\n\nStarted at {datetime.datetime.now().strftime('%c')}")
+    print(f"You are using moldrug: {__version__}.\n\nThe main job is being executed.\n\n"\
+        "Started at {datetime.datetime.now().strftime('%c')}")
     ResultsClass(**CallArgs)
     # Saving data
     if MainConfig['type'].lower() == 'local':
@@ -127,7 +143,7 @@ def moldrug_cmd():
     else:
         ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
         utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
-    print(f'The main job finished!')
+    print('The main job finished!')
     # In case that follows jobs were defined
     if FollowConfig:
         for job in FollowConfig:

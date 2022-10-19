@@ -30,7 +30,7 @@ def home(dataDir=None):
     try:
         if sys._MEIPASS:
             homeDir = sys._MEIPASS
-    except Exception:
+    except AttributeError:
         pass
 
     if dataDir:
