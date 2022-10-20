@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""For information of MolDrug:
+"""
+For information of MolDrug:
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
-from moldrug import utils, __version__
+from moldrug import utils, constraintconf, __version__
 import yaml, argparse, inspect, os, sys
 from rdkit import Chem
-def moldrug_cmd():
-    """This function is only used in as part of the command line interface of MolDrug.
+def __moldrug_cmd():
+    """
+    This function is only used in as part of the command line interface of MolDrug.
     It makes possible to use MolDrug form the command line. More detail help is available
     from the command line `moldrug -h`.
 
@@ -171,3 +173,60 @@ def moldrug_cmd():
             ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
             utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
             print(f'The job {job} finished!')
+
+def __constraintconf_cmd():
+    """
+    Command line implementation for :meth:`moldrug.constraintconf.constraintconf`
+    """
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument(
+        '--pdb',
+        help = 'Protein pdb file',
+        dest = 'pdb',
+        type = str,
+    )
+    parser.add_argument(
+        '--smi',
+        help='Input SMILES file name',
+        dest = 'smi',
+        type = str,
+    )
+    parser.add_argument(
+        '--fix',
+        help = 'File with fixed piece of the molecule',
+        dest = 'fix',
+        type = str,
+    )
+    parser.add_argument(
+        '--out',
+        help = 'Output file name',
+        dest = 'out',
+        type = str,
+    )
+    parser.add_argument(
+        '--max',
+        help = 'Maximum number of conformers to generate, by default %(default)s',
+        dest = 'max',
+        default = 25,
+        type = int,
+    )
+    parser.add_argument(
+        '--rms',
+        help = 'RMS cutoff, by default %(default)s',
+        dest = 'rms',
+        default = 0.01,
+        type = float,
+    )
+    parser.add_argument(
+        '--bump',
+        help = 'Bump cutoff, by default %(default)s',
+        dest = 'bump',
+        default = 1.5,
+        type = float,
+    )
+    args = parser.parse_args()
+    constraintconf.constraintconf(args.pdb, args.smi, args.fix, args.out, args.max, args.rms, args.bump)
+
+
+if __name__ == '__main__':
+    pass

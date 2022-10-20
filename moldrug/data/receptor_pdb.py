@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""The pdb for the receptors with PDB id: : 6lu7, x0161.
 """
-r_6lu7 = """REMARK   4 XXXX COMPLIES WITH FORMAT V. 2.0
+The pdb for the receptors with PDB id: : 6lu7, x0161.
+"""
+r_6lu7 = """
+REMARK   4 XXXX COMPLIES WITH FORMAT V. 2.0
 ATOM      1  N   SER U   1     -32.073   9.085  33.695 -0.32  2.00      6lu7 N  
 ATOM      2  CA  SER U   1     -32.156   8.073  34.741  0.30  2.00      6lu7 C  
 ATOM      3  C   SER U   1     -30.857   8.000  35.536  0.55  1.70      6lu7 C  
@@ -2897,9 +2899,11 @@ ATOM   2891  OE1 GLN U 306     -42.557   3.100  30.385 -0.55  1.40      6lu7 O
 ATOM   2892  NE2 GLN U 306     -42.864   1.710  28.648 -0.78  1.50      6lu7 N  
 ATOM   2893 1HE2 GLN U 306     -42.231   2.226  28.044  0.39  1.00      6lu7 H  
 ATOM   2894 2HE2 GLN U 306     -43.332   0.872  28.305  0.39  1.00      6lu7 H  
-TER    2895      GLN U 306"""
+TER    2895      GLN U 306
+"""
 
-r_x0161 = """REMARK   4 XXXX COMPLIES WITH FORMAT V. 2.0
+r_x0161 = """
+REMARK   4 XXXX COMPLIES WITH FORMAT V. 2.0
 ATOM      1  N   SER A   1      -2.549   4.317 -16.895  1.00 46.95      x016 N  
 ATOM      2  CA  SER A   1      -2.256   5.689 -16.439  1.00 45.24      x016 C  
 ATOM      3  C   SER A   1      -2.668   5.866 -14.966  1.00 44.79      x016 C  
@@ -5770,4 +5774,5 @@ ATOM   2867  OG1 THR A 304       5.150  -9.899 -13.420  1.00 57.55      x016 O
 ATOM   2868  CG2 THR A 304       3.268  -8.419 -13.178  1.00 54.96      x016 C  
 ATOM   2869  H   THR A 304       6.101  -7.583 -13.844  1.00 68.10      x016 H  
 ATOM   2870  HG1 THR A 304       5.811 -10.390 -12.954  1.00 57.55      x016 H  
-TER    2871      THR A 304"""
+TER    2871      THR A 304
+"""

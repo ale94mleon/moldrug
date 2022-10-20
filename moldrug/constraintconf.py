@@ -1,6 +1,7 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-For the functions: duplicate_conformers, get_mcs, generate_conformers, constraintconf and constraintconf_cmd
+For the functions: duplicate_conformers, get_mcs, generate_conformers, constraintconf
 and the class ProteinLigandClashFilter:
     Code borrowed from Pat Walters
     https://github.com/PatWalters/fragment_expansion/blob/master/rdkit_eval/rd_gen_restricted_confs.py
@@ -14,14 +15,15 @@ and the class ProteinLigandClashFilter:
 from copy import deepcopy
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdFMCS
-import os, argparse
+import os
 from typing import  Optional
 import warnings
 from tqdm import tqdm
 import Bio.PDB as PDB
 from moldrug.utils import compressed_pickle
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
-    """Check if a conformer with index new_onf_idx it is duplicated based on rms_limit
+    """
+    Check if a conformer with index new_onf_idx it is duplicated based on rms_limit
 
     Parameters
     ----------
@@ -46,7 +48,8 @@ def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float
     return any(i < rms_limit for i in rmslist)
 
 def get_mcs(mol_one: Chem.rdchem.Mol, mol_two: Chem.rdchem.Mol) -> str:
-    """Code to find the maximum common substructure between two molecules.
+    """
+    Code to find the maximum common substructure between two molecules.
 
     Parameters
     ----------
@@ -74,7 +77,8 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                         ref_smi: str = None,
                         minimum_conf_rms: Optional[float] = None,
                         ) -> Chem.rdchem.Mol:
-    """Generate constrained conformers
+    """
+    Generate constrained conformers
 
     Parameters
     ----------
@@ -137,15 +141,13 @@ def generate_conformers(mol: Chem.rdchem.Mol,
         mol.RemoveAllConformers()
         return mol
 
-
-
-
-
 class ProteinLigandClashFilter:
-    """Class used to eliminate clash between a ligand and a protein.
+    """
+    Class used to eliminate clash between a ligand and a protein.
     """
     def __init__(self, protein_pdbpath: str, distance: float = 1.5):
-        """This is the constructor of the class
+        """
+        This is the constructor of the class
 
         Parameters
         ----------
@@ -160,7 +162,8 @@ class ProteinLigandClashFilter:
         self.radius = distance
 
     def __call__(self, conf: Chem.rdchem.Conformer) -> bool:
-        """Call deffinition
+        """
+        Call deffinition
 
         Parameters
         ----------
@@ -179,7 +182,8 @@ class ProteinLigandClashFilter:
         return False
 
 def constraintconf(pdb:str, smi:str, fix:str, out:str, max_conf:int = 25, rms:float = 0.01, bump:float = 1.5):
-    """_summary_
+    """
+    It generates several conformations in the binding pocket with a specified constraint.
 
     Parameters
     ----------
@@ -220,54 +224,6 @@ def constraintconf(pdb:str, smi:str, fix:str, out:str, max_conf:int = 25, rms:fl
         for conf in out_mol.GetConformers():
             writer.write(out_mol, confId=conf.GetId())
 
-def constraintconf_cmd():
-    """Command line implementation for the function constraintconf
-    """
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument(
-        '--pdb',
-        help = 'Protein pdb file',
-        dest = 'pdb',
-        type = str,
-    )
-    parser.add_argument(
-        '--smi',
-        help='Input SMILES file name',
-        dest = 'smi',
-        type = str,
-    )
-    parser.add_argument(
-        '--fix',
-        help = 'File with fixed piece of the molecule',
-        dest = 'fix',
-        type = str,
-    )
-    parser.add_argument(
-        '--out',
-        help = 'Output file name',
-        dest = 'out',
-        type = str,
-    )
-    parser.add_argument(
-        '--max',
-        help = 'Maximum number of conformers to generate, by default %(default)s',
-        dest = 'max',
-        default = 25,
-        type = int,
-    )
-    parser.add_argument(
-        '--rms',
-        help = 'RMS cutoff, by default %(default)s',
-        dest = 'rms',
-        default = 0.01,
-        type = float,
-    )
-    parser.add_argument(
-        '--bump',
-        help = 'Bump cutoff, by default %(default)s',
-        dest = 'bump',
-        default = 1.5,
-        type = float,
-    )
-    args = parser.parse_args()
-    constraintconf(args.pdb, args.smi, args.fix, args.out, args.max, args.rms, args.bump)
+
+if __name__ == '__main__':
+    pass

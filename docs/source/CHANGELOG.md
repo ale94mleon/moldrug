@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Name of `moldrug.fitness.get_mol_cost` to `moldrug.fitness.__get_mol_cost` function.
 - The class `moldrug.utils.GA` does not have any more the method `roulette_wheel_selection`; now is part a function that could be called from `moldrug.utils`
 - `max` for `max_conf` in `moldrug.constraintconf.constraintconf()` function.
+- Entrance point constraintconf was changed to  constraintconf_moldrug and now it is link to `moldrug.cli.__constraintconf_cmd` instead `moldrug.constrainconf.constraintconf_cmd`.
+- Name of the function `moldrug.fitness.vinadock` now is `moldrug.fitness.__vinadock`.
+- Name of the function `moldrug.cli.moldrug_cmd` now is `moldrug.cli.__moldrug_cmd`.
+
 
 ### Fixed
 

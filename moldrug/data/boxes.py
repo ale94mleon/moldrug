@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Definition sof the binding pocket for the PDB id: x0161 and 6lu7.
+"""
+Definition sof the binding pocket for the PDB id: x0161 and 6lu7.
 """
 r_6lu7 = {
   "A": {

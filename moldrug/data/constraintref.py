@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""The reference mol blocks ligands for the receptors with PDB id: : 6lu7, x0161.
+"""
+The reference mol blocks ligands for the receptors with PDB id: : 6lu7, x0161.
 """
 r_6lu7 = """6lu7
      RDKit          3D
@@ -52,7 +53,8 @@ r_6lu7 = """6lu7
  10 21  1  0
  13 22  1  0
  14 23  1  0
-M  END"""
+M  END
+"""
 
 r_x0161 = """r_x0161
      RDKit          3D
@@ -86,4 +88,5 @@ r_x0161 = """r_x0161
   9 14  1  0
  12 14  2  0
  13 14  2  0
-M  END"""
+M  END
+"""
