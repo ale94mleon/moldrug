@@ -1,6 +1,10 @@
 MolDrug
 =======
 
+.. image:: https://api.codacy.com/project/badge/Grade/d6a7e19622b948b9a4d0847b541239c6
+   :alt: Codacy Badge
+   :target: https://app.codacy.com/gh/ale94mleon/MolDrug?utm_source=github.com&utm_medium=referral&utm_content=ale94mleon/MolDrug&utm_campaign=Badge_Grade_Settings
+
 |logo|
 
 .. list-table::
