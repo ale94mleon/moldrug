@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Name of the function `moldrug.fitness.vinadock` now is `moldrug.fitness.__vinadock`.
 - Name of the function `moldrug.cli.moldrug_cmd` now is `moldrug.cli.__moldrug_cmd`.
 
-
 ### Fixed
 
 - Cleaning the code

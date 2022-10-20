@@ -398,7 +398,10 @@ def Cost(
     constraint : bool, optional
         Controls if constraint docking will be perform, by default False
     constraint_type : str, optional
-        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+        This is the type of constraint docking.
+        Could be local_only (vina will perform local optimization and score the resulted pose)
+        or score_only (in this case the provided pose by the internal conformer generator will only be scored),
+        by default 'score_only'
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : str, optional
@@ -423,8 +426,8 @@ def Cost(
     -------
     utils.Individual
         A new instance of the original Individual with the the new attributes:
-        pdbqt, qed, vina_score, sa_score and cost. cost attribute will be a number between 0 and 1,
-        been 0 the optimal value.
+        pdbqt, qed, vina_score, sa_score and cost.
+        cost attribute will be a number between 0 and 1, been 0 the optimal value.
     Example
     -------
     .. ipython:: python
@@ -567,7 +570,10 @@ def CostOnlyVina(
     constraint : bool, optional
         Controls if constraint docking will be perform, by default False
     constraint_type : str, optional
-        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+        This is the type of constraint docking.
+        Could be local_only (vina will perform local optimization and score the resulted pose)
+        or score_only (in this case the provided pose by the internal conformer generator will only be scored),
+        by default 'score_only'
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : str, optional
@@ -582,7 +588,9 @@ def CostOnlyVina(
     Returns
     -------
     utils.Individual
-        A new instance of the original Individual with the the new attributes: pdbqt, vina_score and cost. In this case cost = vina_score, the lowest the values the best individual.
+        A new instance of the original Individual with the the new attributes:
+        pdbqt, vina_score and cost. In this case cost = vina_score,
+        the lowest the values the best individual.
     Example
     -------
     .. ipython:: python
@@ -639,7 +647,7 @@ def CostMultiReceptors(
     receptor_pdbqt_path:List[str] = None,
     vina_score_type:List[str] = None,
     boxcenter:List[float] = None,
-    boxsize:List[float] =None,
+    boxsize:List[float] = None,
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
@@ -688,7 +696,10 @@ def CostMultiReceptors(
     constraint : bool, optional
         Controls if constraint docking will be perform, by default False
     constraint_type : str, optional
-        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+        This is the type of constraint docking.
+        Could be local_only (vina will perform local optimization and score the resulted pose) or
+        score_only (in this case the provided pose by the internal conformer generator will only be scored),
+        by default 'score_only'
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : list[str], optional
@@ -792,7 +803,7 @@ def CostMultiReceptors(
     # Getting Vina score
     pdbqt_list = []
     Individual.vina_score = []
-    for (i,_) in enumerate(receptor_pdbqt_path):
+    for (i, _) in enumerate(receptor_pdbqt_path):
         # Getting vina_score and update pdbqt
         if constraint:
             vina_score, pdbqt = __vinadock(
@@ -945,7 +956,9 @@ def CostMultiReceptorsOnlyVina(
         }
         }
     wt_cutoff : float, optional
-        If some number is provided the molecules with a molecular weight higher than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
+        If some number is provided,
+        the molecules with a molecular weight higher than wt_cutoff
+        will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
 
     Returns
     -------
@@ -971,7 +984,10 @@ def CostMultiReceptorsOnlyVina(
         boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
         vina_score_type = ['min', 'max']
         # Using the default desirability
-        NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_paths, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        NewI = fitness.CostMultiReceptorsOnlyVina(
+            Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_paths,
+            vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,
+            exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score)
     """
     if not desirability:
@@ -1000,11 +1016,10 @@ def CostMultiReceptorsOnlyVina(
     # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add "TooHeavy" string to pdbqts and np.inf to vina_scores
     if wt_cutoff:
         if Descriptors.MolWt(Individual.mol) > wt_cutoff:
-            for _ in range(len(receptor_pdbqt_path)):
+            for _ in receptor_pdbqt_path:
                 pdbqt_list.append('TooHeavy')
                 Individual.vina_score.append(np.inf)
             Individual.cost = np.inf
-                
             # Update the pdbqt attribute
             Individual.pdbqt = pdbqt_list
             return Individual
@@ -1012,8 +1027,8 @@ def CostMultiReceptorsOnlyVina(
     # Getting Vina score
     pdbqt_list = []
     Individual.vina_score = []
-    for i in range(len(receptor_pdbqt_path)):
-    # Getting vina_score and update pdbqt
+    for (i, _) in enumerate(receptor_pdbqt_path):
+        # Getting vina_score and update pdbqt
         if constraint:
             vina_score, pdbqt = __vinadock(
                 Individual = Individual,
@@ -1062,7 +1077,8 @@ def CostMultiReceptorsOnlyVina(
             else:
                 raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = vina_scores[{vst}] "\
                 f"a non implemented key = {key}. "\
-                f"Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}.")
+                "Only are possible: 'w' (standing for weight) "\
+                f"and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}.")
         base *= d**w
         exponent += w
 

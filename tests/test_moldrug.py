@@ -189,7 +189,14 @@ def test_fitness_module():
     boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
     vina_score_type = ['min', 'max']
 
-    fitness.Cost(Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file, boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+    fitness.Cost(
+        Individual = copy.deepcopy(individual),
+        wd = tmp_path.name,
+        receptor_pdbqt_path = r_x0161_pdbqt_file,
+        boxcenter = boxes.r_x0161['A']['boxcenter'],
+        boxsize = boxes.r_x0161['A']['boxsize'],
+        exhaustiveness = 4,
+        ncores = 4)
     fitness.Cost(
         Individual = copy.deepcopy(individual),
         wd = tmp_path.name,
@@ -340,5 +347,4 @@ def test_constraintconf():
 
 
 if __name__ == '__main__':
-    test_single_receptor_command_line()
     pass
