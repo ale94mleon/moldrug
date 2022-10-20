@@ -11,7 +11,7 @@ MolDrug
     * - **Tutorials**
       - |binder|
     * - **CI/CD**
-      - |tests| |codecov| |lgtm| |CodeQL|
+      - |tests| |codecov| |codacy| |CodeQL|
     * - **Build**
       - |pypi-version| |conda|
     * - **Source Code**
@@ -71,9 +71,9 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
 ..  |codecov| image:: https://codecov.io/gh/ale94mleon/MolDrug/branch/main/graph/badge.svg?token=RTLKQ070YX
     :target: https://codecov.io/gh/ale94mleon/MolDrug
     :alt: codecov
-..  |lgtm| image::  https://img.shields.io/lgtm/grade/python/g/ale94mleon/MolDrug.svg?logo=lgtm&logoWidth=18
-    :target: https://lgtm.com/projects/g/ale94mleon/MolDrug/context:python
-    :alt: lgtm
+..  |codacy| image:: https://app.codacy.com/project/badge/Grade/08a3ac7c13df4339b8a1da0e8d31810e
+    :target:https://www.codacy.com/gh/ale94mleon/MolDrug/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ale94mleon/MolDrug&amp;utm_campaign=Badge_Grade
+    :alt: codacy 
 ..  |CodeQL| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml/badge.svg
     :target: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml
     :alt: CodeQL

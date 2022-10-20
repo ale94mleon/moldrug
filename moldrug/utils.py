@@ -1074,7 +1074,7 @@ class GA:
         # Create the first Individual
         self.InitIndividual = Individual(seed_mol, idx = 0)
         if not self.InitIndividual.pdbqt:
-            raise Exception(f"For some reason, it was not possible to create the class Individula was not "\
+            raise Exception("For some reason, it was not possible to create the class Individula was not "\
                 "able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.pop = [self.InitIndividual]
 

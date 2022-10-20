@@ -887,7 +887,7 @@ def CostMultiReceptorsOnlyVina(
     receptor_pdbqt_path:List[str] = None,
     vina_score_type:List[str] = None,
     boxcenter:List[float] = None,
-    boxsize:List[float] =None,
+    boxsize:List[float] = None,
     exhaustiveness:int = 8,
     ncores:int = 1,
     num_modes:int = 1,
