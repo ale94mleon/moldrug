@@ -5,7 +5,7 @@
     Source Code: https://github.com/ale94mleon/moldrug
 """
 from moldrug import utils, __version__
-import yaml, argparse, inspect, os, sys, datetime
+import yaml, argparse, inspect, os, sys
 from rdkit import Chem
 def moldrug_cmd():
     """This function is only used in as part of the command line interface of MolDrug.
@@ -158,7 +158,7 @@ def moldrug_cmd():
             for key in ['njobs', 'pick']:
                 try:
                     CallArgs[key] = InitArgs[key]
-                except Exception:
+                except KeyError:
                     pass
 
             # Changing the attributes values

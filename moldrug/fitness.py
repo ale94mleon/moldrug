@@ -11,7 +11,7 @@ import warnings
 from meeko import MoleculePreparation, PDBQTMolecule
 
 def __get_mol_cost(
-    mol,
+    mol:Chem.rdchem.Mol,
     wd:str = '.vina_jobs',
     vina_executable:str = 'vina',
     receptor_pdbqt_path:str = None,
@@ -20,6 +20,64 @@ def __get_mol_cost(
     score_only = True,
     desirability:Dict = None
     ):
+    """This function is for developing. It calculate the cost of a single molecule.
+    I use it for testing.
+
+    Parameters
+    ----------
+    mol : Chem.rdchem.Mol
+        The molecule to calculate the cost
+    wd : str, optional
+        The working directory to execute the docking jobs, by default '.vina_jobs'
+    vina_executable : str, optional
+         This is the name of the vina executable, could be a path to the binary object, by default 'vina'
+    receptor_pdbqt_path : str, optional
+        Where the receptor pdbqt file is located, by default None
+    boxcenter : List[float], optional
+        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+    boxsize : List[float], optional
+        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+    score_only : bool, optional
+        If True only a vina single point evaluation if not vina will perform optimization, by default True
+    desirability : Dict, optional
+        The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
+        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
+        by default None which means that it will use
+        desirability = {
+            'qed': {
+                'w': 1,
+                'LargerTheBest':{
+                        'LowerLimit': 0.1,
+                        'Target': 0.75, 'r': 1
+                }
+            },
+            'sa_score': {
+                'w': 1,
+                'SmallerTheBest':{
+                        'Target': 3,
+                        'UpperLimit': 7,
+                        'r': 1
+                }
+            },
+            'vina_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
+            }
+        }
+    Returns
+    -------
+    dict
+        A dict with the keywords:qed, vina_score, sa_score and cost.
+
+    Raises
+    ------
+    RuntimeError
+        Inconsistences on user definition of the desirability function parameters.
+    """
 
     if not desirability:
         desirability = {
@@ -104,7 +162,8 @@ def __get_mol_cost(
             elif key in utils.DerringerSuichDesirability():
                 d = utils.DerringerSuichDesirability()[key](results[variable], **desirability[variable][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}."\
+                f"Only are possible: 'w' (standing for weight) and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
         base *= d**w
         exponent += w
     # Average
@@ -133,7 +192,7 @@ def vinadock(
     constraint_receptor_pdb_path:str = None,
     constraint_num_conf:int = 100,
     constraint_minimum_conf_rms:int = 0.01):
-    """This function is intend to be used to perform docking fro all the cost functions implemented on :mod:`moldrug.fitness`
+    """This function is intend to be used to perform docking for all the cost functions implemented on :mod:`moldrug.fitness`
 
     Parameters
     ----------
@@ -144,7 +203,7 @@ def vinadock(
     vina_executable : str, optional
         This is the name of the vina executable, could be a path to the binary object, by default 'vina'
     receptor_pdbqt_path : str, optional
-         Where the receptor pdbqt file is located, by default None
+        Where the receptor pdbqt file is located, by default None
     boxcenter : List[float], optional
         A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
     boxsize : List[float], optional
@@ -158,7 +217,8 @@ def vinadock(
     constraint : bool, optional
         Controls if constraint docking will be perform, by default False
     constraint_type : str, optional
-        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose) or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
+        This is the type of constraint docking. Could be local_only (vina will perform local optimization and score the resulted pose)
+        or score_only (in this case the provided pose by the internal conformer generator will only be scored), by default 'score_only'
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : str, optional
@@ -194,7 +254,7 @@ def vinadock(
         if constraint_type in ['score_only', 'local_only']:
             cmd_vina_str += f" --{constraint_type}"
         else:
-            raise Exception(f"constraint_type only admit two possible values: score_only, local_only.")
+            raise Exception("constraint_type only admit two possible values: score_only, local_only.")
 
         # Generate constrained conformer
         try:
@@ -204,7 +264,7 @@ def vinadock(
                 num_conf = constraint_num_conf,
                 #ref_smi=Chem.MolToSmiles(constraint_ref),
                 minimum_conf_rms=constraint_minimum_conf_rms)
-        except Exception as e:
+        except Exception:
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
 
@@ -307,7 +367,6 @@ def vinadock(
         vina_score_pdbqt = (best_energy.freeEnergy, ''.join(best_energy.chunk))
     return vina_score_pdbqt
 
-
 def Cost(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
@@ -324,32 +383,7 @@ def Cost(
     constraint_receptor_pdb_path:str = None,
     constraint_num_conf:int = 100,
     constraint_minimum_conf_rms:int = 0.01,
-    desirability:Dict = {
-        'qed': {
-            'w': 1,
-            'LargerTheBest': {
-                'LowerLimit': 0.1,
-                'Target': 0.75,
-                'r': 1
-            }
-        },
-        'sa_score': {
-            'w': 1,
-            'SmallerTheBest': {
-                'Target': 3,
-                'UpperLimit': 7,
-                'r': 1
-            }
-        },
-        'vina_score': {
-            'w': 1,
-            'SmallerTheBest': {
-                'Target': -12,
-                'UpperLimit': -6,
-                'r': 1
-            }
-        }
-    }
+    desirability:Dict = None,
     ):
     """This is the main Cost function of the module. It use the concept of desirability functions. The response variables are:
 
@@ -391,9 +425,33 @@ def Cost(
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
-        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`]
-        ,by default { 'qed': { 'w': 1, 'LargerTheBest': { 'LowerLimit': 0.1, 'Target': 0.75, 'r': 1 } }, 'sa_score': { 'w': 1, 'SmallerTheBest': { 'Target': 3, 'UpperLimit': 7, 'r': 1 } }, 'vina_score': { 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } } }
-
+        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
+        by default None which means that it will be used:
+        desirability = {
+            'qed': {
+                'w': 1,
+                'LargerTheBest':{
+                        'LowerLimit': 0.1,
+                        'Target': 0.75, 'r': 1
+                }
+            },
+            'sa_score': {
+                'w': 1,
+                'SmallerTheBest':{
+                        'Target': 3,
+                        'UpperLimit': 7,
+                        'r': 1
+                }
+            },
+            'vina_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
+            }
+        }
     Returns
     -------
     utils.Individual
@@ -416,6 +474,34 @@ def Cost(
         NewI = fitness.Cost(Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_path,boxcenter = box['boxcenter'],boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
     """
+    if not desirability:
+        desirability = {
+            'qed': {
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': 0.1,
+                    'Target': 0.75,
+                    'r': 1
+                }
+            },
+            'sa_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': 3,
+                    'UpperLimit': 7,
+                    'r': 1
+                }
+            },
+            'vina_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
+            }
+        }
+
     sascorer = utils.import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
@@ -520,10 +606,6 @@ def CostOnlyVina(
         Maximum number of conformer to be generated internally by MolDrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
-    desirability : dict, optional
-        The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
-        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`]
-        ,by default { 'qed': { 'w': 1, 'LargerTheBest': { 'LowerLimit': 0.1, 'Target': 0.75, 'r': 1 } }, 'sa_score': { 'w': 1, 'SmallerTheBest': { 'Target': 3, 'UpperLimit': 7, 'r': 1 } }, 'vina_score': { 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } } }
     wt_cutoff : float, optional
         If some number is provided the molecules with a molecular weight higher than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
     Returns
@@ -576,8 +658,6 @@ def CostOnlyVina(
     Individual.cost = Individual.vina_score
     return Individual
 
-
-
 def CostMultiReceptors(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
@@ -595,44 +675,10 @@ def CostMultiReceptors(
     constraint_receptor_pdb_path:List[str] = None,
     constraint_num_conf:int = 100,
     constraint_minimum_conf_rms:int = 0.01,
-    desirability:Dict = {
-        'qed': {
-            'w': 1,
-            'LargerTheBest': {
-                'LowerLimit': 0.1,
-                'Target': 0.75,
-                'r': 1
-            }
-        },
-        'sa_score': {
-            'w': 1,
-            'SmallerTheBest': {
-                'Target': 3,
-                'UpperLimit': 7,
-                'r': 1
-            }
-        },
-        'vina_scores': {
-            'min':{
-                'w': 1,
-                'SmallerTheBest': {
-                    'Target': -12,
-                    'UpperLimit': -6,
-                    'r': 1
-                }
-            },
-            'max':{
-                'w': 1,
-                'LargerTheBest': {
-                    'LowerLimit': -4,
-                    'Target': 0,
-                    'r': 1
-                }
-            }
-        }
-    }
+    desirability:Dict = None
     ):
-    """This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility to work with more than one receptor. It also use the concept of desirability and the response variables are:
+    """This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility
+    to work with more than one receptor. It also use the concept of desirability and the response variables are:
 
     #. `Vina scores. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/>`_
     #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
@@ -678,12 +724,50 @@ def CostMultiReceptors(
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_scores].
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
         In the case of vina_scores there is another layer for the vina_score_type= [min, max],
-        by default { 'qed': { 'w': 1, 'LargerTheBest': { 'LowerLimit': 0.1, 'Target': 0.75, 'r': 1 } }, 'sa_score': { 'w': 1, 'SmallerTheBest': { 'Target': 3, 'UpperLimit': 7, 'r': 1 } }, 'vina_score': { 'min':{ 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } }, 'max':{ 'w': 1, 'LargerTheBest': { 'LowerLimit': -4, 'Target': 0, 'r': 1 } } } }
+        by default is None which means that it will use:
+        desirability = {
+            'qed': {
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': 0.1,
+                    'Target': 0.75,
+                    'r': 1
+                }
+            },
+            'sa_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': 3,
+                    'UpperLimit': 7,
+                    'r': 1
+                }
+            },
+            'vina_scores': {
+                'min':{
+                    'w': 1,
+                    'SmallerTheBest': {
+                        'Target': -12,
+                        'UpperLimit': -6,
+                        'r': 1
+                    }
+                },
+                'max':{
+                    'w': 1,
+                    'LargerTheBest': {
+                        'LowerLimit': -4,
+                        'Target': 0,
+                        'r': 1
+                    }
+                }
+            }
+        }
 
     Returns
     -------
     utils.Individual
-        A new instance of the original Individual with the the new attributes: pdbqts [a list of pdbqt], qed, vina_scores [a list of vina_score], sa_score and cost. cost attribute will be a number between 0 and 1, been 0 the optimal value.
+        A new instance of the original Individual with the the new attributes:
+        pdbqts [a list of pdbqt], qed, vina_scores[a list of vina_score], sa_score and cost.
+        cost attribute will be a number between 0 and 1, been 0 the optimal value.
 
     Example
     -------
@@ -703,9 +787,49 @@ def CostMultiReceptors(
         boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
         vina_score_type = ['min', 'max']
         # Using the default desirability
-        NewI = fitness.CostMultiReceptors(Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_paths, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        NewI = fitness.CostMultiReceptors(
+            Individual = I,
+            wd = tmp_path.name,receptor_pdbqt_path = receptor_paths,
+            vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
     """
+    if not desirability:
+        desirability = {
+            'qed': {
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': 0.1,
+                    'Target': 0.75,
+                    'r': 1
+                }
+            },
+            'sa_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': 3,
+                    'UpperLimit': 7,
+                    'r': 1
+                }
+            },
+            'vina_scores': {
+                'min':{
+                    'w': 1,
+                    'SmallerTheBest': {
+                        'Target': -12,
+                        'UpperLimit': -6,
+                        'r': 1
+                    }
+                },
+                'max':{
+                    'w': 1,
+                    'LargerTheBest': {
+                        'LowerLimit': -4,
+                        'Target': 0,
+                        'r': 1
+                    }
+                }
+            }
+        }
     sascorer = utils.import_sascorer()
     Individual.qed = QED.weights_mean(Individual.mol)
 
@@ -809,24 +933,7 @@ def CostMultiReceptorsOnlyVina(
     constraint_receptor_pdb_path:List[str] = None,
     constraint_num_conf:int = 100,
     constraint_minimum_conf_rms:int = 0.01,
-    desirability:Dict = {
-        'min':{
-            'w': 1,
-            'SmallerTheBest': {
-                'Target': -12,
-                'UpperLimit': -6,
-                'r': 1
-            }
-        },
-        'max':{
-            'w': 1,
-            'LargerTheBest': {
-                'LowerLimit': -4,
-                'Target': 0,
-                'r': 1
-            }
-        }
-    },
+    desirability:Dict = None,
     wt_cutoff = None,
     ):
     """This function is similar to :meth:`moldrug.fitness.CostOnlyVina` but it will add the possibility to work with more than one receptor. It also use the concept of desirability.
@@ -869,7 +976,25 @@ def CostMultiReceptorsOnlyVina(
     desirability : dict, optional
         The definition of the desirability when min or max is used.
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
-        by default { 'min':{ 'w': 1, 'SmallerTheBest': { 'Target': -12, 'UpperLimit': -6, 'r': 1 } }, 'max':{ 'w': 1, 'LargerTheBest': { 'LowerLimit': -4, 'Target': 0, 'r': 1 } } }
+        by defaultNone, which means that it will be used:
+        desirability:Dict = {
+            'min':{
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
+            },
+            'max':{
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': -4,
+                    'Target': 0,
+                    'r': 1
+                }
+            }
+        }
     wt_cutoff : float, optional
         If some number is provided the molecules with a molecular weight higher than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
 
@@ -899,6 +1024,26 @@ def CostMultiReceptorsOnlyVina(
         NewI = fitness.CostMultiReceptorsOnlyVina(Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_paths, vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score)
     """
+    if not desirability:
+        desirability = {
+            'min':{
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
+            },
+            'max':{
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': -4,
+                    'Target': 0,
+                    'r': 1
+                }
+            }
+        }
+
     pdbqt_list = []
     Individual.vina_score = []
 

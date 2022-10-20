@@ -98,11 +98,11 @@ def generate_conformers(mol: Chem.rdchem.Mol,
     # if SMILES to be fixed are not given, assume to the MCS
     if ref_smi:
         if not Chem.MolFromSmiles(ref_smi):
-            raise ValueError(f"The provided ref_smi is not valid.")
+            raise ValueError("The provided ref_smi is not valid.")
     else:
         ref_smi = get_mcs(mol, ref_mol)
         if not Chem.MolFromSmiles(ref_smi):
-            raise ValueError(f"generate_conformers fails generating ref_smi based on the MCS between mol and ref_mol")
+            raise ValueError("generate_conformers fails generating ref_smi based on the MCS between mol and ref_mol")
 
     try:
         # Creating core of reference ligand #
@@ -133,8 +133,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
     except Exception as e:
         cwd = os.getcwd()
         warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, 'generate_conformers_error.pbz2')}")
-        with open(os.path.join(cwd, 'generate_conformers_error.log'), 'wb') as f:
-            compressed_pickle('generate_conformers_error', e)
+        compressed_pickle('generate_conformers_error', e)
         mol.RemoveAllConformers()
         return mol
 
@@ -179,7 +178,7 @@ class ProteinLigandClashFilter:
                 return True
         return False
 
-def constraintconf(pdb:str, smi:str, fix:str, out:str, max:int = 25, rms:float = 0.01, bump:float = 1.5):
+def constraintconf(pdb:str, smi:str, fix:str, out:str, max_conf:int = 25, rms:float = 0.01, bump:float = 1.5):
     """_summary_
 
     Parameters
@@ -192,7 +191,7 @@ def constraintconf(pdb:str, smi:str, fix:str, out:str, max:int = 25, rms:float =
         File with fixed piece of the molecule
     out : str
         Output file name
-    max : int, optional
+    max_conf : int, optional
         Maximum number of conformers to generate, by default 25
     rms : float, optional
         RMS cutoff, by default 0.01
@@ -209,13 +208,13 @@ def constraintconf(pdb:str, smi:str, fix:str, out:str, max:int = 25, rms:float =
     for mol in tqdm(suppl):
         # generate conformers
         out_mol = generate_conformers(mol, ref,
-                                      max,
+                                      max_conf,
                                       ref_smi=Chem.MolToSmiles(ref),
                                       minimum_conf_rms=rms)
 
         # remove conformers that clash with the protein
         clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
-        [out_mol.RemoveConformer(clashId) for clashId in clashIds]
+        _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
         # write out the surviving conformers
         for conf in out_mol.GetConformers():

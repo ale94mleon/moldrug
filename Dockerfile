@@ -6,9 +6,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
 
 
-RUN apt-get install -y wget git sudo python3-pip \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y --no-install-recommends wget git sudo python3-pip  && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN echo "user ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers
 
