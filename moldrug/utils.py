@@ -977,7 +977,7 @@ def roulette_wheel_selection(p:List[float]):
 class GA:
     """An implementation of genetic algorithm to search in the chemical space.
     """
-    def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float =1, get_similar:bool = False, mutate_crem_kwargs:Dict = None, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
+    def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
         """This is the generator
 
         Parameters
@@ -1237,7 +1237,7 @@ class GA:
                     popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
                     pool.close()
                 except Exception as e1:
-                    warn(f"Parallelization did not work. Trying with serial...")
+                    warn("Parallelization did not work. Trying with serial...")
                     try:
                         popc = [self.__costfunc__(args) for args in tqdm.tqdm(args_list, total=len(args_list))]
                     except Exception as e2:
@@ -1339,7 +1339,8 @@ class GA:
         title : str
             Name of the object which will be compleated with the correposnding extension depending if compress is set to True or False.
         compress : bool, optional
-            Use compression, by default False. If True :meth:`moldrug.utils.compressed_pickle` will be used; if not :meth:`moldrug.utils.full_pickle` will be used instead.
+            Use compression, by default False. If True :meth:`moldrug.utils.compressed_pickle` will be used;
+            if not :meth:`moldrug.utils.full_pickle` will be used instead.
         """
         cls = self.__class__
         result = cls.__new__(cls)
