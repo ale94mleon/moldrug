@@ -3,7 +3,7 @@ Installation
 
 Requirements:
 
-    * Python 3.8+.
+    * `Python 3.8+ <https://docs.python.org/3/>`_.
     * `RDKit <https://www.rdkit.org/docs/>`_ (2020.03+).
     * `Pandas <https://pandas.pydata.org/>`_.
     * `NumPy <https://numpy.org/>`_.

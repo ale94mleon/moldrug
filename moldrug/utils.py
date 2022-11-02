@@ -56,7 +56,7 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False):
 
     Parameters
     ----------
-    smiles : Chem.rdchem.Mol
+    mol : Chem.rdchem.Mol
         A valid RDKit molecule.
     return_mol : bool, optional
         If true the function will also return the ``rdkit.Chem.rdchem.Mol``, by default False
