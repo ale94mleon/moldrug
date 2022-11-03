@@ -19,7 +19,7 @@ The inputs are:
 #. Biological target (pdbqt format).
 #. RDKit molecule of some known (or guessing) drug. (it could get easily get from the SMILES string)
 #. Definition of the binding pocket.
-#. Definition of the `moldrug.utils.GA <https://moldrug.readthedocs.io/en/latest/source/modules/utils.html#moldrug.utils.GA>`_ running variables.
+#. Definition of the :meth:`moldrug.utils.GA` running variables.
 
 With the molecule, a random population of ``popsize``
 individuals will be generated through the `CReM <https://github.com/DrrDom/crem>`_
@@ -37,19 +37,19 @@ In a general way **MolDrug** will try to minimize:
 Where :math:`\vec{X}` is some description of the chemical structure of the molecule which be mapped to the
 :math:`\mathbb{R}` numbers throug the function :math:`f`. This function will be called cost function.
 
-Alternatively there is also the class `moldrug.utils.Local <https://moldrug.readthedocs.io/en/latest/source/modules/utils.html#moldrug.utils.Local>`_.
+Alternatively there is also the class :meth:`moldrug.utils.Local`.
 In this case only an initial population is created and exported.
 
 Fitness functions
 -----------------
 
-The default fitness functions could be access through the module `moldrug.fitness <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#module-moldrug.fitness>`_.
+The default fitness functions could be access through the module :mod:`moldrug.fitness`.
 There are currently four implemented:
 
-#. `Cost <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.Cost>`_ (standard). It use all the response variables.
-#. `CostOnlyVina <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostOnlyVina>`_. Only use the information of the vina score.
-#. `CostMultiReceptors <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostMultiReceptors>`_. It use all the response variables.
-#. `CostOnlyVinaMultiReceptors <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostMultiReceptorsOnlyVina>`_. Only use the information of the vina scores
+#. :meth:`moldrug.fitness.Cost` (standard). It use all the response variables.
+#. :meth:`moldrug.fitness.CostOnlyVina`. Only use the information of the vina score.
+#. :meth:`moldrug.fitness.CostMultiReceptors`. It use all the response variables.
+#. :meth:`moldrug.fitness.CostOnlyVinaMultiReceptors`. Only use the information of the vina scores
 
 
 .. code-block:: python
@@ -60,7 +60,7 @@ There are currently four implemented:
 A molecule must present several properties to be considered a drug. Some of the must important are:
 be potent, reach the biological target (good ADME profile) and be real. The last obvious property could
 be a bottleneck for computer assisted drug design. Because we want to optimize several response variables
-at the same time.These cost functions (with the exception of `CostOnlyVina <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostOnlyVina>`_) use the concept of `desirability functions <https://www.sciencedirect.com/science/article/pii/S0169743911000797>`__
+at the same time.These cost functions (with the exception of :meth:`moldrug.fitness.CostOnlyVina`) use the concept of `desirability functions <https://www.sciencedirect.com/science/article/pii/S0169743911000797>`__
 which optimize several response variables on the hub.
 
 The following are the response variables:
@@ -84,9 +84,7 @@ Multi Receptor
 --------------
 Could be that our receptor presents high flexibility or that we are interested in generate specific
 small molecules. In this case could be convenient to add more than one receptor to the cost function.
-In `moldrug.fitness <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#module-moldrug.fitness>`_ module the cost functions
-`CostMultiReceptors <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostMultiReceptors>`_ and
-`CostOnlyVinaMultiReceptors <https://moldrug.readthedocs.io/en/latest/source/modules/fitness.html#moldrug.fitness.CostMultiReceptorsOnlyVina>`_
-try to reach this goal. For the case
-of flexibility, we could perform docking in an ensemble of protein structures, and just keep the lower
-scoring rather that included all of them in the final desirability function.
+In :mod:`moldrug.fitness` module the cost functions
+:meth:`moldrug.fitness.CostMultiReceptors` and :meth:`moldrug.fitness.CostOnlyVinaMultiReceptors`
+try to reach this goal. For the case of flexibility, we could perform docking in an ensemble
+of protein structures, and just keep the lower scoring rather that included all of them in the final desirability function.
