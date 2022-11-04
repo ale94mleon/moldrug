@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Cleaning the code
 - If `vina_executable` is provided (to any cost function) and it represents a path. It will be try to convert to absolute path. Previously relative path to the executable were not understood properly.
+- Improve docs.
 
 ## [2.1.12] - 2022.09.29
 
