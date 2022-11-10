@@ -136,6 +136,11 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     os.chdir(tmp_path.name)
     vina_out.chunks[0].write()
     os.chdir(cwd)
+    
+    # Convert to only one value to vina_scores
+    for individual in out.SawIndividuals:
+        individual.vina_score = individual.vina_score[0]
+    utils.plot_dist(out.SawIndividuals,properties = ['vina_score', 'qed', 'sa_score'], outpath=os.path.join(tmp_path.name, 't.pdf'))
 
 
 def test_local_command_line():

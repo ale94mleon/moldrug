@@ -937,7 +937,7 @@ class Local:
             full_pickle(title, result)
 
     def to_dataframe(self):
-        """Create a DataFrame of the genereated population.
+        """Create a DataFrame of the generated population.
 
         Returns
         -------
@@ -953,7 +953,7 @@ class Local:
 
 
 ######################################################################################################################################
-#                                             Selection fucntions                                                                    #
+#                                             Selection functions                                                                    #
 ######################################################################################################################################
 
 def roulette_wheel_selection(p:List[float]):
@@ -973,6 +973,58 @@ def roulette_wheel_selection(p:List[float]):
     r = sum(p)*np.random.rand()
     ind = np.argwhere(r <= c)
     return ind[0][0]
+
+
+######################################################################################################################################
+#                                             Plot functions                                                                    #
+######################################################################################################################################
+def to_dataframe(individuals:List[Individual]):
+    """Create a DataFrame from individuals.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The DataFrame
+    """
+    list_of_dictionaries = []
+    for individual in individuals:
+        dictionary = individual.__dict__.copy()
+        del dictionary['mol']
+        list_of_dictionaries.append(dictionary)
+    return pd.DataFrame(list_of_dictionaries)
+    
+def plot_dist(individuals:List[Individual], properties:List[str], every_gen:int = 1, outpath:str = 'distribution.svg'):
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    
+
+    # Set up the matplotlib figure
+    sns.set_theme(style="whitegrid")
+    fig, axes = plt.subplots(nrows = len(properties), figsize=(25, 25))
+
+    SawIndividuals = to_dataframe(individuals).drop(['pdbqt'], axis = 1).replace([np.inf, -np.inf], np.nan).dropna()
+    gen_idxs = sorted(SawIndividuals['genID'].unique())
+    NumGens = max(gen_idxs)
+
+    # Set pop to the initial population and pops out the first gen
+    pop = SawIndividuals[SawIndividuals.genID == gen_idxs.pop(0)].sort_values(by=["cost"])
+    pops = pop.copy()
+    for gen_idx in gen_idxs:
+        idx = [i for i in range(SawIndividuals.shape[0]) if SawIndividuals.loc[i,'genID'] in SawIndividuals.loc[i,'kept_gens']]
+        pop = SawIndividuals.copy().iloc[idx,:].assign(genID=gen_idx)
+        pops = pd.concat([pops, pop.copy()])
+    print(pops.head())
+    # Draw a violinplot with a narrow bandwidth than the default
+    pops = pops.loc[pops['genID'].isin([gen for gen in range(0, NumGens+every_gen, every_gen)])]
+    for i, prop in enumerate(properties):
+        sns.violinplot(x = 'genID', y = prop, data=pops, palette="Set3", bw=.2, cut=0, linewidth=1, ax=axes[i])
+    
+    fig.savefig(outpath)
+
+
+######################################################################################################################################
+#                                             Optimazer functions                                                                    #
+######################################################################################################################################
 
 class GA:
     """An implementation of genetic algorithm to search in the chemical space.
@@ -1063,6 +1115,7 @@ class GA:
         self.NumCalls = 0
         self.NumGens = 0
         self.SawIndividuals = set()
+        self.acceptance = dict()
 
         # work with the seed molecule
         self.AddHs = AddHs
@@ -1132,9 +1185,8 @@ class GA:
                 else:
                     individual = Individual(mol, idx = i + 1) # 0 is the InitIndividual
                 if individual.pdbqt:
-                    individual.genID = self.NumGens
                     self.pop.append(individual)
-
+            
             # Calculating cost of each individual
             # Creating the arguments
             args_list = []
@@ -1162,14 +1214,22 @@ class GA:
                         f"=========Parellel=========:\n {e1}\n"\
                         f"==========Serial==========:\n {e2}"
                         )
-
-
-
+            
+            # Adding generationi information
+            for individual in self.pop:
+                individual.genID = self.NumGens
+                individual.kept_gens = {self.NumGens}
+            
+            self.acceptance[self.NumGens] = {
+                'accepted':len(self.pop[:]),
+                'generated':len(self.pop[:])
+            }
 
             if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
 
             # Print some information of the initial population
             print(f"Initial Population: Best Individual: {min(self.pop)}")
+            print(f"Accepted rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
             # Updating the info of the first individual (parent) to print at the end how well performed the method (cost function)
             # Because How the population was initialized and because we are using pool.imap (ordered). The parent is the first Individual of self.pop.
             # We have to use deepcopy because Individual is a mutable object
@@ -1210,6 +1270,7 @@ class GA:
                 # I will save only those offsprings that were not seen and that have a correct pdbqt file
                 if children not in self.SawIndividuals and children.pdbqt:
                     children.genID = self.NumGens
+                    children.kept_gens = {}
                     popc.append(children)
 
             if popc: # Only if there are new members
@@ -1253,6 +1314,17 @@ class GA:
             self.pop = sorted(self.pop)
             self.pop = self.pop[:self.popsize]
 
+            # Update the kept_gens attribute
+            self.acceptance[self.NumGens] = {
+                'accepted':0,
+                'generated':len(popc)
+            }
+            for individual in self.pop:
+                if not individual.kept_gens:
+                    self.acceptance[self.NumGens]['accepted'] += 1
+                individual.kept_gens.add(self.NumGens)
+
+
             # Store Best Cost
             self.best_cost.append(self.pop[0].cost)
 
@@ -1270,7 +1342,8 @@ class GA:
                     make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
 
             # Show Iteration Information
-            print(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}.\n")
+            print(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}.")
+            print(f"Accepted rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
 
         # Printing summary information
         print(f"\n{50*'=+'}\n")
@@ -1351,19 +1424,14 @@ class GA:
             full_pickle(title, result)
 
     def to_dataframe(self):
-        """Create a DataFrame of the self.SawIndividuals.
+        """Create a DataFrame from self.SawIndividuals.
 
         Returns
         -------
         pandas.DataFrame
             The DataFrame
         """
-        list_of_dictionaries = []
-        for individual in self.SawIndividuals:
-            dictionary = individual.__dict__.copy()
-            del dictionary['mol']
-            list_of_dictionaries.append(dictionary)
-        return pd.DataFrame(list_of_dictionaries)
+        return to_dataframe(self.SawIndividuals)
 
 
 if __name__ == '__main__':

@@ -22,6 +22,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - If `vina_executable` is provided (to any cost function) and it represents a path. It will be try to convert to absolute path. Previously relative path to the executable were not understood properly.
 - Improve docs.
 
+### Added
+
+- `moldrug.utils.to_dataframe`. THis function was previously isolated as a method of the class `moldrug.utils.GA`; now it could also be called as a function.
+- `moldrug.utils.plot_dist` a simple function to get the violin plots for the population distribution.
+- Dependencies on seaborn and matplotlib.
+- `kept_gens` attribute to the `Individual`s inside of `moldrug.utils.GA`. This is a set that contains the generations for which the Individual was conserved.
+- `acceptance` attribute to `moldrug.utils.GA`. This is a dictionary that has as keyword the generation ID, and as values a dictionary with keywords: `accepted` (number of generated molecules accepted on the current generation) and `generated` (number of total molecules generated)
+- Print `Accepted rate= accepted /  generated` during running.
+
 ## [2.1.12] - 2022.09.29
 
 ### Added
