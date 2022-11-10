@@ -1218,7 +1218,7 @@ class GA:
             # Adding generationi information
             for individual in self.pop:
                 individual.genID = self.NumGens
-                individual.kept_gens = {self.NumGens}
+                individual.kept_gens = set([self.NumGens])
             
             self.acceptance[self.NumGens] = {
                 'accepted':len(self.pop[:]),
@@ -1270,7 +1270,7 @@ class GA:
                 # I will save only those offsprings that were not seen and that have a correct pdbqt file
                 if children not in self.SawIndividuals and children.pdbqt:
                     children.genID = self.NumGens
-                    children.kept_gens = {}
+                    children.kept_gens = set()
                     popc.append(children)
 
             if popc: # Only if there are new members
