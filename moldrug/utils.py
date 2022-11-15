@@ -992,11 +992,11 @@ def to_dataframe(individuals:List[Individual]):
         del dictionary['mol']
         list_of_dictionaries.append(dictionary)
     return pd.DataFrame(list_of_dictionaries)
-    
+
 def plot_dist(individuals:List[Individual], properties:List[str], every_gen:int = 1, outpath:str = 'distribution.svg'):
     import seaborn as sns
     import matplotlib.pyplot as plt
-    
+
 
     # Set up the matplotlib figure
     sns.set_theme(style="whitegrid")
@@ -1018,7 +1018,7 @@ def plot_dist(individuals:List[Individual], properties:List[str], every_gen:int 
     pops = pops.loc[pops['genID'].isin([gen for gen in range(0, NumGens+every_gen, every_gen)])]
     for i, prop in enumerate(properties):
         sns.violinplot(x = 'genID', y = prop, data=pops, palette="Set3", bw=.2, cut=0, linewidth=1, ax=axes[i])
-    
+
     fig.savefig(outpath)
 
 
@@ -1029,7 +1029,7 @@ def plot_dist(individuals:List[Individual], properties:List[str], every_gen:int 
 class GA:
     """An implementation of genetic algorithm to search in the chemical space.
     """
-    def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
+    def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False, seed_pop:List[Chem.rdchem.Mol] = None) -> None:
         """This is the generator
 
         Parameters
@@ -1051,7 +1051,7 @@ class GA:
         pc : float, optional
             Proportion of children, by default 1
         get_similar : bool, optional
-            IF True the searching will be bias to similar molecules, by default False
+            If True the searching will be bias to similar molecules, by default False
         mutate_crem_kwargs : Dict, optional
             Parameters for mutate_mol of CReM, by default {}
         save_pop_every_gen : int, optional
@@ -1060,7 +1060,6 @@ class GA:
             Default name for all generated files, by default 'ga'
         AddHs : bool, optional
            If True the explicit hyrgones will be added, by default False
-
         Raises
         ------
         Exception
@@ -1073,18 +1072,8 @@ class GA:
         elif not isinstance(mutate_crem_kwargs, dict):
             raise ValueError(f'mutate_crem_kwargs must be None or a dict instance. {mutate_crem_kwargs} was provided')
 
-        self.AddHs = AddHs
-        if self.AddHs:
-            self.InitIndividual = Individual(Chem.AddHs(seed_mol), idx = 0)
-        else:
-            self.InitIndividual = Individual(seed_mol, idx=0)
-
-        if not self.InitIndividual.pdbqt:
-            raise Exception("For some reason, it was not possible to create the class Individula was not able to create "\
-                "a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
         self.costfunc = costfunc
         self.crem_db_path = crem_db_path
-        self.pop = [self.InitIndividual]
 
         self.maxiter = maxiter
         self.popsize = popsize
@@ -1121,14 +1110,14 @@ class GA:
         self.AddHs = AddHs
         if self.AddHs:
             seed_mol = Chem.AddHs(seed_mol)
-        if 'protected_ids' in self.mutate_crem_kwargs or 'replace_ids' in self.mutate_crem_kwargs:
-            _ = [atom.SetIntProp('label_MolDrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
+        # if 'protected_ids' in self.mutate_crem_kwargs or 'replace_ids' in self.mutate_crem_kwargs:
+        #     _ = [atom.SetIntProp('label_MolDrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
 
         # Create the first Individual
         self.InitIndividual = Individual(seed_mol, idx = 0)
         if not self.InitIndividual.pdbqt:
             raise Exception("For some reason, it was not possible to create the class Individula was not "\
-                "able to create a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
+                "able to create a pdbqt from the seed_mol. Consider to check the validity of the RDKit molecule!")
         self.pop = [self.InitIndividual]
 
     def __call__(self, njobs:int = 1):
@@ -1186,7 +1175,7 @@ class GA:
                     individual = Individual(mol, idx = i + 1) # 0 is the InitIndividual
                 if individual.pdbqt:
                     self.pop.append(individual)
-            
+
             # Calculating cost of each individual
             # Creating the arguments
             args_list = []
@@ -1214,12 +1203,12 @@ class GA:
                         f"=========Parellel=========:\n {e1}\n"\
                         f"==========Serial==========:\n {e2}"
                         )
-            
+
             # Adding generationi information
             for individual in self.pop:
                 individual.genID = self.NumGens
                 individual.kept_gens = set([self.NumGens])
-            
+
             self.acceptance[self.NumGens] = {
                 'accepted':len(self.pop[:]),
                 'generated':len(self.pop[:])
