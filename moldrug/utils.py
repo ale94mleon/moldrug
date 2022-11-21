@@ -975,9 +975,6 @@ def roulette_wheel_selection(p:List[float]):
     return ind[0][0]
 
 
-######################################################################################################################################
-#                                             Plot functions                                                                    #
-######################################################################################################################################
 def to_dataframe(individuals:List[Individual]):
     """Create a DataFrame from individuals.
 
@@ -992,34 +989,6 @@ def to_dataframe(individuals:List[Individual]):
         del dictionary['mol']
         list_of_dictionaries.append(dictionary)
     return pd.DataFrame(list_of_dictionaries)
-
-def plot_dist(individuals:List[Individual], properties:List[str], every_gen:int = 1, outpath:str = 'distribution.svg'):
-    import seaborn as sns
-    import matplotlib.pyplot as plt
-
-
-    # Set up the matplotlib figure
-    sns.set_theme(style="whitegrid")
-    fig, axes = plt.subplots(nrows = len(properties), figsize=(25, 25))
-
-    SawIndividuals = to_dataframe(individuals).drop(['pdbqt'], axis = 1).replace([np.inf, -np.inf], np.nan).dropna()
-    gen_idxs = sorted(SawIndividuals['genID'].unique())
-    NumGens = max(gen_idxs)
-
-    # Set pop to the initial population and pops out the first gen
-    pop = SawIndividuals[SawIndividuals.genID == gen_idxs.pop(0)].sort_values(by=["cost"])
-    pops = pop.copy()
-    for gen_idx in gen_idxs:
-        idx = [i for i in range(SawIndividuals.shape[0]) if SawIndividuals.loc[i,'genID'] in SawIndividuals.loc[i,'kept_gens']]
-        pop = SawIndividuals.copy().iloc[idx,:].assign(genID=gen_idx)
-        pops = pd.concat([pops, pop.copy()])
-    print(pops.head())
-    # Draw a violinplot with a narrow bandwidth than the default
-    pops = pops.loc[pops['genID'].isin([gen for gen in range(0, NumGens+every_gen, every_gen)])]
-    for i, prop in enumerate(properties):
-        sns.violinplot(x = 'genID', y = prop, data=pops, palette="Set3", bw=.2, cut=0, linewidth=1, ax=axes[i])
-
-    fig.savefig(outpath)
 
 
 ######################################################################################################################################

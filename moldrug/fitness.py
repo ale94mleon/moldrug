@@ -686,7 +686,8 @@ def CostMultiReceptors(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object, which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
+        This is the name of the vina executable, could be a path to the binary object,
+        which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
     vina_score_type : list[str], optional
