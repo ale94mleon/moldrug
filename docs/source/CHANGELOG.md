@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `kept_gens` attribute to the `Individual`s inside of `moldrug.utils.GA`. This is a set that contains the generations for which the Individual was conserved.
 - `acceptance` attribute to `moldrug.utils.GA`. This is a dictionary that has as keyword the generation ID, and as values a dictionary with keywords: `accepted` (number of generated molecules accepted on the current generation) and `generated` (number of total molecules generated)
 - Print `Accepted rate= accepted /  generated` during running.
+- Add hydrogens before create pdbt file with meeko when constrain docking i used.
 
 ## [2.1.12] - 2022.09.29
 

@@ -113,6 +113,7 @@ def __vinadock(
                 num_conf = constraint_num_conf,
                 #ref_smi=Chem.MolToSmiles(constraint_ref),
                 minimum_conf_rms=constraint_minimum_conf_rms)
+            out_mol = Chem.AddHs(out_mol)
         except Exception:
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt

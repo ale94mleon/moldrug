@@ -108,7 +108,7 @@ def __get_mol_cost(
     # Getting vina_score and update pdbqt
     # Making the ligand pdbqt
     preparator = MoleculePreparation()
-    preparator.prepare(mol)
+    preparator.prepare(Chem.AddHs(mol))
     preparator.write_pdbqt_file(os.path.join(wd, 'ligand.pdbqt'))
 
     # If the vina_executable is a path
@@ -257,6 +257,7 @@ def __vinadock(
                 num_conf = constraint_num_conf,
                 #ref_smi=Chem.MolToSmiles(constraint_ref),
                 minimum_conf_rms=constraint_minimum_conf_rms)
+            out_mol = Chem.AddHs(out_mol)
         except Exception:
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
@@ -266,8 +267,6 @@ def __vinadock(
         clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
         _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
-        # This is needed for write_pdbqt_file
-        out_mol = Chem.AddHs(out_mol)
 
         # Check first if some valid conformer exist
         if len(out_mol.GetConformers()):
