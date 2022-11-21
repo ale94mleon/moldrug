@@ -348,4 +348,4 @@ def test_constraintconf():
 
 
 if __name__ == '__main__':
-    test_multi_receptor()
+    pass

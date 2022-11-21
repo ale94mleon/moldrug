@@ -266,6 +266,9 @@ def __vinadock(
         clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
         _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
+        # This is needed for write_pdbqt_file
+        out_mol = Chem.AddHs(out_mol)
+
         # Check first if some valid conformer exist
         if len(out_mol.GetConformers()):
             vina_score_pdbqt = (np.inf, None)
