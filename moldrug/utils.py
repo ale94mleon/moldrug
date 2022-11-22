@@ -10,7 +10,7 @@ from inspect import getfullargspec
 import multiprocessing as mp
 import tempfile, subprocess, random, time, datetime, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
 from warnings import warn
-from typing import List, Dict
+from typing import List, Dict, Iterable, Union
 from scipy.special import softmax
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
@@ -437,6 +437,25 @@ def decompress_pickle(file: str):
     data = cPickle.load(data)
     return data
 
+def is_iter(obj):
+    """Check if obj is iterable
+
+    Parameters
+    ----------
+    obj : Any
+        Any python object
+
+    Returns
+    -------
+    bool
+        Tru if obj iterable, False if not
+    """
+    try:
+        for _ in obj:
+            return True
+    except TypeError:
+        return False
+
 def import_sascorer():
     """Function to import sascorer from RDConfig.RDContribDir of RDKit
 
@@ -847,11 +866,11 @@ class Local:
 
 
         if AddHs:
-            self.seed_mol = Chem.AddHs(seed_mol)
+            self._seed_mol = Chem.AddHs(seed_mol)
         else:
-            self.seed_mol = seed_mol
+            self._seed_mol = seed_mol
 
-        self.InitIndividual = Individual(self.seed_mol, idx = 0)
+        self.InitIndividual = Individual(self._seed_mol, idx = 0)
         if not self.InitIndividual.pdbqt:
             raise Exception("For some reason, it was not possible to create for the class Individula "\
                 "a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
@@ -875,7 +894,7 @@ class Local:
         """
         self.grow_crem_kwargs.update({'return_mol':True})
         new_mols = list(grow_mol(
-            self.seed_mol,
+            self._seed_mol,
             self.crem_db_path,
             **self.grow_crem_kwargs
             ))
@@ -998,13 +1017,14 @@ def to_dataframe(individuals:List[Individual]):
 class GA:
     """An implementation of genetic algorithm to search in the chemical space.
     """
-    def __init__(self, seed_mol:Chem.rdchem.Mol, costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False, seed_pop:List[Chem.rdchem.Mol] = None) -> None:
+    def __init__(self, seed_mol:Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]], costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
         """This is the generator
 
         Parameters
         ----------
-        seed_mol : Chem.rdchem.Mol
-            The seed molecule submited to genetic algorith optimazation on the chemical space.
+        seed_mol : Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]]
+            The seed molecule submited to genetic algorithm optimazation on the chemical space. Could be only one RDKit
+            molecule or more than one specified in an Iterable object.
         costfunc : object
             The cost function to work with (any from :mod:`moldrug.fitness` or a valid user defined).
         costfunc_kwargs : Dict
@@ -1031,8 +1051,8 @@ class GA:
            If True the explicit hyrgones will be added, by default False
         Raises
         ------
-        Exception
-            In case that some problem occured during the creation of the Individula from the Seed_mol
+        TypeError
+            In case that seed_mol is a wrong input.
         ValueError
             In case of incorrect definition of mutate_crem_kwargs. It must be None or a dict instance.
         """
@@ -1075,19 +1095,26 @@ class GA:
         self.SawIndividuals = set()
         self.acceptance = dict()
 
-        # work with the seed molecule
+        # work with the seed molecule or population
         self.AddHs = AddHs
+
+        # Convert to list the seed_mol in case that it is not
+        
+        if not is_iter(seed_mol) and isinstance(seed_mol, Chem.rdchem.Mol):
+            self._seed_mol = [seed_mol]
+        elif all([isinstance(mol, Chem.rdchem.Mol) for mol in seed_mol]):
+            self._seed_mol = seed_mol
+        else:
+            raise TypeError(f"seed_mol is not Chem.rdchem.Mol neither a Iterable[Chem.rdchem.Mol]")
+        
         if self.AddHs:
-            seed_mol = Chem.AddHs(seed_mol)
+            self._seed_mol = [Chem.AddHs(mol) for mol in self._seed_mol]
         # if 'protected_ids' in self.mutate_crem_kwargs or 'replace_ids' in self.mutate_crem_kwargs:
         #     _ = [atom.SetIntProp('label_MolDrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
 
         # Create the first Individual
-        self.InitIndividual = Individual(seed_mol, idx = 0)
-        if not self.InitIndividual.pdbqt:
-            raise Exception("For some reason, it was not possible to create the class Individula was not "\
-                "able to create a pdbqt from the seed_mol. Consider to check the validity of the RDKit molecule!")
-        self.pop = [self.InitIndividual]
+        self.InitIndividual = Individual(self._seed_mol[0], idx = 0)
+        self.pop = []
 
     def __call__(self, njobs:int = 1):
         """Call deffinition
@@ -1112,38 +1139,53 @@ class GA:
 
         # Initialize Population
         # In case that the populating exist there is not need to initialize.
-        if len(self.pop) == 1:
-            GenInitStructs = list(
-                mutate_mol(
-                    self.InitIndividual.mol,
-                    self.crem_db_path,
-                    **self.mutate_crem_kwargs,
-                    )
-                )
-            GenInitStructs = [mol for (_, mol) in GenInitStructs]
-
-            # Checking for possible scenarios
-            if len(GenInitStructs) == 0:
-                raise RuntimeError('Something really strange happened. The seed SMILES did not '\
-                    'generate any new molecule during the initialization of the population. Check the provided crem parameters!')
-            if len(GenInitStructs) < (self.popsize - 1):
-                print('The initial population has repeated elements')
-                # temporal solution
-                GenInitStructs +=  random.choices(GenInitStructs, k = self.popsize - len(GenInitStructs) -1)
-            elif len(GenInitStructs) > (self.popsize - 1):
-                #Selected random sample from the generation
-                GenInitStructs = random.sample(GenInitStructs, k = self.popsize -1)
-            else:
-                # Everything is ok!
-                pass
-
-            for i, mol in enumerate(GenInitStructs):
-                if self.AddHs:
-                    individual = Individual(Chem.AddHs(mol), idx = i + 1) # 0 is the InitIndividual
+        if len(self.pop) == 0:
+            GenInitStructs = []
+            # in case that the input has the posize memebrsther is not need to genereate new structures
+            if len(self._seed_mol) <= self.popsize:
+                for mol in self._seed_mol:
+                    tmp_GenInitStructs = list(
+                        mutate_mol(
+                            mol,
+                            self.crem_db_path,
+                            **self.mutate_crem_kwargs,
+                            )
+                        )
+                    tmp_GenInitStructs = [mol for (_, mol) in tmp_GenInitStructs]
+                    GenInitStructs += tmp_GenInitStructs
+                # Checking for possible scenarios
+                if len(GenInitStructs) == 0:
+                    raise RuntimeError('Something really strange happened. The seed_mol did not '\
+                        'generate any new molecule during the initialization of the population. Check the provided crem parameters!')
+                if len(GenInitStructs) < (self.popsize - len(self._seed_mol)):
+                    print('The initial population has repeated elements')
+                    # temporal solution
+                    GenInitStructs +=  random.choices(GenInitStructs, k = self.popsize - len(GenInitStructs) - len(self._seed_mol))
+                elif len(GenInitStructs) > (self.popsize - 1):
+                    #Selected random sample from the generation
+                    GenInitStructs = random.sample(GenInitStructs, k = self.popsize - len(self._seed_mol))
                 else:
-                    individual = Individual(mol, idx = i + 1) # 0 is the InitIndividual
+                    # Everything is ok!
+                    pass
+                
+            # Adding the inputs to the intial population
+            for i, mol in enumerate(self._seed_mol):
+                individual = Individual(mol, idx = i)
                 if individual.pdbqt:
                     self.pop.append(individual)
+
+            # Completting the population with the generated structures
+            for i, mol in enumerate(GenInitStructs):
+                if self.AddHs:
+                    individual = Individual(Chem.AddHs(mol), idx = i + len(self._seed_mol))
+                else:
+                    individual = Individual(mol, idx = i + len(self._seed_mol))
+                if individual.pdbqt:
+                    self.pop.append(individual)
+            
+            # Make sure that the population do not have more than popsize members and it is without repeated elemnts.
+            # That could happens if seed_mol has more molecules that popsize
+            self.pop = list(set(self.pop))[:self.popsize]
 
             # Calculating cost of each individual
             # Creating the arguments
@@ -1157,7 +1199,7 @@ class GA:
             for individual in self.pop:
                 args_list.append((individual, kwargs_copy))
 
-            print(f'\n\nCreating the first population with {self.popsize} members:')
+            print(f'\n\nCreating the first population with {len(self.pop)} members:')
             try:
                 pool = mp.Pool(njobs)
                 self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
@@ -1173,7 +1215,7 @@ class GA:
                         f"==========Serial==========:\n {e2}"
                         )
 
-            # Adding generationi information
+            # Adding generation information
             for individual in self.pop:
                 individual.genID = self.NumGens
                 individual.kept_gens = set([self.NumGens])
@@ -1191,14 +1233,14 @@ class GA:
             # Updating the info of the first individual (parent) to print at the end how well performed the method (cost function)
             # Because How the population was initialized and because we are using pool.imap (ordered). The parent is the first Individual of self.pop.
             # We have to use deepcopy because Individual is a mutable object
-            self.InitIndividual = deepcopy(self.pop[0])
+            self.InitIndividual = deepcopy(min(self.pop[:len(self._seed_mol)]))
 
             # Best Cost of Iterations
             self.best_cost = []
             self.avg_cost = []
 
         # Saving tracking variables, the first population, outside the if to take into account second calls with different population provided by the user.
-        self.SawIndividuals.update(set(self.pop))
+        self.SawIndividuals.update(self.pop)
 
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
@@ -1290,7 +1332,7 @@ class GA:
             self.avg_cost.append(np.mean(self.pop))
 
             # Saving tracking variables
-            self.SawIndividuals.update(set(popc))
+            self.SawIndividuals.update(popc)
 
             # Saving population in disk if it was required
             if self.save_pop_every_gen:

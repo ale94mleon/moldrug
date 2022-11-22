@@ -6,7 +6,7 @@ For information of MolDrug:
     Source Code: https://github.com/ale94mleon/moldrug
 """
 from moldrug import utils, constraintconf, __version__
-import yaml, argparse, inspect, os, sys
+import yaml, argparse, inspect, os, sys, datetime
 from rdkit import Chem
 def __moldrug_cmd():
     """
@@ -82,8 +82,30 @@ def __moldrug_cmd():
     else:
         raise NotImplementedError(f"\"{MainConfig['type']}\" it is not a possible type. Select from: GA or Local")
 
-    # Convert the SMILES to RDKit mol
-    MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
+    # Convert the SMILES (or path to compress_pickle) to RDKit mol (or list of RDkit mol)
+    if MainConfig['type'].lower() == 'local':
+        MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
+    else:
+        if isinstance(MainConfig['seed_mol'], list):
+            # If the items are path to the pickle objects
+            if any([os.path.isfile(path) for path in MainConfig['seed_mol']]):
+                seed_pop = set()
+                for solution in MainConfig['seed_mol']:
+                    _, pop = utils.decompress_pickle(solution)
+                    seed_pop.update(pop)
+                # Sort
+                seed_pop = sorted(seed_pop)
+                # Select the best and get only the RDKit molecule object
+                MainConfig['seed_mol'] = [individual.mol for individual in seed_pop[:MainConfig['popsize']]]
+            else:
+                # Delete repeated SMILES
+                MainConfig['seed_mol'] = set(MainConfig['seed_mol'])
+                # COnvert to mol
+                MainConfig['seed_mol'] = [Chem.MolFromSmiles(smi) for smi in MainConfig['seed_mol']]
+                # Filter out invalid molecules
+                MainConfig['seed_mol'] = list(filter(None, MainConfig['seed_mol']))
+        else: # It will be assumed that it is a valid SMILES string
+            MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
 
     # Convert if needed constraint_ref
     if 'constraint_ref' in MainConfig['costfunc_kwargs']:
@@ -130,13 +152,13 @@ def __moldrug_cmd():
             for arg in FollowConfig[job]:
                 if arg not in mutable_args:
                     raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". "\
-                        "For now only the following are accepted: {list(mutable_args.keys())}")
+                        f"For now only the following are accepted: {list(mutable_args.keys())}")
 
     # Initialize the class
     ResultsClass = TypeOfRun(**InitArgs)
     # Call the class
     print(f"You are using moldrug: {__version__}.\n\nThe main job is being executed.\n\n"\
-        "Started at {datetime.datetime.now().strftime('%c')}")
+        f"Started at {datetime.datetime.now().strftime('%c')}")
     ResultsClass(**CallArgs)
     # Saving data
     if MainConfig['type'].lower() == 'local':

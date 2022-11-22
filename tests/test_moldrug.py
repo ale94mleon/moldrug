@@ -84,12 +84,19 @@ def test_single_receptor_command_line():
     os.chdir(tmp_path.name)
     p = utils.run('moldrug test_single_receptor.yml')
     print(p.stdout)
+    # Run a second time but with a seed population
+    Config['01_grow']['seed_mol'] = ['02_allow_grow_pop.pbz2', '02_allow_grow_pop.pbz2']
+    with open(os.path.join(tmp_path.name, "test_single_receptor_init_pop.yml"), 'w') as c:
+        yaml.dump(Config, c)
+    p = utils.run('moldrug test_single_receptor_init_pop.yml')
+    print(p.stdout)
+
     os.chdir(cwd)
 
 
 def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     out = utils.GA(
-        seed_mol=Chem.MolFromSmiles(ligands.r_x0161),
+        seed_mol=[Chem.MolFromSmiles(ligands.r_x0161), Chem.MolFromSmiles(ligands.r_x0161)],
         AddHs= True,
         maxiter=maxiter,
         popsize=popsize,
@@ -348,4 +355,4 @@ def test_constraintconf():
 
 
 if __name__ == '__main__':
-    pass
+    test_single_receptor_command_line()

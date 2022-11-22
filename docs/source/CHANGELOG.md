@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `acceptance` attribute to `moldrug.utils.GA`. This is a dictionary that has as keyword the generation ID, and as values a dictionary with keywords: `accepted` (number of generated molecules accepted on the current generation) and `generated` (number of total molecules generated)
 - Print `Accepted rate= accepted /  generated` during running.
 - Add hydrogens before create pdbt file with meeko when constrain docking i used.
+- `seed_mol` of `moldrug.utils.GA` now could be a list (or iterable in a general way) of RDKit molecules. This feature could be used to combine several MolDrug runs and create a final runs with this combined population.
+- `seed_mol` from the command line could be: a valid SMILES, a list of valid SMILES or a list of path to the `_pop.pbz2` binary files. In the last case all the populations will be combined and sorted based on the cost attribute. If the result population is less that `popsize` new structures will be generated to complete the initial population. The individuals of this initial population will be reinitialized and the cost function will be calculated.
 
 ## [2.1.12] - 2022.09.29
 
