@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from rdkit import Chem
 from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors, rdFMCS
-from meeko import MoleculePreparation, PDBQTMolecule
+from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate
 from crem.crem import mutate_mol, grow_mol
 
 from copy import deepcopy
@@ -800,7 +800,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                         f.write(individual.pdbqt[i])
                     try:
                         pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
-                        mol = pdbqt_mol.export_rdkit_mol()
+                        mol = RDKitMolCreate.from_pdbqt_mol(pdbqt_mol)[0]
                         mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
                         w.write(mol)
                     except Exception:
@@ -817,7 +817,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                         f.write(individual.pdbqt[0])
                 try:
                     pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
-                    mol = pdbqt_mol.export_rdkit_mol()
+                    mol = RDKitMolCreate.from_pdbqt_mol(pdbqt_mol)[0]
                     mol.SetProp("_Name",f"idx :: {individual.idx}, smiles :: {individual.smiles}, cost :: {individual.cost}")
                     w.write(mol)
                 except Exception:

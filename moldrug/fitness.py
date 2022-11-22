@@ -8,7 +8,7 @@ import os
 import numpy as np
 from typing import Dict, List
 import warnings
-from meeko import MoleculePreparation, PDBQTMolecule
+from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate
 
 def __get_mol_cost(
     mol:Chem.rdchem.Mol,
@@ -139,7 +139,7 @@ def __get_mol_cost(
         results['vina_score'] = best_energy.freeEnergy
         pdbqt_mol = PDBQTMolecule.from_file(os.path.join(wd, 'ligand_out.pdbqt'), skip_typing=True)
         with Chem.SDWriter(os.path.join(wd, 'ligand_out.sdf')) as w:
-            w.write(pdbqt_mol.export_rdkit_mol())
+            w.write(RDKitMolCreate.from_pdbqt_mol(pdbqt_mol)[0])
     # Getting the desirability
     base = 1
     exponent = 0
