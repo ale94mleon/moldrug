@@ -386,7 +386,7 @@ def Cost(
         RMS to filter duplicate conformers, by default 0.01
     adme_models : dict = None,
         The definition of the models,
-        by default None which means that it will be used:    
+        by default None which means that it will be used:
         adme_models = {
         'hppb': 'hppb.jlib',
         'clearance': 'clearance.jlib',

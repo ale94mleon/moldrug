@@ -26,7 +26,6 @@ python train_models.py
 
 You should get the files: `clearance.jlib` and `hppb.jlib`.
 
-
 ## Future models
 
 Here  is a detail list of public data base to construct ADME models: [adme](https://tdcommons.ai/single_pred_tasks/adme/).

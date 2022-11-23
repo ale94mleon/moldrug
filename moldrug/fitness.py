@@ -31,7 +31,8 @@ def __get_mol_cost(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-         This is the name of the vina executable, could be a path to the binary object, which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
+         This is the name of the vina executable, could be a path to the binary object,
+         which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : List[float], optional
@@ -405,7 +406,8 @@ def Cost(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object, which must have  execution permits (chmod a+x <your binary file>),  by default 'vina'
+        This is the name of the vina executable, could be a path to the binary object,
+        which must have  execution permits (chmod a+x <your binary file>),  by default 'vina'
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : list[float], optional
@@ -579,7 +581,8 @@ def CostOnlyVina(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object, which must have  execution permits (chmod a+x <your binary file>),  by default 'vina'
+        This is the name of the vina executable, could be a path to the binary object,
+        which must have  execution permits (chmod a+x <your binary file>),  by default 'vina'
     receptor_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : list[float], optional
@@ -873,7 +876,7 @@ def CostMultiReceptors(
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],
                 exhaustiveness = exhaustiveness,
-                 ad4map = ad4map[i],
+                ad4map = ad4map[i],
                 ncores = ncores,
                 num_modes = num_modes,
             )
