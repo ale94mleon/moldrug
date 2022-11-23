@@ -168,6 +168,7 @@ def __vinadock(
     boxcenter:List[float] = None,
     boxsize:List[float] = None,
     exhaustiveness:int = 8,
+    ad4map:str = None,
     ncores:int = 1,
     num_modes:int = 1,
     constraint:bool = False,
@@ -178,6 +179,9 @@ def __vinadock(
     constraint_minimum_conf_rms:int = 0.01):
     """
     This function is intend to be used to perform docking for all the cost functions implemented on :mod:`moldrug.fitness`
+    If ad4map (available from moldrug-3.0.0) is set, the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
+    must be installed. To see how to use AutoDock4 force fields in the new version of vina, follow
+    `this tutorial <https://autodock-vina.readthedocs.io/en/latest/docking_zinc.html>_`
 
     Parameters
     ----------
@@ -196,6 +200,8 @@ def __vinadock(
         A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
          Parameter of vina that controls the accuracy of the docking searching, by default 8
+    ad4map : str, optional
+        The path where the AD4 maps are, by default None
     ncores : int, optional
         Number of cpus to use in Vina, by default 1
     num_modes : int, optional
@@ -231,16 +237,16 @@ def __vinadock(
     # Creating the working directory if needed
     if not os.path.exists(wd):
         os.makedirs(wd)
-
-    # If the vina_executable is a path
-    if os.path.isfile(vina_executable):
-        vina_executable = os.path.abspath(vina_executable)
-
     # Creating the command line for vina
-    cmd_vina_str = f"{vina_executable} --receptor {receptor_pdbqt_path}"\
-        f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
-        f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
+    cmd_vina_str = f"{vina_executable}"\
         f" --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
+
+    if ad4map:
+        cmd_vina_str += f" --scoring ad4 --maps {os.path.abspath(ad4map)}"
+    else:
+        cmd_vina_str += f" --receptor {receptor_pdbqt_path}"\
+            f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
+            f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
 
     if constraint:
         # Check for the correct type of docking
@@ -370,6 +376,7 @@ def Cost(
     boxcenter:List[float] = None,
     boxsize:List[float] = None,
     exhaustiveness:int = 8,
+    ad4map:str = None,
     ncores:int = 1,
     num_modes:int = 1,
     constraint:bool = False,
@@ -386,6 +393,10 @@ def Cost(
     #. `Vina score. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/>`_
     #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
     #. `Synthetic accessibility score.  <https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)>`_
+
+    If ad4map is set, the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
+    must be installed. To see how to use AutoDock4 force fields in the new version of vina, follow
+    `this tutorial <https://autodock-vina.readthedocs.io/en/latest/docking_zinc.html>_`
 
     Parameters
     ----------
@@ -506,6 +517,7 @@ def Cost(
         boxcenter = boxcenter,
         boxsize = boxsize,
         exhaustiveness = exhaustiveness,
+        ad4map = ad4map,
         ncores = ncores,
         num_modes = num_modes,
         constraint = constraint,
@@ -546,6 +558,7 @@ def CostOnlyVina(
     boxcenter:List[float] = None,
     boxsize:List[float] = None,
     exhaustiveness:int = 8,
+    ad4map:str = None,
     ncores:int = 1,
     num_modes:int = 1,
     constraint:bool = False,
@@ -557,7 +570,7 @@ def CostOnlyVina(
     wt_cutoff:float = None,
     ):
     """
-    This Cost function performs Docking and return the vina_score as cost.
+    This Cost function performs Docking and return the vina_score as Cost.
 
     Parameters
     ----------
@@ -575,6 +588,8 @@ def CostOnlyVina(
         A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
+    ad4map : str, optional
+        The path where the AD4 maps are, by default None
     ncores : int, optional
         Number of cpus to use in Vina, by default 1
     num_modes : int, optional
@@ -640,6 +655,7 @@ def CostOnlyVina(
         boxcenter = boxcenter,
         boxsize = boxsize,
         exhaustiveness = exhaustiveness,
+        ad4map = ad4map,
         ncores = ncores,
         num_modes = num_modes,
         constraint = constraint,
@@ -658,9 +674,10 @@ def CostMultiReceptors(
     vina_executable:str = 'vina',
     receptor_pdbqt_path:List[str] = None,
     vina_score_type:List[str] = None,
-    boxcenter:List[float] = None,
-    boxsize:List[float] = None,
+    boxcenter:List[List[float]] = None,
+    boxsize:List[List[float]] = None,
     exhaustiveness:int = 8,
+    ad4map:List[str] = None,
     ncores:int = 1,
     num_modes:int = 1,
     constraint:bool = False,
@@ -681,6 +698,10 @@ def CostMultiReceptors(
 
     In this case every vina score (for all the provided receptors) will be used for the construction of the desirability.
 
+    If ad4map is set, the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
+    must be installed. To see how to use AutoDock4 force fields in the new version of vina, follow
+    `this tutorial <https://autodock-vina.readthedocs.io/en/latest/docking_zinc.html>_`
+
     Parameters
     ----------
     Individual : utils.Individual
@@ -696,12 +717,14 @@ def CostMultiReceptors(
         This is a list with the keywords 'min' and/or 'max'. E.g.
         If two receptor were provided and for the first one we would like to find a minimum in the vina scoring function
         and for the other one a maximum (selectivity for the first receptor); we must provided the list: ['min', 'max'], by default None
-    boxcenter : list[float], optional
+    boxcenter : list[list[float]], optional
         A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
-    boxsize : list[float], optional
+    boxsize : list[list[float]], optional
         A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
+    ad4map : list[str], optional
+        A list of path where the AD4 maps are. For every receptor you should have a separate directory with all the maps, by default None
     ncores : int, optional
          Number of cpus to use in Vina, by default 1
     num_modes : int, optional
@@ -807,6 +830,10 @@ def CostMultiReceptors(
                 }
             }
         }
+
+    if not ad4map:
+        ad4map = [None]*len(receptor_pdbqt_path)
+
     sascorer = utils.import_sascorer()
     Individual.qed = QED.weights_mean(Individual.mol)
 
@@ -827,6 +854,7 @@ def CostMultiReceptors(
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],
                 exhaustiveness = exhaustiveness,
+                ad4map = ad4map[i],
                 ncores = ncores,
                 num_modes = num_modes,
                 constraint = constraint,
@@ -845,6 +873,7 @@ def CostMultiReceptors(
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],
                 exhaustiveness = exhaustiveness,
+                 ad4map = ad4map[i],
                 ncores = ncores,
                 num_modes = num_modes,
             )
@@ -899,9 +928,10 @@ def CostMultiReceptorsOnlyVina(
     vina_executable:str = 'vina',
     receptor_pdbqt_path:List[str] = None,
     vina_score_type:List[str] = None,
-    boxcenter:List[float] = None,
-    boxsize:List[float] = None,
+    boxcenter:List[List[float]] = None,
+    boxsize:List[List[float]] = None,
     exhaustiveness:int = 8,
+    ad4map:List[str] = None,
     ncores:int = 1,
     num_modes:int = 1,
     constraint:bool = False,
@@ -919,6 +949,10 @@ def CostMultiReceptorsOnlyVina(
     It also use the concept of desirability.
     The response variables are the vina scores on each receptor.
 
+    If ad4map is set, the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
+    must be installed. To see how to use AutoDock4 force fields in the new version of vina, follow
+    `this tutorial <https://autodock-vina.readthedocs.io/en/latest/docking_zinc.html>_`
+
     Parameters
     ----------
     Individual : utils.Individual
@@ -926,7 +960,8 @@ def CostMultiReceptorsOnlyVina(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object, which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
+        This is the name of the vina executable, could be a path to the binary object, which must have
+        execution permits (chmod a+x <your binary file>), by default 'vina'
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
     vina_score_type : list[str], optional
@@ -939,6 +974,8 @@ def CostMultiReceptorsOnlyVina(
         A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
+    ad4map : list[str], optional
+        A list of path where the AD4 maps are. For every receptor you should have a separate directory with all the maps, by default None
     ncores : int, optional
          Number of cpus to use in Vina, by default 1
     num_modes : int, optional
@@ -1026,6 +1063,9 @@ def CostMultiReceptorsOnlyVina(
     pdbqt_list = []
     Individual.vina_score = []
 
+    if not ad4map:
+        ad4map = [None]*len(receptor_pdbqt_path)
+
     # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add "TooHeavy" string to pdbqts and np.inf to vina_scores
     if wt_cutoff:
         if Descriptors.MolWt(Individual.mol) > wt_cutoff:
@@ -1051,6 +1091,7 @@ def CostMultiReceptorsOnlyVina(
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],
                 exhaustiveness = exhaustiveness,
+                ad4map = ad4map[i],
                 ncores = ncores,
                 num_modes = num_modes,
                 constraint = constraint,
@@ -1069,6 +1110,7 @@ def CostMultiReceptorsOnlyVina(
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],
                 exhaustiveness = exhaustiveness,
+                ad4map = ad4map[i],
                 ncores = ncores,
                 num_modes = num_modes,
             )

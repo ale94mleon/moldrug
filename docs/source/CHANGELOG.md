@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.0.0]
+
 ### Changed
 
 - Name of `moldrug.fitness.get_mol_cost` to `moldrug.fitness.__get_mol_cost` function.
@@ -24,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `ad4map` in all the cost functions of the `moldrug.fitness` module. This parameters specify the path where the ad4 map files are. To use this feature you must have the AutoDcok Vina v1.2.3 of above. Now you can use the force fields of AD4 inside of Vina. Future release will extend the integration with this versions.
 - `moldrug.utils.to_dataframe`. THis function was previously isolated as a method of the class `moldrug.utils.GA`; now it could also be called as a function.
 - `kept_gens` attribute to the `Individual`s inside of `moldrug.utils.GA`. This is a set that contains the generations for which the Individual was conserved.
 - `acceptance` attribute to `moldrug.utils.GA`. This is a dictionary that has as keyword the generation ID, and as values a dictionary with keywords: `accepted` (number of generated molecules accepted on the current generation) and `generated` (number of total molecules generated)
@@ -206,7 +209,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/2.1.7...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.0.0...HEAD
+[3.0.0]: https://github.com/ale94mleon/MolDrug/compare/2.1.12...3.0.0
 [2.1.12]: https://github.com/ale94mleon/MolDrug/compare/2.1.7...2.1.12
 [2.1.7]: https://github.com/ale94mleon/MolDrug/compare/2.1.0...2.1.7
 [2.1.0]: https://github.com/ale94mleon/MolDrug/compare/2.0.0...2.1.0

@@ -1017,7 +1017,10 @@ def to_dataframe(individuals:List[Individual]):
 class GA:
     """An implementation of genetic algorithm to search in the chemical space.
     """
-    def __init__(self, seed_mol:Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]], costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int, beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None, save_pop_every_gen:int = 0, deffnm:str = 'ga',AddHs:bool = False) -> None:
+    def __init__(self, seed_mol:Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],
+    costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int,
+    beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None,
+    save_pop_every_gen:int = 0, deffnm:str = 'ga', AddHs:bool = False) -> None:
         """This is the generator
 
         Parameters
@@ -1099,14 +1102,13 @@ class GA:
         self.AddHs = AddHs
 
         # Convert to list the seed_mol in case that it is not
-        
         if not is_iter(seed_mol) and isinstance(seed_mol, Chem.rdchem.Mol):
             self._seed_mol = [seed_mol]
         elif all([isinstance(mol, Chem.rdchem.Mol) for mol in seed_mol]):
             self._seed_mol = seed_mol
         else:
-            raise TypeError(f"seed_mol is not Chem.rdchem.Mol neither a Iterable[Chem.rdchem.Mol]")
-        
+            raise TypeError("seed_mol is not Chem.rdchem.Mol neither a Iterable[Chem.rdchem.Mol]")
+
         if self.AddHs:
             self._seed_mol = [Chem.AddHs(mol) for mol in self._seed_mol]
         # if 'protected_ids' in self.mutate_crem_kwargs or 'replace_ids' in self.mutate_crem_kwargs:
@@ -1167,7 +1169,7 @@ class GA:
                 else:
                     # Everything is ok!
                     pass
-                
+
             # Adding the inputs to the intial population
             for i, mol in enumerate(self._seed_mol):
                 individual = Individual(mol, idx = i)
@@ -1182,7 +1184,7 @@ class GA:
                     individual = Individual(mol, idx = i + len(self._seed_mol))
                 if individual.pdbqt:
                     self.pop.append(individual)
-            
+
             # Make sure that the population do not have more than popsize members and it is without repeated elemnts.
             # That could happens if seed_mol has more molecules that popsize
             self.pop = list(set(self.pop))[:self.popsize]
