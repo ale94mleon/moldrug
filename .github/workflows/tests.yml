@@ -6,8 +6,14 @@ name: tests
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - moldrug
+      - tests
   pull_request:
     branches: [ "main" ]
+    paths:
+      - moldrug
+      - tests
 
 jobs:
   build:
