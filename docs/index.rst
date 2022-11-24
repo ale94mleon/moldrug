@@ -23,10 +23,11 @@ Welcome to moldrug's documentation!
 
    notebooks/quickstart
    notebooks/how_to
-   notebooks/moldrug_without_receptor.ipynb
+   notebooks/moldrug_without_receptor
    notebooks/constraint_docking
    notebooks/advance_topics
    notebooks/oncoming
+   notebooks/desirability
 
 .. toctree::
    :caption: Documentation
