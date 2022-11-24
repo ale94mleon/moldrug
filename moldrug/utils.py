@@ -1246,8 +1246,8 @@ class GA:
 
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
-            compressed_pickle(f"{self.deffnm}_pop", (self.NumGens,self.pop))
-            make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
+            compressed_pickle(f"{self.deffnm}_pop", (self.NumGens,sorted(self.pop)))
+            make_sdf(sorted(self.pop), sdf_name=f"{self.deffnm}_pop")
 
         # Main Loop
         number_of_previous_generations = len(self.best_cost) # Another control variable. In case that the __call__ method is used more than ones.
@@ -1398,7 +1398,7 @@ class GA:
             if self.get_similar:
                 mol = get_similar_mols(mols = [mol for _, mol in mutants], ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
             else:
-                _, mol = random.choice(mutants)
+                _, mol = random.choice(mutants) # nosec
         except Exception:
             print(f'Note: The mutation on {individual} did not work, it will be returned the same individual')
             mol = individual.mol

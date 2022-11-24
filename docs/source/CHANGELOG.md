@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.0.1]
+
+### Fixed
+
+- Cleaning code.
+- Sort the initial population based on the cost attribute when it is saved on disk.
+- Improve docs.
+
 ## [3.0.0]
 
 ### Changed
@@ -20,7 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Cleaning the code
+- Cleaning the code.
 - If `vina_executable` is provided (to any cost function) and it represents a path. It will be try to convert to absolute path. Previously relative path to the executable were not understood properly.
 - Improve docs.
 
