@@ -355,4 +355,4 @@ def test_constraintconf():
 
 
 if __name__ == '__main__':
-    test_fitness_module()
+    pass
