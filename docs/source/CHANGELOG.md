@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Add
+
+- Warning in case `moldrug.utils.Local` or `moldrug.utils.GA` are called with a different **MolDrug** as they were initialized.
+
 ## [3.0.1]
 
 ### Fixed

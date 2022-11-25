@@ -5,6 +5,7 @@ from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors, rdFMCS
 from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate
 from crem.crem import mutate_mol, grow_mol
 
+from moldrug import __version__
 from copy import deepcopy
 from inspect import getfullargspec
 import multiprocessing as mp
@@ -854,6 +855,8 @@ class Local:
         ValueError
             In case of incorrect definition of grow_crem_kwargs and/or costfunc_kwargs. They must be None or a dict instance.
         """
+        self.__moldrug_version = __version__
+
         if grow_crem_kwargs is None:
             grow_crem_kwargs = dict()
         elif not isinstance(grow_crem_kwargs, dict):
@@ -880,8 +883,6 @@ class Local:
         self.costfunc_kwargs = costfunc_kwargs
         self.pop = [self.InitIndividual]
 
-
-
     def __call__(self, njobs:int = 1, pick:int = None):
         """Call deffinition
 
@@ -892,6 +893,9 @@ class Local:
         pick : int, optional
             How many molecules take from the generated throgh the grow_mol CReM operation, by default None which means all generated.
         """
+        # Check version of MolDrug
+        if self.__moldrug_version != __version__:
+            warn.warning(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} but was called with moldrug-{__version__}")
         self.grow_crem_kwargs.update({'return_mol':True})
         new_mols = list(grow_mol(
             self._seed_mol,
@@ -1059,6 +1063,7 @@ class GA:
         ValueError
             In case of incorrect definition of mutate_crem_kwargs. It must be None or a dict instance.
         """
+        self.__moldrug_version = __version__
         if mutate_crem_kwargs is None:
             mutate_crem_kwargs = dict()
         elif not isinstance(mutate_crem_kwargs, dict):
@@ -1134,6 +1139,10 @@ class GA:
         ts = time.time()
         # Counting the calls
         self.NumCalls += 1
+
+        # Check version of MolDrug
+        if self.__moldrug_version != __version__:
+            warn.warning(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} but was called with moldrug-{__version__}")
 
         # Here we will update if needed some parameters for the crem operations that could change between differents calls.
         # We need to return the molecule, so we override the possible user definition respect to this keyword
