@@ -7,13 +7,19 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - 'moldrug/'
-      - 'tests/'
+      - moldrug/**
+      - tests/**
+      - pyproject.toml
+      - setup.cfg
+      - setup.py
   pull_request:
     branches: [ "main" ]
     paths:
-      - 'moldrug/'
-      - 'tests/'
+      - moldrug/**
+      - tests/**
+      - pyproject.toml
+      - setup.cfg
+      - setup.py
 
 jobs:
   build:
