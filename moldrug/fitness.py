@@ -238,6 +238,10 @@ def __vinadock(
     # Creating the working directory if needed
     if not os.path.exists(wd):
         os.makedirs(wd)
+
+    # Converting to absolute path in case that vina_executable points to a file
+    if os.path.isfile(vina_executable):
+        vina_executable = os.path.abspath(vina_executable)
     # Creating the command line for vina
     cmd_vina_str = f"{vina_executable}"\
         f" --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
@@ -245,7 +249,7 @@ def __vinadock(
     if ad4map:
         cmd_vina_str += f" --scoring ad4 --maps {os.path.abspath(ad4map)}"
     else:
-        cmd_vina_str += f" --receptor {receptor_pdbqt_path}"\
+        cmd_vina_str += f" --receptor {os.path.abspath(receptor_pdbqt_path)}"\
             f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
             f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
 

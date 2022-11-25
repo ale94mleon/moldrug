@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Warning in case `moldrug.utils.Local` or `moldrug.utils.GA` are called with a different **MolDrug** as they were initialized.
 
+### Added
+
+- Convert to absolute path `receptor_pdbqt_path` and `vina_executable` (in case that it points to a file) inside of `moldruf.fitness.__vinadock`
+
 ## [3.0.1]
 
 ### Fixed
