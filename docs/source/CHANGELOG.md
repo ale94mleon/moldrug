@@ -7,13 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-### Add
-
-- Warning in case `moldrug.utils.Local` or `moldrug.utils.GA` are called with a different **MolDrug** as they were initialized.
+## [3.0.3]
 
 ### Added
 
-- Convert to absolute path `receptor_pdbqt_path` and `vina_executable` (in case that it points to a file) inside of `moldruf.fitness.__vinadock`
+- Warning in case `moldrug.utils.Local` or `moldrug.utils.GA` are called with a different **MolDrug** as they were initialized.
+
+### Changed
+
+- Convert to absolute path `receptor_pdbqt_path` and `vina_executable` (in case that it points to a file) inside of `moldruf.fitness.__vinadock`.
+
+### Fixed
+
+- Bug for hydrogens coordinates when constrain docking was used.
+- Improve docs.
 
 ## [3.0.1]
 
@@ -225,7 +232,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.0.1...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.0.3...HEAD
+[3.0.3]: https://github.com/ale94mleon/MolDrug/compare/3.0.1...3.0.3
 [3.0.1]: https://github.com/ale94mleon/MolDrug/compare/3.0.0...3.0.1
 [3.0.0]: https://github.com/ale94mleon/MolDrug/compare/2.1.12...3.0.0
 [2.1.12]: https://github.com/ale94mleon/MolDrug/compare/2.1.7...2.1.12

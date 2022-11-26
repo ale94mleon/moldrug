@@ -212,7 +212,6 @@ def __vinadock(
                 num_conf = constraint_num_conf,
                 #ref_smi=Chem.MolToSmiles(constraint_ref),
                 minimum_conf_rms=constraint_minimum_conf_rms)
-            out_mol = Chem.AddHs(out_mol)
         except Exception:
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
@@ -231,7 +230,7 @@ def __vinadock(
                 temp_mol.AddConformer(out_mol.GetConformer(conf.GetId()), assignId=True)
 
                 preparator = MoleculePreparation()
-                preparator.prepare(temp_mol)
+                preparator.prepare(Chem.AddHs(temp_mol, addCoords=True))
                 preparator.write_pdbqt_file(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt'))
 
                 # Make a copy to the vina command string and add the out (is needed) and ligand options

@@ -109,7 +109,7 @@ def __get_mol_cost(
     # Getting vina_score and update pdbqt
     # Making the ligand pdbqt
     preparator = MoleculePreparation()
-    preparator.prepare(Chem.AddHs(mol))
+    preparator.prepare(Chem.AddHs(mol, addCoords=True))
     preparator.write_pdbqt_file(os.path.join(wd, 'ligand.pdbqt'))
 
     # If the vina_executable is a path
@@ -202,7 +202,7 @@ def __vinadock(
     exhaustiveness : int, optional
          Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : str, optional
-        The path where the AD4 maps are, by default None
+        Affinity maps for the autodock4.2 (ad4) or vina scoring function, by default None
     ncores : int, optional
         Number of cpus to use in Vina, by default 1
     num_modes : int, optional
@@ -268,7 +268,6 @@ def __vinadock(
                 num_conf = constraint_num_conf,
                 #ref_smi=Chem.MolToSmiles(constraint_ref),
                 minimum_conf_rms=constraint_minimum_conf_rms)
-            out_mol = Chem.AddHs(out_mol)
         except Exception:
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
@@ -277,7 +276,6 @@ def __vinadock(
         clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath = constraint_receptor_pdb_path, distance=1.5)
         clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
         _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
-
 
         # Check first if some valid conformer exist
         if len(out_mol.GetConformers()):
@@ -288,7 +286,7 @@ def __vinadock(
                 temp_mol.AddConformer(out_mol.GetConformer(conf.GetId()), assignId=True)
 
                 preparator = MoleculePreparation()
-                preparator.prepare(temp_mol)
+                preparator.prepare(Chem.AddHs(temp_mol, addCoords=True))
                 preparator.write_pdbqt_file(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt'))
 
                 # Make a copy to the vina command string and add the out (is needed) and ligand options
@@ -420,6 +418,8 @@ def Cost(
         A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
+    ad4map : str, optional
+        Affinity maps for the autodock4.2 (ad4) or vina scoring function, by default None
     ncores : int, optional
         Number of cpus to use in Vina, by default 1
     num_modes : int, optional
@@ -596,7 +596,7 @@ def CostOnlyVina(
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : str, optional
-        The path where the AD4 maps are, by default None
+        Affinity maps for the autodock4.2 (ad4) or vina scoring function, by default None
     ncores : int, optional
         Number of cpus to use in Vina, by default 1
     num_modes : int, optional
@@ -731,7 +731,7 @@ def CostMultiReceptors(
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : list[str], optional
-        A list of path where the AD4 maps are. For every receptor you should have a separate directory with all the maps, by default None
+        A list of affinity maps for the autodock4.2 (ad4) or vina scoring function. For every receptor you should have a separate directory with all the maps, by default None
     ncores : int, optional
          Number of cpus to use in Vina, by default 1
     num_modes : int, optional
@@ -982,7 +982,7 @@ def CostMultiReceptorsOnlyVina(
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : list[str], optional
-        A list of path where the AD4 maps are. For every receptor you should have a separate directory with all the maps, by default None
+        A list of affinity maps for the autodock4.2 (ad4) or vina scoring function. For every receptor you should have a separate directory with all the maps, by default None
     ncores : int, optional
          Number of cpus to use in Vina, by default 1
     num_modes : int, optional
