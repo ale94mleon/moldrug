@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [3.0.3]
+## [3.0.3] - 2022.11.26
 
 ### Added
 
@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bug for hydrogens coordinates when constrain docking was used.
 - Improve docs.
 
-## [3.0.1]
+## [3.0.1] - 2022.11.24
 
 ### Fixed
 
@@ -30,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sort the initial population based on the cost attribute when it is saved on disk.
 - Improve docs.
 
-## [3.0.0]
+## [3.0.0] - 2022.11.23
 
 ### Changed
 
