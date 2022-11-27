@@ -338,7 +338,7 @@ def __vinadock(
                     else:
                         vina_score_pdbqt = (vina_score, preparator.write_pdbqt_string())
         else:
-            vina_score_pdbqt = (np.inf, "NonValidConformer")
+            vina_score_pdbqt = (np.inf, "NonGenConformer")
     # "Normal" docking
     else:
         cmd_vina_str += f" --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} --out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')}"

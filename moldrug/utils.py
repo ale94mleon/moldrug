@@ -806,7 +806,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                         w.write(mol)
                     except Exception:
                         # Should be that the pdbqt is not valid
-                        print(f"{individual} does not have a valid pdbqt.")
+                        print(f"{individual} does not have a valid pdbqt: {individual.pdbqt}.")
             print(f" File {sdf_name}_{i+1}.sdf was created!")
     else:
         with Chem.SDWriter(f"{sdf_name}.sdf") as w:
@@ -823,7 +823,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                     w.write(mol)
                 except Exception:
                     # Should be that the pdbqt is not valid
-                    print(f"{individual} does not have a valid pdbqt.")
+                    print(f"{individual} does not have a valid pdbqt: {individual.pdbqt}.")
         print(f"File {sdf_name}.sdf was createad!")
 
 class Local:

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- `moldrug.constraintconf.gen_aligned_conf`
+- In case that `moldrug.constraintconf.generate_conformers` fails with `rdkit.Chem.AllChem.ConstrainedEmbed` it will try with `moldrug.constraintconf.gen_aligned_conf`.
+
 ## [3.0.3] - 2022.11.26
 
 ### Added

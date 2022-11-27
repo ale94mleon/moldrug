@@ -71,6 +71,33 @@ def get_mcs(mol_one: Chem.rdchem.Mol, mol_two: Chem.rdchem.Mol) -> str:
         mcs_smi = Chem.MolFragmentToSmiles(mol_one, atomsToUse=valid_atoms)
     return mcs_smi
 
+def gen_aligned_conf(mol: Chem.rdchem.Mol, ref_mol: Chem.rdchem.Mol, ref_smi:str):
+    """Generate a conformation of the 
+
+    Parameters
+    ----------
+    mol : Chem.rdchem.Mol
+        Molecule to generate the conformation aligned to ref_mol
+    ref_mol : Chem.rdchem.Mol
+        Reference molecule with a conformation
+    ref_smi : str
+        The SMILES string for which the aligned will take place.
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
+    AllChem.EmbedMolecule(mol)
+    # AllChem.MMFFOptimizeMolecule(mol)
+    ref_smi_mol = Chem.MolFromSmiles(ref_smi)
+    Chem.rdMolAlign.AlignMol(
+        mol,
+        ref_mol,
+        atomMap = list(zip(mol.GetSubstructMatch(ref_smi_mol), ref_mol.GetSubstructMatch(ref_smi_mol)))
+        )
+    return mol
+
 def generate_conformers(mol: Chem.rdchem.Mol,
                         ref_mol: Chem.rdchem.Mol,
                         num_conf: int,
@@ -123,7 +150,10 @@ def generate_conformers(mol: Chem.rdchem.Mol,
         dup_count = 0
         for i in range(num_conf):
             temp_mol = Chem.Mol(mol_wh)  # copy to avoid inplace changes
-            AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
+            try:
+                AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
+            except Exception as e:
+                temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi)
             temp_mol = Chem.RemoveHs(temp_mol)
             conf_idx = outmol.AddConformer(temp_mol.GetConformer(0), assignId=True)
             if minimum_conf_rms is not None:
@@ -135,6 +165,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
             # print(f'removed {dup_count} duplicated conformations')
         return outmol
     except Exception as e:
+        print(e)
         cwd = os.getcwd()
         warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, 'generate_conformers_error.pbz2')}")
         compressed_pickle('generate_conformers_error', e)
