@@ -271,6 +271,7 @@ def __vinadock(
         Inappropriate constraint_type. must be local_only or score_only. Only will be checked if constraint is set to True.
     """
 
+    constraint_type = constraint_type.lower()
     # Creating the working directory if needed
     if not os.path.exists(wd):
         os.makedirs(wd)
@@ -373,7 +374,7 @@ def __vinadock(
                         vina_score = float(line.split(':')[1].split()[0])
                         break
                 if vina_score < vina_score_pdbqt[0]:
-                    if constraint_type == 'local_only':
+                    if constraint_type == 'local_only' or check:
                         if os.path.isfile(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')):
                             with open(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt'), 'r') as f:
                                 pdbqt = f.read()
