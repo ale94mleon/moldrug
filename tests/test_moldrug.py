@@ -215,7 +215,6 @@ def test_fitness_module():
         ncores = 4,
         constraint=True,
         constraint_type='local_only',
-        constraint_check_inside_box = True,
         constraint_ref=Chem.MolFromMolBlock(constraintref.r_x0161),
         constraint_receptor_pdb_path = r_x0161_pdb_file,
         )

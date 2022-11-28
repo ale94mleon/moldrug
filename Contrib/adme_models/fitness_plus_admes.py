@@ -117,7 +117,6 @@ def Cost(
     num_modes:int = 1,
     constraint:bool = False,
     constraint_type = 'score_only', # score_only, local_only
-    constraint_check_inside_box:bool = False,
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:str = None,
     constraint_num_conf:int = 100,
@@ -165,8 +164,6 @@ def Cost(
         Could be local_only (vina will perform local optimization and score the resulted pose)
         or score_only (in this case the provided pose by the internal conformer generator will only be scored),
         by default 'score_only'
-    constraint_check_inside_box : bool, optional
-        If the coordinates of the constraint conformation are outside the box us always local_only, by default False
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : str, optional
@@ -278,7 +275,6 @@ def Cost(
         num_modes = num_modes,
         constraint = constraint,
         constraint_type = constraint_type,
-        constraint_check_inside_box = constraint_check_inside_box,
         constraint_ref = constraint_ref,
         constraint_receptor_pdb_path = constraint_receptor_pdb_path,
         constraint_num_conf = constraint_num_conf,

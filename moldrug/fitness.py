@@ -161,39 +161,6 @@ def __get_mol_cost(
     results['desirability'] = 1 - base**(1/exponent)
     return results
 
-def is_inside_box(mol:Chem.rdchem.Mol, boxcenter:List[float], boxsize:List[float], conf_id:int = 0):
-    """Chek of the conformation of the molecule is inside the box.
-
-    Parameters
-    ----------
-    mol : Chem.rdchem.Mol
-        The molecule with conformations
-    boxcenter : List[float]
-        Center of the box (x,y,z,z)
-    boxsize : List[float]
-        Size of the box (x,y,z,z)
-    conf_id : int, optional
-        The index of the conformation to analyze, by default 0
-
-    Returns
-    -------
-    bool
-        True if the molecule is inside the box, False if not.
-    """
-
-    # Get the coordinates of the conformer
-    xyz = mol.GetConformers()[conf_id].GetPositions()
-    # I have to check if they are in the same units
-    borders = np.array(
-        [
-            # (x_min, y_min, z_min),
-            np.array(boxcenter) - np.array(boxsize),
-            # (x_max, y_max, z_max),
-            np.array(boxcenter) + np.array(boxsize),
-        ]
-    )
-    return ((xyz>=borders[0]) & (xyz<=borders[1])).all()
-
 def __vinadock(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
@@ -207,7 +174,6 @@ def __vinadock(
     num_modes:int = 1,
     constraint:bool = False,
     constraint_type:str = 'score_only', # score_only, local_only
-    constraint_check_inside_box:bool = False,
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:str = None,
     constraint_num_conf:int = 100,
@@ -248,8 +214,6 @@ def __vinadock(
         (vina will perform local optimization and score the resulted pose)
         or score_only (in this case the provided pose by the internal conformer
         generator will only be scored), by default 'score_only'
-    constraint_check_inside_box : bool, optional
-        If the coordinates of the constraint conformation are outside the box; use always local_only, by default False
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : str, optional
@@ -330,17 +294,8 @@ def __vinadock(
                 cmd_vina_str_tmp = cmd_vina_str[:]
                 cmd_vina_str_tmp += f" --ligand {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt')}"
                 
-                # Check if the molecule is outside the box
-                if constraint_check_inside_box:
-                    check = not is_inside_box(Chem.AddHs(temp_mol, addCoords=True),boxcenter, boxsize)
-                else:
-                    check = False
-                
-                if constraint_type == 'local_only' or check:
+                if constraint_type == 'local_only':
                     cmd_vina_str_tmp += f" --out {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')}"
-                    # Replace score_only in case of be in the cmd_vina_str_tmp
-                    if constraint_type == 'score_only':
-                        cmd_vina_str_tmp = cmd_vina_str_tmp.replace('--score_only', '--local_only')
                 try:
                     cmd_vina_result = utils.run(cmd_vina_str_tmp)
                 except Exception as e:
@@ -374,7 +329,7 @@ def __vinadock(
                         vina_score = float(line.split(':')[1].split()[0])
                         break
                 if vina_score < vina_score_pdbqt[0]:
-                    if constraint_type == 'local_only' or check:
+                    if constraint_type == 'local_only':
                         if os.path.isfile(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')):
                             with open(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt'), 'r') as f:
                                 pdbqt = f.read()
@@ -430,7 +385,6 @@ def Cost(
     num_modes:int = 1,
     constraint:bool = False,
     constraint_type:str = 'score_only', # score_only, local_only
-    constraint_check_inside_box:bool = False,
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:str = None,
     constraint_num_conf:int = 100,
@@ -478,8 +432,6 @@ def Cost(
         Could be local_only (vina will perform local optimization and score the resulted pose)
         or score_only (in this case the provided pose by the internal conformer generator will only be scored),
         by default 'score_only'
-    constraint_check_inside_box : bool, optional
-        If the coordinates of the constraint conformation are outside the box us always local_only, by default False
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : str, optional
@@ -577,7 +529,6 @@ def Cost(
         num_modes = num_modes,
         constraint = constraint,
         constraint_type = constraint_type,
-        constraint_check_inside_box = constraint_check_inside_box,
         constraint_ref = constraint_ref,
         constraint_receptor_pdb_path = constraint_receptor_pdb_path,
         constraint_num_conf = constraint_num_conf,
@@ -619,7 +570,6 @@ def CostOnlyVina(
     num_modes:int = 1,
     constraint:bool = False,
     constraint_type:str = 'score_only', # score_only, local_only
-    constraint_check_inside_box:bool = False,
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:str = None,
     constraint_num_conf:int = 100,
@@ -659,8 +609,6 @@ def CostOnlyVina(
         Could be local_only (vina will perform local optimization and score the resulted pose)
         or score_only (in this case the provided pose by the internal conformer generator will only be scored),
         by default 'score_only'
-    constraint_check_inside_box : bool, optional
-        If the coordinates of the constraint conformation are outside the box us always local_only, by default False
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : str, optional
@@ -720,7 +668,6 @@ def CostOnlyVina(
         num_modes = num_modes,
         constraint = constraint,
         constraint_type = constraint_type,
-        constraint_check_inside_box = constraint_check_inside_box,
         constraint_ref = constraint_ref,
         constraint_receptor_pdb_path = constraint_receptor_pdb_path,
         constraint_num_conf = constraint_num_conf,
@@ -743,7 +690,6 @@ def CostMultiReceptors(
     num_modes:int = 1,
     constraint:bool = False,
     constraint_type:str = 'score_only', # score_only, local_only
-    constraint_check_inside_box:bool = False,
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:List[str] = None,
     constraint_num_conf:int = 100,
@@ -799,8 +745,6 @@ def CostMultiReceptors(
         Could be local_only (vina will perform local optimization and score the resulted pose) or
         score_only (in this case the provided pose by the internal conformer generator will only be scored),
         by default 'score_only'
-    constraint_check_inside_box : bool, optional
-        If the coordinates of the constraint conformation are outside the box us always local_only, by default False
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : list[str], optional
@@ -924,7 +868,6 @@ def CostMultiReceptors(
                 num_modes = num_modes,
                 constraint = constraint,
                 constraint_type = constraint_type,
-                constraint_check_inside_box = constraint_check_inside_box,
                 constraint_ref = constraint_ref,
                 constraint_receptor_pdb_path = constraint_receptor_pdb_path[i],
                 constraint_num_conf = constraint_num_conf,
@@ -1002,7 +945,6 @@ def CostMultiReceptorsOnlyVina(
     num_modes:int = 1,
     constraint:bool = False,
     constraint_type:str = 'score_only', # score_only, local_only
-    constraint_check_inside_box:bool = False,
     constraint_ref:Chem.rdchem.Mol = None,
     constraint_receptor_pdb_path:List[str] = None,
     constraint_num_conf:int = 100,
@@ -1055,8 +997,6 @@ def CostMultiReceptorsOnlyVina(
         Could be local_only (vina will perform local optimization and score the resulted pose)
         or score_only (in this case the provided pose by the internal conformer generator will only be scored),
         by default 'score_only'
-    constraint_check_inside_box : bool, optional
-        If the coordinates of the constraint conformation are outside the box us always local_only, by default False
     constraint_ref : Chem.rdchem.Mol, optional
         The part of the molecule that we would like to constraint, by default None
     constraint_receptor_pdb_path : list[str], optional
@@ -1166,7 +1106,6 @@ def CostMultiReceptorsOnlyVina(
                 num_modes = num_modes,
                 constraint = constraint,
                 constraint_type = constraint_type,
-                constraint_check_inside_box = constraint_check_inside_box,
                 constraint_ref = constraint_ref,
                 constraint_receptor_pdb_path = constraint_receptor_pdb_path[i],
                 constraint_num_conf = constraint_num_conf,

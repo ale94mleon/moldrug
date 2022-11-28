@@ -7,13 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [3.1.3] - 2022.11.28
+## [3.2.0] - 2022.11.28
 
 ### Fix
 
 - Bug: The output error name when constraint fails has a idx prefix. E.g. 33_conf_27_error.pbz2 now is: idx_33_conf_27_error.pbz2. Now it is easy to delete all of this files at the end of the simulation if they are not needed. (on the last version the naming was not changing)
-- Remove unnecessary printing info.
-- Bug: `constraint_check_inside_box` was not working properly
+
+### Removed
+
+- `moldrug.fitness.is_inside_box`
+- Bug: `constraint_check_inside_box` option for the cost functions of `moldrug.fitness`
 
 ## [3.1.0] - 2022.11.28
 
