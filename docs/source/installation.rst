@@ -53,7 +53,7 @@ or:
 .. code-block:: bash
 
     # To get the version on development (not recommended)
-    pip install git+https://github.com/ale94mleon/MolDrug.git@main
+    pip install -U git+https://github.com/ale94mleon/MolDrug.git@main
 
 Via conda
 ---------
