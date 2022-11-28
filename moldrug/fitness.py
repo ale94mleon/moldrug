@@ -314,7 +314,7 @@ def __vinadock(
                         'boxsize': boxsize,
                     }
                     utils.compressed_pickle(f'{Individual.idx}_conf_{conf.GetId()}_error', error)
-                    warnings.warn(f"\nVina failed! Check: {Individual.idx}_conf_{conf.GetId()}_error.pbz2 file.\n")
+                    warnings.warn(f"\nVina failed! Check: idx_{Individual.idx}_conf_{conf.GetId()}_error.pbz2 file.\n")
                     vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                     return vina_score_pdbqt
 
