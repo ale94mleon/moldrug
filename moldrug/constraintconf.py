@@ -72,7 +72,7 @@ def get_mcs(mol_one: Chem.rdchem.Mol, mol_two: Chem.rdchem.Mol) -> str:
     return mcs_smi
 
 def gen_aligned_conf(mol: Chem.rdchem.Mol, ref_mol: Chem.rdchem.Mol, ref_smi:str):
-    """Generate a conformation of the 
+    """Generate a conformation of mol aligned to ref_mol
 
     Parameters
     ----------
@@ -152,7 +152,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
             temp_mol = Chem.Mol(mol_wh)  # copy to avoid inplace changes
             try:
                 AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
-            except Exception as e:
+            except Exception:
                 temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi)
             temp_mol = Chem.RemoveHs(temp_mol)
             conf_idx = outmol.AddConformer(temp_mol.GetConformer(0), assignId=True)

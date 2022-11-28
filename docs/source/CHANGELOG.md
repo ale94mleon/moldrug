@@ -7,14 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.1.0]
+
 ### Added
 
 - `moldrug.constraintconf.gen_aligned_conf`
 - In case that `moldrug.constraintconf.generate_conformers` fails with `rdkit.Chem.AllChem.ConstrainedEmbed` it will try with `moldrug.constraintconf.gen_aligned_conf`.
+- `moldrug.fitness.is_inside_box`
+- `constraint_check_inside_box` arguments to the cost functions of `moldrug.fitness`. If the coordinates of the constraint conformation are outside the box; use always local_only, by default False
 
 ### Changed
 
 - The output error name when constraint fails has a idx prefix. E.g. 33_conf_27_error.pbz2 now is: idx_33_conf_27_error.pbz2. Now it is easy to delete all of this files at the end of the simulation if they are not needed.
+
+### Fix
+
+- Clean code.
+- Improve docs.
 
 ## [3.0.3] - 2022.11.26
 
@@ -241,7 +250,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.0.3...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.1.0...HEAD
+[3.1.0]: https://github.com/ale94mleon/MolDrug/compare/3.0.3...3.1.0
 [3.0.3]: https://github.com/ale94mleon/MolDrug/compare/3.0.1...3.0.3
 [3.0.1]: https://github.com/ale94mleon/MolDrug/compare/3.0.0...3.0.1
 [3.0.0]: https://github.com/ale94mleon/MolDrug/compare/2.1.12...3.0.0

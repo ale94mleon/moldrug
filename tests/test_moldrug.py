@@ -214,25 +214,27 @@ def test_fitness_module():
         exhaustiveness = 4,
         ncores = 4,
         constraint=True,
+        constraint_type='local_only',
+        constraint_check_inside_box = True,
         constraint_ref=Chem.MolFromMolBlock(constraintref.r_x0161),
         constraint_receptor_pdb_path = r_x0161_pdb_file,
         )
 
     fitness.Cost(Individual = copy.deepcopy(
         individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
-        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+        boxcenter = boxes.r_x0161['A']['boxcenter'],boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
     fitness.CostMultiReceptors(
         Individual = copy.deepcopy(individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
         vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
     fitness.CostMultiReceptorsOnlyVina(
         Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
-        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
     fitness.CostMultiReceptorsOnlyVina(
         Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
-        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4,wt_cutoff=2)
     fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(
         individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
-        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
 
 
     fitness.CostOnlyVina(
