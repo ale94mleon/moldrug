@@ -337,7 +337,9 @@ def __vinadock(
                 
                 if constraint_type == 'local_only' or check:
                     cmd_vina_str_tmp += f" --out {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')}"
-
+                    # Replace score_only in case of be in the cmd_vina_str_tmp
+                    if constraint_type == 'score_only':
+                        cmd_vina_str_tmp = cmd_vina_str_tmp.replace('--score_only', '--local_only')
                 try:
                     cmd_vina_result = utils.run(cmd_vina_str_tmp)
                 except Exception as e:
