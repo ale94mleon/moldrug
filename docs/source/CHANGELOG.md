@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fix
 
-- The output error name when constraint fails has a idx prefix. E.g. 33_conf_27_error.pbz2 now is: idx_33_conf_27_error.pbz2. Now it is easy to delete all of this files at the end of the simulation if they are not needed. (on the last version the naming was not changing)
+- Bug: The output error name when constraint fails has a idx prefix. E.g. 33_conf_27_error.pbz2 now is: idx_33_conf_27_error.pbz2. Now it is easy to delete all of this files at the end of the simulation if they are not needed. (on the last version the naming was not changing)
+- Remove unnecessary printing info.
 
 ## [3.1.0] - 2022.11.28
 

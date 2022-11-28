@@ -191,9 +191,7 @@ def is_inside_box(mol:Chem.rdchem.Mol, boxcenter:List[float], boxsize:List[float
             # (x_max, y_max, z_max),
             np.array(boxcenter) + np.array(boxsize),
         ]
-    ) 
-    print(xyz)
-    print(borders)
+    )
     return ((xyz>=borders[0]) & (xyz<=borders[1])).all()
 
 def __vinadock(
