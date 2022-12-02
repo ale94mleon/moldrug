@@ -1244,7 +1244,13 @@ class GA:
             # Updating the info of the first individual (parent) to print at the end how well performed the method (cost function)
             # Because How the population was initialized and because we are using pool.imap (ordered). The parent is the first Individual of self.pop.
             # We have to use deepcopy because Individual is a mutable object
-            self.InitIndividual = deepcopy(min(self.pop[:len(self._seed_mol)]))
+            # Because above set were used, we have to sorter based on idx
+
+            self.InitIndividual = deepcopy(
+                min(
+                    sorted(self.pop, key=lambda x:x.idx)[:len(self._seed_mol)]
+                )
+            )
 
             # Best Cost of Iterations
             self.best_cost = []
