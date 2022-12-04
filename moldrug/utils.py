@@ -1030,7 +1030,7 @@ class GA:
         Parameters
         ----------
         seed_mol : Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]]
-            The seed molecule submited to genetic algorithm optimazation on the chemical space. Could be only one RDKit
+            The seed molecule submitted to genetic algorithm optimization on the chemical space. Could be only one RDKit
             molecule or more than one specified in an Iterable object.
         costfunc : object
             The cost function to work with (any from :mod:`moldrug.fitness` or a valid user defined).
@@ -1055,7 +1055,7 @@ class GA:
         deffnm : str, optional
             Default name for all generated files, by default 'ga'
         AddHs : bool, optional
-           If True the explicit hyrgones will be added, by default False
+           If True the explicit hydrogens will be added, by default False
         Raises
         ------
         TypeError
@@ -1124,7 +1124,7 @@ class GA:
         self.pop = []
 
     def __call__(self, njobs:int = 1):
-        """Call deffinition
+        """Call definition
 
         Parameters
         ----------
@@ -1142,9 +1142,9 @@ class GA:
 
         # Check version of MolDrug
         if self.__moldrug_version != __version__:
-            warn.warning(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} but was called with moldrug-{__version__}")
+            warn.warning(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version} but was called with moldrug-{__version__}")
 
-        # Here we will update if needed some parameters for the crem operations that could change between differents calls.
+        # Here we will update if needed some parameters for the crem operations that could change between different calls.
         # We need to return the molecule, so we override the possible user definition respect to this keyword
         self.mutate_crem_kwargs['return_mol'] = True
 
@@ -1152,7 +1152,7 @@ class GA:
         # In case that the populating exist there is not need to initialize.
         if len(self.pop) == 0:
             GenInitStructs = []
-            # in case that the input has the posize memebrsther is not need to genereate new structures
+            # in case that the input has the popsize memebers there is not need to generate new structures
             if len(self._seed_mol) <= self.popsize:
                 for mol in self._seed_mol:
                     tmp_GenInitStructs = list(
@@ -1179,13 +1179,13 @@ class GA:
                     # Everything is ok!
                     pass
 
-            # Adding the inputs to the intial population
+            # Adding the inputs to the initial population
             for i, mol in enumerate(self._seed_mol):
                 individual = Individual(mol, idx = i)
                 if individual.pdbqt:
                     self.pop.append(individual)
 
-            # Completting the population with the generated structures
+            # Completing the population with the generated structures
             for i, mol in enumerate(GenInitStructs):
                 if self.AddHs:
                     individual = Individual(Chem.AddHs(mol), idx = i + len(self._seed_mol))
@@ -1194,7 +1194,7 @@ class GA:
                 if individual.pdbqt:
                     self.pop.append(individual)
 
-            # Make sure that the population do not have more than popsize members and it is without repeated elemnts.
+            # Make sure that the population do not have more than popsize members and it is without repeated elements.
             # That could happens if seed_mol has more molecules that popsize
             self.pop = list(set(self.pop))[:self.popsize]
 
@@ -1385,7 +1385,7 @@ class GA:
         Parameters
         ----------
         individual : Individual
-            The individula to mutate.
+            The individual to mutate.
 
         Returns
         -------
@@ -1427,7 +1427,7 @@ class GA:
         Parameters
         ----------
         title : str
-            Name of the object which will be compleated with the correposnding extension depending if compress is set to True or False.
+            Name of the object which will be completed with the corresponding extension depending if compress is set to True or False.
         compress : bool, optional
             Use compression, by default False. If True :meth:`moldrug.utils.compressed_pickle` will be used;
             if not :meth:`moldrug.utils.full_pickle` will be used instead.
