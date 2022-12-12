@@ -7,13 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-### Fix
+## [3.2.2] - 2020.12.12
+
+### Fixed
 
 - Bug: The initial individual was not printed properly.
 
+### Removed
+
+- Redundant code in `moldrug.utils.GA`
+
 ## [3.2.0] - 2022.11.28
 
-### Fix
+### Fixed
 
 - Bug: The output error name when constraint fails has a idx prefix. E.g. `33_conf_27_error.pbz2` now is: `idx_33_conf_27_error.pbz2`. Now it is easy to delete all of this files at the end of the simulation if they are not needed. (on the last version the naming was not changing)
 
@@ -35,7 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The output error name when constraint fails has a idx prefix. E.g. 33_conf_27_error.pbz2 now is: idx_33_conf_27_error.pbz2. Now it is easy to delete all of this files at the end of the simulation if they are not needed.
 
-### Fix
+### Fixed
 
 - Clean code.
 - Improve docs.
@@ -265,7 +271,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.2.0...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...HEAD
+[3.2.2]: https://github.com/ale94mleon/MolDrug/compare/3.2.0...3.2.2
 [3.2.0]: https://github.com/ale94mleon/MolDrug/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/ale94mleon/MolDrug/compare/3.0.3...3.1.0
 [3.0.3]: https://github.com/ale94mleon/MolDrug/compare/3.0.1...3.0.3

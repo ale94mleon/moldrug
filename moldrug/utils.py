@@ -997,7 +997,6 @@ def roulette_wheel_selection(p:List[float]):
     ind = np.argwhere(r <= c)
     return ind[0][0]
 
-
 def to_dataframe(individuals:List[Individual]):
     """Create a DataFrame from individuals.
 
@@ -1063,7 +1062,7 @@ class GA:
         ValueError
             In case of incorrect definition of mutate_crem_kwargs. It must be None or a dict instance.
         """
-        self.__moldrug_version = __version__
+        self.__moldrug_version__ = __version__
         if mutate_crem_kwargs is None:
             mutate_crem_kwargs = dict()
         elif not isinstance(mutate_crem_kwargs, dict):
@@ -1141,8 +1140,8 @@ class GA:
         self.NumCalls += 1
 
         # Check version of MolDrug
-        if self.__moldrug_version != __version__:
-            warn.warning(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version} but was called with moldrug-{__version__}")
+        if self.__moldrug_version__ != __version__:
+            warn.warning(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version__} but was called with moldrug-{__version__}")
 
         # Here we will update if needed some parameters for the crem operations that could change between different calls.
         # We need to return the molecule, so we override the possible user definition respect to this keyword
@@ -1202,10 +1201,7 @@ class GA:
             # Creating the arguments
             args_list = []
             # Make a copy of the self.costfunc_kwargs
-            kwargs_copy = self.costfunc_kwargs.copy()
-            if 'wd' in getfullargspec(self.costfunc).args:
-                costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
-                kwargs_copy['wd'] = costfunc_jobs.name
+            kwargs_copy = self.__make_kwargs_copy__()
 
             for individual in self.pop:
                 args_list.append((individual, kwargs_copy))
@@ -1235,8 +1231,6 @@ class GA:
                 'accepted':len(self.pop[:]),
                 'generated':len(self.pop[:])
             }
-
-            if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
 
             # Print some information of the initial population
             print(f"Initial Population: Best Individual: {min(self.pop)}")
@@ -1296,10 +1290,7 @@ class GA:
                 # Creating the arguments
                 args_list = []
                 # Make a copy of the self.costfunc_kwargs
-                kwargs_copy = self.costfunc_kwargs.copy()
-                if 'wd' in getfullargspec(self.costfunc).args:
-                    costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
-                    kwargs_copy['wd'] = costfunc_jobs.name
+                kwargs_copy = self.__make_kwargs_copy__()
 
                 NumbOfSawIndividuals = len(self.SawIndividuals)
                 for (i, individual) in enumerate(popc):
@@ -1324,7 +1315,6 @@ class GA:
                             f"=========Parellel=========:\n {e1}\n"\
                             f"==========Serial==========:\n {e2}"
                             )
-                if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
 
             # Merge, Sort and Select
             self.pop += popc
@@ -1420,6 +1410,21 @@ class GA:
         if self.AddHs:
             mol = Chem.AddHs(mol)
         return Individual(mol)
+
+    def __make_kwargs_copy__(self):
+        """Make a copy of the self.costfunc_kwargs.
+        It creates a temporal directory.
+
+        Returns
+        -------
+        dict
+            A copy of self.costfunc_kwargs with wd changed if needed
+        """
+        kwargs_copy = self.costfunc_kwargs.copy()
+        if 'wd' in getfullargspec(self.costfunc).args:
+            costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
+            kwargs_copy['wd'] = costfunc_jobs.name
+        return kwargs_copy
 
     def pickle(self, title:str, compress = False):
         """Method to pickle the whole GA class
