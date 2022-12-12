@@ -10,6 +10,7 @@ import joblib
 from rdkit.Chem import AllChem
 from rdkit.Chem import Descriptors
 from rdkit import RDLogger
+from copy import deepcopy
 RDLogger.DisableLog('rdApp.*')
 
 
@@ -257,7 +258,9 @@ def Cost(
 
     # Getting and setting properties on the Individual
     predictor = Predictors(featurizer=Featurizer(), models=adme_models.values())
-    predictions = predictor.predict(Individual.mol)
+
+    # MUST be a copy of Individual.mol becasue if not creazy stuffs will happen!!
+    predictions = predictor.predict(deepcopy(Individual.mol))
     _ = [setattr(Individual, name, value) for name, value in zip(adme_models, predictions)]
 
 

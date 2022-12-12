@@ -40,6 +40,9 @@ def prepare_model(name, url, y_transform = None):
     model.fit(X_tr, y_tr)
     y_pred = model.predict(X_te)
     print("Pearson Correlation: {:.3f}".format(pearsonr(y_pred, y_te)[0]))
+    
+    # Change n_jobs to 1 in order to avoid warnings during MolDrug run.
+    model.n_jobs = 1
     joblib.dump(model, "{}.jlib".format(name))
 
 
