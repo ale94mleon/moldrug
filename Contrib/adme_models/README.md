@@ -29,3 +29,9 @@ You should get the files: `clearance.jlib` and `hppb.jlib`.
 ## Future models
 
 Here  is a detail list of public data base to construct ADME models: [adme](https://tdcommons.ai/single_pred_tasks/adme/).
+
+## Run MolDrug from the command line
+
+```bash
+moldrug config.yml --fitness /the/path/for/fitness_plus_admes.py
+```
