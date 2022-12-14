@@ -69,7 +69,8 @@ The following are the response variables:
 #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
 #. `Synthetic accessibility score.  <https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)>`_
 
-For each of this response variables we create their corresponded `Derringer-Suich desirability functions <https://www.tandfonline.com/doi/abs/10.1080/00224065.1980.11980968>`_.
+For each of this response variables we create their corresponded `Derringer-Suich desirability functions <https://www.tandfonline.com/doi/abs/10.1080/00224065.1980.11980968>`_
+(see `here <https://moldrug.readthedocs.io/en/latest/notebooks/desirability.html>`_ some examples on how it is implemented in MolDrug).
 And then we combine them as a geometric mean:
 
 .. math::

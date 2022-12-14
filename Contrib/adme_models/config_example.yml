@@ -1,0 +1,97 @@
+01_grow:
+  type: GA
+  njobs: 32
+  seed_mol: CCCO # Here the SMILES of your molecule
+  AddHs: True
+  costfunc: Cost
+  costfunc_kwargs:
+    vina_executable: vina
+    receptor_pdbqt_path: /path/for/your/protein.pdbqt
+    boxcenter: # you must chang it for your system
+      - 23.56
+      - 8.74
+      - 15.40
+    boxsize: # you must change it for your system
+      - 22.5
+      - 19.2
+      - 27.4
+    exhaustiveness: 9
+    ncores: 4
+    num_modes: 1
+    adme_models:
+      hppb: /path/where/the/model/is/hppb.jlib
+      clearance:  /path/where/the/model/is/clearance.jlib
+    desirability:
+      hppb:
+        LargerTheBest:
+          LowerLimit: 25
+          Target: 75
+          r: 0.5
+        w: 1
+      clearance:
+        SmallerTheBest:
+          Target: 20
+          UpperLimit: 125
+          r: 0.5
+        w: 1
+      vina_score:
+        SmallerTheBest:
+          Target: -10
+          UpperLimit: -2
+          r: 1
+        w: 1
+    # If you would like to use constrain docking
+    constraint: True
+    constraint_type: local_only # score_only
+    constraint_ref: path/for/the/conformation/reference/molecule.mol(sdf)
+    constraint_receptor_pdb_path:  /path/for /your/protein.pdb
+    constraint_num_conf: 100
+    constraint_minimum_conf_rms: 0.01
+  crem_db_path: path/for/the/crem/database/replacements02_sa2.db
+  maxiter: 20
+  popsize: 100
+  beta: 0.001
+  pc: 0.5
+  get_similar: False
+  mutate_crem_kwargs:
+    radius: 3
+    min_size: 0
+    max_size: 0
+    min_inc: 1
+    max_inc: 6
+    ncores: 128
+  save_pop_every_gen: 10
+  deffnm: 01_grow
+
+02_allow_grow:
+  mutate_crem_kwargs:
+    radius: 3
+    min_size: 0
+    max_size: 2
+    min_inc: -5
+    max_inc: 3
+    ncores: 128
+  maxiter: 25
+  deffnm: 02_allow_grow
+
+03_pure_mutate:
+  mutate_crem_kwargs:
+    radius: 3
+    min_size: 1
+    max_size: 8
+    min_inc: -5
+    max_inc: 3
+    ncores: 128
+  maxiter: 40
+  deffnm: 03_pure_mutate
+
+04_local:
+  mutate_crem_kwargs:
+    radius: 3
+    min_size: 0
+    max_size: 1
+    min_inc: -1
+    max_inc: 1
+    ncores: 128
+  maxiter: 15
+  deffnm: 04_local
