@@ -841,6 +841,19 @@ def __make_kwargs_copy__(costfunc, costfunc_kwargs,):
         kwargs_copy['wd'] = costfunc_jobs_tmp_dir.name
     return kwargs_copy, costfunc_jobs_tmp_dir
 
+def __tar_errors__(error_path:str = '.error'):
+    """Clena of errors the working directory
+
+    Parameters
+    ----------
+    error_path : str
+        Where the error are storged.
+    """
+    if os.path.isdir(error_path):
+        if os.listdir(error_path):
+            shutil.make_archive('error', 'gztar', error_path)
+        shutil.rmtree(error_path)
+
 
 class Local:
     """For local search
@@ -945,6 +958,8 @@ class Local:
 
         # Clean directory
         costfunc_jobs_tmp_dir.cleanup()
+        # Tar errors
+        __tar_errors__('error')
 
         # Printing how long was the simulation
         print(f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
@@ -1380,6 +1395,9 @@ class GA:
         print(f"Final Individual: {self.pop[0]}")
         print(f"The cost function dropped in {self.InitIndividual - self.pop[0]} units.")
         print(f"\n{50*'=+'}\n")
+
+        # Tar errors
+        __tar_errors__('error')
 
         # Printing how long was the simulation
         print(f"Total time ({self.maxiter} generations): {time.time() - ts:>5.2f} (s).\nFinished at {datetime.datetime.now().strftime('%c')}.\n")

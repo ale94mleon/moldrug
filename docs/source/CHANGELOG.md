@@ -7,12 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [3.2.4] - 2020.12.20
+## [3.2.6] - 2020.12.20
 
 ### Fixed
 
 - Improve docs.
 - Cleaning of temporal files in /tmp directory. Now it is created temporal directories in the working directory with the pattern: `.costfunc_MolDrug_XXXXXXXX`.
+- Cleaning errors. Now all warnings and errors are saved in .error directory and at the end they are compress to error.tar.gz
 
 ## [3.2.2] - 2020.12.12
 

@@ -93,7 +93,6 @@ def test_single_receptor_command_line():
 
     os.chdir(cwd)
 
-
 def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     out = utils.GA(
         seed_mol=[Chem.MolFromSmiles(ligands.r_x0161), Chem.MolFromSmiles(ligands.r_x0161)],
@@ -144,8 +143,6 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
     vina_out.chunks[0].write()
     os.chdir(cwd)
 
-
-
 def test_local_command_line():
     Config = {
         "main": {
@@ -185,7 +182,6 @@ def test_local_command_line():
     result.pickle('local_non_compress', compress=False)
     print(result.to_dataframe())
     os.chdir(cwd)
-
 
 @pytest.mark.filterwarnings("ignore:\nVina failed")
 def test_fitness_module():
@@ -251,12 +247,11 @@ def test_fitness_module():
         boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],)
 
     # Clean
-    os.remove('0_error.pbz2')
-
+    utils.__tar_errors__()
+    os.remove('error.tar.gz')
 
 def test_home():
     home.home(dataDir='data')
-
 
 def test_get_sim_utils():
     from rdkit.Chem import AllChem
@@ -268,13 +263,11 @@ def test_get_sim_utils():
         ref_fps.append(AllChem.GetMorganFingerprintAsBitVect(mol, 2))
     utils.get_sim(mols, ref_fps)
 
-
 def test_lipinski():
     mol = Chem.MolFromSmiles('CCCO')
     utils.lipinski_filter(Chem.MolFromSmiles('BrCC(COCN)CC(Br)CC(Cl)CCc1ccccc1CCCC(NCCCO)'))
     utils.lipinski_filter(mol)
     utils.lipinski_profile(mol)
-
 
 def test_Individual():
     I1 = utils.Individual(Chem.MolFromSmiles('CC'), cost=10)
@@ -296,8 +289,6 @@ def test_Individual():
     assert I1 % I2 == 0
     assert divmod(I1, I2) == (5,0)
     assert I1**I2 == 100
-
-
 
 def test_miscellanea():
     obj0 = []
@@ -339,6 +330,7 @@ def test_miscellanea():
 #     print(os.listdir(tmp_path.name))
 
 #     print(local.to_dataframe())
+
 def test_constraintconf():
     from moldrug.constraintconf import constraintconf
     with Chem.SDWriter(os.path.join(tmp_path.name, 'fix.sdf')) as w:
@@ -353,6 +345,9 @@ def test_constraintconf():
         fix= os.path.join(tmp_path.name, 'fix.sdf'),
         out = os.path.join(tmp_path.name, 'conf.sdf')
     )
+    # Clean
+    utils.__tar_errors__()
+
 def test_generate_conformers():
     from moldrug.constraintconf import generate_conformers
     from rdkit.Chem import AllChem
@@ -362,6 +357,9 @@ def test_generate_conformers():
     AllChem.EmbedMolecule(ref) 
     AllChem.MMFFOptimizeMolecule(ref)
     generate_conformers(Chem.RemoveHs(mol), Chem.RemoveHs(ref), 50)
+
+    # Clean
+    utils.__tar_errors__()
 
 
 if __name__ == '__main__':
