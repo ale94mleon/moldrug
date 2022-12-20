@@ -362,5 +362,7 @@ def test_generate_conformers():
     AllChem.EmbedMolecule(ref) 
     AllChem.MMFFOptimizeMolecule(ref)
     generate_conformers(Chem.RemoveHs(mol), Chem.RemoveHs(ref), 50)
+
+
 if __name__ == '__main__':
     pass

@@ -7,9 +7,9 @@ from crem.crem import mutate_mol, grow_mol
 
 from moldrug import __version__
 from copy import deepcopy
-from inspect import getfullargspec
+from inspect import signature
 import multiprocessing as mp
-import tempfile, subprocess, random, time, datetime, shutil, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
+import tempfile, subprocess, random, time, datetime, shutil, os, tqdm, bz2, pickle, _pickle as cPickle, numpy as np, pandas as pd
 from warnings import warn
 from typing import List, Dict, Iterable, Union
 from scipy.special import softmax
@@ -826,6 +826,22 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                     print(f"{individual} does not have a valid pdbqt: {individual.pdbqt}.")
         print(f"File {sdf_name}.sdf was createad!")
 
+def __make_kwargs_copy__(costfunc, costfunc_kwargs,):
+    """Make a copy of the self.costfunc_kwargs.
+    It creates a temporal directory.
+
+    Returns
+    -------
+    dict
+        A copy of self.costfunc_kwargs with wd changed if needed
+    """
+    kwargs_copy = costfunc_kwargs.copy()
+    costfunc_jobs_tmp_dir = tempfile.TemporaryDirectory(prefix='.costfunc_MolDrug_', dir='.')
+    if 'wd' in signature(costfunc).parameters:
+        kwargs_copy['wd'] = costfunc_jobs_tmp_dir.name
+    return kwargs_copy, costfunc_jobs_tmp_dir
+
+
 class Local:
     """For local search
     """
@@ -917,10 +933,7 @@ class Local:
         # Creating the arguments
         args_list = []
         # Make a copy of the self.costfunc_kwargs
-        kwargs_copy = self.costfunc_kwargs.copy()
-        if 'wd' in getfullargspec(self.costfunc).args:
-            costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
-            kwargs_copy['wd'] = costfunc_jobs.name
+        kwargs_copy, costfunc_jobs_tmp_dir = __make_kwargs_copy__(self.costfunc, self.costfunc_kwargs)
 
         for individual in self.pop:
             args_list.append((individual, kwargs_copy))
@@ -930,7 +943,8 @@ class Local:
         self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
         pool.close()
 
-        if 'wd' in getfullargspec(self.costfunc).args: shutil.rmtree(costfunc_jobs.name)
+        # Clean directory
+        costfunc_jobs_tmp_dir.cleanup()
 
         # Printing how long was the simulation
         print(f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
@@ -1201,7 +1215,8 @@ class GA:
             # Creating the arguments
             args_list = []
             # Make a copy of the self.costfunc_kwargs
-            kwargs_copy = self.__make_kwargs_copy__()
+                    # Make a copy of the self.costfunc_kwargs
+            kwargs_copy, costfunc_jobs_tmp_dir = __make_kwargs_copy__(self.costfunc, self.costfunc_kwargs)
 
             for individual in self.pop:
                 args_list.append((individual, kwargs_copy))
@@ -1222,6 +1237,9 @@ class GA:
                         f"==========Serial==========:\n {e2}"
                         )
 
+            # Clean directory
+            costfunc_jobs_tmp_dir.cleanup()
+            
             # Adding generation information
             for individual in self.pop:
                 individual.genID = self.NumGens
@@ -1290,7 +1308,7 @@ class GA:
                 # Creating the arguments
                 args_list = []
                 # Make a copy of the self.costfunc_kwargs
-                kwargs_copy = self.__make_kwargs_copy__()
+                kwargs_copy, costfunc_jobs_tmp_dir = __make_kwargs_copy__(self.costfunc, self.costfunc_kwargs)
 
                 NumbOfSawIndividuals = len(self.SawIndividuals)
                 for (i, individual) in enumerate(popc):
@@ -1315,6 +1333,8 @@ class GA:
                             f"=========Parellel=========:\n {e1}\n"\
                             f"==========Serial==========:\n {e2}"
                             )
+                # Clean directory
+                costfunc_jobs_tmp_dir.cleanup()
 
             # Merge, Sort and Select
             self.pop += popc
@@ -1410,21 +1430,6 @@ class GA:
         if self.AddHs:
             mol = Chem.AddHs(mol)
         return Individual(mol)
-
-    def __make_kwargs_copy__(self):
-        """Make a copy of the self.costfunc_kwargs.
-        It creates a temporal directory.
-
-        Returns
-        -------
-        dict
-            A copy of self.costfunc_kwargs with wd changed if needed
-        """
-        kwargs_copy = self.costfunc_kwargs.copy()
-        if 'wd' in getfullargspec(self.costfunc).args:
-            costfunc_jobs = tempfile.TemporaryDirectory(prefix='costfunc')
-            kwargs_copy['wd'] = costfunc_jobs.name
-        return kwargs_copy
 
     def pickle(self, title:str, compress = False):
         """Method to pickle the whole GA class

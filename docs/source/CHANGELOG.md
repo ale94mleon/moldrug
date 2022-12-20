@@ -7,10 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.2.3] - 2020.12.20
+
 ### Fixed
 
 - Improve docs.
-
+- Cleaning of temporal files in /tmp directory. Now it is created temporal directories in the working directory with the pattern: `.costfunc_MolDrug_XXXXXXXX`.
 
 ## [3.2.2] - 2020.12.12
 
@@ -276,7 +278,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.2.4...HEAD
+[3.2.4]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...3.2.4
 [3.2.2]: https://github.com/ale94mleon/MolDrug/compare/3.2.0...3.2.2
 [3.2.0]: https://github.com/ale94mleon/MolDrug/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/ale94mleon/MolDrug/compare/3.0.3...3.1.0
