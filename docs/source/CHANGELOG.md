@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
-## [3.2.6] - 2020.12.20
+## [3.2.5] - 2020.12.20
 
 ### Fixed
 
@@ -279,8 +279,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.2.4...HEAD
-[3.2.4]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...3.2.4
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.2.5...HEAD
+[3.2.4]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...3.2.5
 [3.2.2]: https://github.com/ale94mleon/MolDrug/compare/3.2.0...3.2.2
 [3.2.0]: https://github.com/ale94mleon/MolDrug/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/ale94mleon/MolDrug/compare/3.0.3...3.1.0
