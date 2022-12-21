@@ -247,7 +247,7 @@ def test_fitness_module():
         boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],)
 
     # Clean
-    utils.__tar_errors__()
+    utils.tar_errors()
     os.remove('error.tar.gz')
 
 def test_home():
@@ -346,7 +346,7 @@ def test_constraintconf():
         out = os.path.join(tmp_path.name, 'conf.sdf')
     )
     # Clean
-    utils.__tar_errors__()
+    utils.tar_errors()
 
 def test_generate_conformers():
     from moldrug.constraintconf import generate_conformers
@@ -354,12 +354,12 @@ def test_generate_conformers():
     ref = Chem.MolFromSmiles('O=S(=O)(Nc1ccc(Cl)cc1)c1ccsc1C(O)O')
     mol = Chem.MolFromSmiles('CN(C)S(=O)(=O)c1cc(NS(=O)(=O)c2ccsc2C(O)O)ccc1Cl')
 
-    AllChem.EmbedMolecule(ref) 
+    AllChem.EmbedMolecule(ref)
     AllChem.MMFFOptimizeMolecule(ref)
     generate_conformers(Chem.RemoveHs(mol), Chem.RemoveHs(ref), 50)
 
     # Clean
-    utils.__tar_errors__()
+    utils.tar_errors()
 
 
 if __name__ == '__main__':

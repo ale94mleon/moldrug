@@ -238,8 +238,8 @@ def __vinadock(
     constraint_type = constraint_type.lower()
 
     # Creating the error directory if needed
-    if not os.path.isdir('.error'):
-        os.makedirs('.error')
+    if not os.path.isdir('error'):
+        os.makedirs('error')
     # Creating the working directory if needed
     if not os.path.exists(wd):
         os.makedirs(wd)
@@ -297,7 +297,7 @@ def __vinadock(
                 # Make a copy to the vina command string and add the out (is needed) and ligand options
                 cmd_vina_str_tmp = cmd_vina_str[:]
                 cmd_vina_str_tmp += f" --ligand {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt')}"
-                
+
                 if constraint_type == 'local_only':
                     cmd_vina_str_tmp += f" --out {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')}"
                 try:
@@ -318,7 +318,7 @@ def __vinadock(
                         'boxcenter': boxcenter,
                         'boxsize': boxsize,
                     }
-                    utils.compressed_pickle(f'.error/idx_{Individual.idx}_conf_{conf.GetId()}_error', error)
+                    utils.compressed_pickle(f'error/idx_{Individual.idx}_conf_{conf.GetId()}_error', error)
                     warnings.warn(f"\nVina failed! Check: idx_{Individual.idx}_conf_{conf.GetId()}_error.pbz2 file in error.\n")
                     vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                     return vina_score_pdbqt
@@ -365,7 +365,7 @@ def __vinadock(
                 'boxcenter': boxcenter,
                 'boxsize': boxsize,
             }
-            utils.compressed_pickle(f'.error/{Individual.idx}_error', error)
+            utils.compressed_pickle(f'error/{Individual.idx}_error', error)
             warnings.warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file in error.\n")
 
             vina_score_pdbqt = (np.inf, 'VinaFailed')

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.3.0]
+
+### Changed
+
+- `moldrug.utils.__tar_errors__` by `moldrug.utils.tar_errors`.
+- Default value of `moldrug.utils.tar_errors` is `error` instead of `.error`.
+- `moldrug.constraintconf.generate_conformers` outputs warnings and errors to `error` instead of `.error`.
+- `moldrug.fitness.__vinadock` by `moldrug.fitness._vinadock`.
+- `moldrug.fitness._vinadock` outputs warnings and errors to `error` instead of `.error`.
+
+### Fixed
+
+- The use of `moldrug.utils.tar_errors` inside of `moldrug.utils.Local` and `moldrug.utils.GA`.
+- Clean code.
+
 ## [3.2.5] - 2020.12.20
 
 ### Fixed
@@ -279,8 +294,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.2.5...HEAD
-[3.2.4]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...3.2.5
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.3.0...HEAD
+[3.3.0]: https://github.com/ale94mleon/MolDrug/compare/3.2.5...3.3.0
+[3.2.5]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...3.2.5
 [3.2.2]: https://github.com/ale94mleon/MolDrug/compare/3.2.0...3.2.2
 [3.2.0]: https://github.com/ale94mleon/MolDrug/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/ale94mleon/MolDrug/compare/3.0.3...3.1.0

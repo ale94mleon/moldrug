@@ -467,7 +467,7 @@ def import_sascorer():
     """
     # In order to import sascorer from RDConfig.RDContribDir
     from rdkit.Chem import RDConfig
-    import os, importlib.util as importlib_util
+    import importlib.util as importlib_util
     spec=importlib_util.spec_from_file_location('sascorer', os.path.join(RDConfig.RDContribDir, 'SA_Score', 'sascorer.py'))
     sascorer = importlib_util.module_from_spec(spec)
     spec.loader.exec_module(sascorer)
@@ -826,7 +826,7 @@ def make_sdf(individuals:List[Individual], sdf_name = 'out'):
                     print(f"{individual} does not have a valid pdbqt: {individual.pdbqt}.")
         print(f"File {sdf_name}.sdf was createad!")
 
-def __make_kwargs_copy__(costfunc, costfunc_kwargs,):
+def _make_kwargs_copy(costfunc, costfunc_kwargs,):
     """Make a copy of the self.costfunc_kwargs.
     It creates a temporal directory.
 
@@ -841,13 +841,15 @@ def __make_kwargs_copy__(costfunc, costfunc_kwargs,):
         kwargs_copy['wd'] = costfunc_jobs_tmp_dir.name
     return kwargs_copy, costfunc_jobs_tmp_dir
 
-def __tar_errors__(error_path:str = '.error'):
-    """Clena of errors the working directory
+def tar_errors(error_path:str = 'error'):
+    """Clean errors in the working directory.
+    Convert to error.tar.gz the error_path
+    and delete the directory.
 
     Parameters
     ----------
     error_path : str
-        Where the error are storged.
+        Where the errors are storged.
     """
     if os.path.isdir(error_path):
         if os.listdir(error_path):
@@ -946,7 +948,7 @@ class Local:
         # Creating the arguments
         args_list = []
         # Make a copy of the self.costfunc_kwargs
-        kwargs_copy, costfunc_jobs_tmp_dir = __make_kwargs_copy__(self.costfunc, self.costfunc_kwargs)
+        kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
 
         for individual in self.pop:
             args_list.append((individual, kwargs_copy))
@@ -959,7 +961,7 @@ class Local:
         # Clean directory
         costfunc_jobs_tmp_dir.cleanup()
         # Tar errors
-        __tar_errors__('error')
+        tar_errors('error')
 
         # Printing how long was the simulation
         print(f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
@@ -1231,7 +1233,7 @@ class GA:
             args_list = []
             # Make a copy of the self.costfunc_kwargs
                     # Make a copy of the self.costfunc_kwargs
-            kwargs_copy, costfunc_jobs_tmp_dir = __make_kwargs_copy__(self.costfunc, self.costfunc_kwargs)
+            kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
 
             for individual in self.pop:
                 args_list.append((individual, kwargs_copy))
@@ -1254,7 +1256,7 @@ class GA:
 
             # Clean directory
             costfunc_jobs_tmp_dir.cleanup()
-            
+
             # Adding generation information
             for individual in self.pop:
                 individual.genID = self.NumGens
@@ -1323,7 +1325,7 @@ class GA:
                 # Creating the arguments
                 args_list = []
                 # Make a copy of the self.costfunc_kwargs
-                kwargs_copy, costfunc_jobs_tmp_dir = __make_kwargs_copy__(self.costfunc, self.costfunc_kwargs)
+                kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
 
                 NumbOfSawIndividuals = len(self.SawIndividuals)
                 for (i, individual) in enumerate(popc):
@@ -1348,6 +1350,7 @@ class GA:
                             f"=========Parellel=========:\n {e1}\n"\
                             f"==========Serial==========:\n {e2}"
                             )
+
                 # Clean directory
                 costfunc_jobs_tmp_dir.cleanup()
 
@@ -1397,7 +1400,7 @@ class GA:
         print(f"\n{50*'=+'}\n")
 
         # Tar errors
-        __tar_errors__('error')
+        tar_errors('error')
 
         # Printing how long was the simulation
         print(f"Total time ({self.maxiter} generations): {time.time() - ts:>5.2f} (s).\nFinished at {datetime.datetime.now().strftime('%c')}.\n")

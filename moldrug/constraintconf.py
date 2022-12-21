@@ -127,8 +127,8 @@ def generate_conformers(mol: Chem.rdchem.Mol,
         current directory generate_conformers_error.log with the nature of the Exception.
     """
     # Creating the error directory if needed
-    if not os.path.isdir('.error'):
-        os.makedirs('.error')
+    if not os.path.isdir('error'):
+        os.makedirs('error')
     # if SMILES to be fixed are not given, assume to the MCS
     if ref_smi:
         if not Chem.MolFromSmiles(ref_smi):
@@ -170,8 +170,8 @@ def generate_conformers(mol: Chem.rdchem.Mol,
     except Exception as e:
         print(e)
         cwd = os.getcwd()
-        warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, '.error/generate_conformers_error.pbz2')}")
-        compressed_pickle('.error/generate_conformers_error', e)
+        warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, 'error/generate_conformers_error.pbz2')}")
+        compressed_pickle('error/generate_conformers_error', e)
         mol.RemoveAllConformers()
         return mol
 
