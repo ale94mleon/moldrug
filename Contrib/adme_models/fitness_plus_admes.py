@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from moldrug import utils
-from moldrug.fitness import __vinadock
+from moldrug.fitness import _vinadock
 from rdkit import Chem
 import numpy as np
 from typing import Dict, List
@@ -265,7 +265,7 @@ def Cost(
 
 
     # Getting vina_score and update pdbqt
-    Individual.vina_score, Individual.pdbqt = __vinadock(
+    Individual.vina_score, Individual.pdbqt = _vinadock(
         Individual = Individual,
         wd = wd,
         vina_executable = vina_executable,

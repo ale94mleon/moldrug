@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- Continuation option to the command line.
+- `moldrug.cli.CommandLineHelper` class to work with the parameters passed through the command line.
+- `checkpoint` option to `moldrug.utils.GA`.
+
+### Changed
+
+- The warnings are not printed for: `moldrug.fitness._vinadock` and `moldrug.constraintconf.generate_conformers`. Now, only at the end of a MolDrug simulation a note will be printed if the `error.tar.gz` file is created.
+- If `moldrug.utils.run` does not print extra info if the command fails. It only raises the corresponded `RuntimeError`.
+- `moldrug.fitness.__vinadock` by `moldrug.fitness._vinadock`.
+
 ## [3.3.0] - 2020.12.21
 
 ### Changed
@@ -14,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `moldrug.utils.__tar_errors__` by `moldrug.utils.tar_errors`.
 - Default value of `moldrug.utils.tar_errors` is `error` instead of `.error`.
 - `moldrug.constraintconf.generate_conformers` outputs warnings and errors to `error` instead of `.error`.
-- `moldrug.fitness.__vinadock` by `moldrug.fitness._vinadock`.
 - `moldrug.fitness._vinadock` outputs warnings and errors to `error` instead of `.error`.
 
 ### Fixed
@@ -27,8 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Improve docs.
-- Cleaning of temporal files in /tmp directory. Now it is created temporal directories in the working directory with the pattern: `.costfunc_MolDrug_XXXXXXXX`.
-- Cleaning errors. Now all warnings and errors are saved in .error directory and at the end they are compress to error.tar.gz
+- Cleaning of temporal files in `/tmp` directory. Now it is created temporal directories in the working directory with the pattern: `.costfunc_MolDrug_XXXXXXXX`.
+- Cleaning errors. Now all warnings and errors are saved in .error directory and at the end they are compress to `error.tar.gz`.
 
 ## [3.2.2] - 2020.12.12
 

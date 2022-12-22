@@ -17,7 +17,7 @@ from rdkit import Chem
 from rdkit.Chem import AllChem, rdFMCS
 import os
 from typing import  Optional
-import warnings
+# import warnings
 from tqdm import tqdm
 import Bio.PDB as PDB
 from moldrug.utils import compressed_pickle
@@ -168,9 +168,9 @@ def generate_conformers(mol: Chem.rdchem.Mol,
             # print(f'removed {dup_count} duplicated conformations')
         return outmol
     except Exception as e:
-        print(e)
-        cwd = os.getcwd()
-        warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, 'error/generate_conformers_error.pbz2')}")
+        # print(e)
+        # cwd = os.getcwd()
+        # warnings.warn(f"generate_conformers failed. Check the file {os.path.join(cwd, 'error/generate_conformers_error.pbz2')}")
         compressed_pickle('error/generate_conformers_error', e)
         mol.RemoveAllConformers()
         return mol

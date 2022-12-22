@@ -7,7 +7,7 @@ from rdkit.Chem import QED, Descriptors
 import os
 import numpy as np
 from typing import Dict, List
-import warnings
+# from warnings import import warn
 from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate
 
 def __get_mol_cost(
@@ -161,7 +161,7 @@ def __get_mol_cost(
     results['desirability'] = 1 - base**(1/exponent)
     return results
 
-def __vinadock(
+def _vinadock(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
     vina_executable:str = 'vina',
@@ -319,7 +319,7 @@ def __vinadock(
                         'boxsize': boxsize,
                     }
                     utils.compressed_pickle(f'error/idx_{Individual.idx}_conf_{conf.GetId()}_error', error)
-                    warnings.warn(f"\nVina failed! Check: idx_{Individual.idx}_conf_{conf.GetId()}_error.pbz2 file in error.\n")
+                    # warn(f"\nVina failed! Check: idx_{Individual.idx}_conf_{conf.GetId()}_error.pbz2 file in error.\n")
                     vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
                     return vina_score_pdbqt
 
@@ -366,7 +366,7 @@ def __vinadock(
                 'boxsize': boxsize,
             }
             utils.compressed_pickle(f'error/{Individual.idx}_error', error)
-            warnings.warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file in error.\n")
+            # warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file in error.\n")
 
             vina_score_pdbqt = (np.inf, 'VinaFailed')
             return vina_score_pdbqt
@@ -520,7 +520,7 @@ def Cost(
     Individual.sa_score = sascorer.calculateScore(Individual.mol)
 
     # Getting vina_score and update pdbqt
-    Individual.vina_score, Individual.pdbqt = __vinadock(
+    Individual.vina_score, Individual.pdbqt = _vinadock(
         Individual = Individual,
         wd = wd,
         vina_executable = vina_executable,
@@ -659,7 +659,7 @@ def CostOnlyVina(
             return Individual
 
     # Getting vina_score and update pdbqt
-    Individual.vina_score, Individual.pdbqt = __vinadock(
+    Individual.vina_score, Individual.pdbqt = _vinadock(
         Individual = Individual,
         wd = wd,
         vina_executable = vina_executable,
@@ -859,7 +859,7 @@ def CostMultiReceptors(
     for (i, _) in enumerate(receptor_pdbqt_path):
         # Getting vina_score and update pdbqt
         if constraint:
-            vina_score, pdbqt = __vinadock(
+            vina_score, pdbqt = _vinadock(
                 Individual = Individual,
                 wd = wd,
                 vina_executable = vina_executable,
@@ -878,7 +878,7 @@ def CostMultiReceptors(
                 constraint_minimum_conf_rms = constraint_minimum_conf_rms,
             )
         else:
-            vina_score, pdbqt = __vinadock(
+            vina_score, pdbqt = _vinadock(
                 Individual = Individual,
                 wd = wd,
                 vina_executable = vina_executable,
@@ -1097,7 +1097,7 @@ def CostMultiReceptorsOnlyVina(
     for (i, _) in enumerate(receptor_pdbqt_path):
         # Getting vina_score and update pdbqt
         if constraint:
-            vina_score, pdbqt = __vinadock(
+            vina_score, pdbqt = _vinadock(
                 Individual = Individual,
                 wd = wd,
                 vina_executable = vina_executable,
@@ -1116,7 +1116,7 @@ def CostMultiReceptorsOnlyVina(
                 constraint_minimum_conf_rms = constraint_minimum_conf_rms,
             )
         else:
-            vina_score, pdbqt = __vinadock(
+            vina_score, pdbqt = _vinadock(
                 Individual = Individual,
                 wd = wd,
                 vina_executable = vina_executable,

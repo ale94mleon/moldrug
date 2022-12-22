@@ -8,6 +8,229 @@ For information of MolDrug:
 from moldrug import utils, constraintconf, __version__
 import yaml, argparse, inspect, os, sys, datetime
 from rdkit import Chem
+
+class CommandLineHelper:
+    def __init__(self, parser) -> None:
+        self.args = parser.parse_args()
+        self.yaml_file = self.args.yaml_file
+        self.fitness = self.args.fitness
+        self.outdir = self.args.outdir
+        self.continuation = self.args.continuation
+        self._set_attributes()
+
+    def _set_attributes(self):
+        # Get and set configuration
+        self._set_config()
+        # It will generate costfunc attribute
+        self._set_costfunc()
+        # it will generate the attribute TypeOfRun
+        self._set_TypeOfRun()
+        # it will generate the attributes: MainConfig, FollowConfig, InitArgs, CallArgs and MutableArgs
+        self._translate_config()
+        # Here FollowConfig is updated and the corresponded initialization occurs if self.continuation.
+        # pbz2 and new_maxiter attributes are generated
+        self._set_init_MolDrugClass()
+
+
+    def _set_config(self):
+        with open(self.yaml_file, 'r') as c:
+            self.configuration =  yaml.safe_load(c)
+    
+    def _split_config(self):
+        config = self.configuration.copy()
+        MainConfig = config.pop(list(config.keys())[0])
+        FollowConfig = config
+        return MainConfig, FollowConfig
+
+    def _set_costfunc(self):
+        if self.fitness:
+            # If the fitness module provided is not in the current directory or if its name is not fitness
+            # Create the module inside MolDrug
+            if self.outdir:
+                if not os.path.exists(self.outdir): os.makedirs(self.outdir)
+                destination_path = os.path.join(self.outdir, 'CustomMolDrugFitness.py')
+            else:
+                destination_path = 'CustomMolDrugFitness.py'
+            with open(self.fitness, 'r') as source:
+                with open(destination_path, 'w') as destination:
+                    destination.write(source.read())
+            # Changing to the outdir path if provided
+            if self.outdir: os.chdir(self.outdir)
+            sys.path.append('.')
+            import CustomMolDrugFitness
+            
+            costfunc = dict(inspect.getmembers(CustomMolDrugFitness))[self._split_config()[0]['costfunc']]
+        else:
+            from moldrug import fitness
+            costfunc = dict(inspect.getmembers(fitness))[self._split_config()[0]['costfunc']]
+        self.costfunc = costfunc
+
+    def _set_TypeOfRun(self):
+        self._TypeOfRun_str = self._split_config()[0]['type'].lower()
+        if self._TypeOfRun_str == 'ga':
+            self.TypeOfRun = utils.GA
+        elif self._TypeOfRun_str == 'local':
+            self.TypeOfRun = utils.Local
+        else:
+            raise NotImplementedError(f"\"{self._split_config()[0]['type']}\" it is not a possible type. Select from: GA or Local")
+
+    def _translate_config(self):
+        MainConfig, FollowConfig = self._split_config()
+
+        # Convert the SMILES (or path to compress_pickle) to RDKit mol (or list of RDkit mol)
+        if self._TypeOfRun_str == 'local':
+            MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
+        else:
+            if isinstance(MainConfig['seed_mol'], list):
+                # If the items are path to the pickle objects
+                if any([os.path.isfile(path) for path in MainConfig['seed_mol']]):
+                    seed_pop = set()
+                    for solution in MainConfig['seed_mol']:
+                        _, pop = utils.decompress_pickle(solution)
+                        seed_pop.update(pop)
+                    # Sort
+                    seed_pop = sorted(seed_pop)
+                    # Select the best and get only the RDKit molecule object
+                    MainConfig['seed_mol'] = [individual.mol for individual in seed_pop[:MainConfig['popsize']]]
+                else:
+                    # Delete repeated SMILES
+                    MainConfig['seed_mol'] = set(MainConfig['seed_mol'])
+                    # COnvert to mol
+                    MainConfig['seed_mol'] = [Chem.MolFromSmiles(smi) for smi in MainConfig['seed_mol']]
+                    # Filter out invalid molecules
+                    MainConfig['seed_mol'] = list(filter(None, MainConfig['seed_mol']))
+            else: # It will be assumed that it is a valid SMILES string
+                MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
+
+        # Convert if needed constraint_ref
+        if 'constraint_ref' in MainConfig['costfunc_kwargs']:
+            MainConfig['costfunc_kwargs']['constraint_ref'] = Chem.MolFromMolFile(MainConfig['costfunc_kwargs']['constraint_ref'])
+
+        InitArgs = MainConfig.copy()
+
+        # Modifying InitArgs
+        _ = [InitArgs.pop(key, None) for key in ['type', 'njobs', 'pick']]
+        InitArgs['costfunc'] = self.costfunc
+
+        # Getting call arguments
+        CallArgs = dict()
+        for key in ['njobs', 'pick']:
+            try:
+                CallArgs[key] = MainConfig[key]
+            except KeyError:
+                pass
+
+        # Checking for follow jobs and sanity check on the arguments
+        if FollowConfig:
+            # Defining the possible mutable arguments with its default values depending on the type of run
+            if MainConfig['type'].lower() == 'local':
+                raise ValueError("Type = Local does not accept multiple call from the command line! Remove follow "\
+                    "jobs from the yaml file (only the main job is possible)")
+            else:
+                MutableArgs = {
+                    'njobs': CallArgs['njobs'],
+                    'crem_db_path': InitArgs['crem_db_path'],
+                    'maxiter': InitArgs['maxiter'],
+                    'popsize': InitArgs['popsize'],
+                    'beta': InitArgs['beta'],
+                    'pc': InitArgs['pc'],
+                    'get_similar': InitArgs['get_similar'],
+                    # This one it will update with the default values of crem rather thant the previous one.
+                    'mutate_crem_kwargs': InitArgs['mutate_crem_kwargs'],
+                    'save_pop_every_gen': InitArgs['save_pop_every_gen'],
+                    'deffnm': InitArgs['deffnm'],
+                }
+
+            # Sanity check
+            for job in FollowConfig:
+                for arg in FollowConfig[job]:
+                    if arg not in MutableArgs:
+                        raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". "\
+                            f"For now only the following are accepted: {list(MutableArgs.keys())}")
+        else:
+            MutableArgs = None
+        
+        self.MainConfig = MainConfig
+        self.FollowConfig = FollowConfig
+        self.InitArgs = InitArgs
+        self.CallArgs = CallArgs
+        self.MutableArgs = MutableArgs
+
+    def _get_continuation_point(self): # this gave me the job and how many generation are needed to complete it.. The further jobs are suppose that must run.
+        if self.continuation:
+            if self._TypeOfRun_str != 'ga':
+                raise RuntimeError('Continuation is only valid for GA runs.')
+            # Check what was already done
+            total_iter = 0
+            pbz2 = None
+            for job in self.configuration:
+                # El problema es que no estan los archivos entonces hay que modificar total_iter
+                if os.path.isfile(f"{self.configuration[job]['deffnm']}_result.pbz2"):
+                    # must be defined maxiter in the configuration file
+                    total_iter += self.configuration[job]['maxiter']
+                    # Delete (update) the jobs in self.FollowConfig if they were already done
+                    if job in self.FollowConfig:
+                        del self.FollowConfig[job]
+                    # Stay with the last one
+                    pbz2 = f"{self.configuration[job]['deffnm']}_result.pbz2"
+            
+            # If there is a continuation file, use this
+            if os.path.isfile("cpt.pbz2"):
+                pbz2 = 'cpt.pbz2'
+                iter_done = utils.decompress_pickle(pbz2).NumGens
+                total_iter = 0
+                for job in self.configuration:
+                    total_iter += self.configuration[job]['maxiter']
+                    if total_iter >= iter_done:
+                        del self.FollowConfig[job]
+                        break
+            elif pbz2:
+                iter_done = utils.decompress_pickle(pbz2).NumGens
+            else:
+                iter_done = 0
+            new_maxiter = total_iter - iter_done
+        else:
+            # In this case we must start from scratch. There are not .pbz2 files in the directory
+            pbz2, new_maxiter = None, 0
+        
+        # Set the attributes
+        self.pbz2 = pbz2
+        self.new_maxiter = new_maxiter
+    # here there are still a lot of open questions
+    def _set_init_MolDrugClass(self):
+        # Here is where the continuation code is added
+
+        # Get if if needed to continue and make the corresponded updates on self.FollowConfig
+        self._get_continuation_point()
+        
+        if self.pbz2:
+            self.MolDrugClass = utils.decompress_pickle(self.pbz2)
+            self.MolDrugClass.maxiter = self.new_maxiter
+        else:
+            # Initialize the class from scratch
+            self.MolDrugClass = self.TypeOfRun(**self.InitArgs)
+    
+    def run_MolDrugClass(self):
+        self.MolDrugClass(**self.CallArgs)
+
+    def save_data(self):
+        # Saving data
+        if self._TypeOfRun_str == 'local':
+            self.MolDrugClass.pickle("local_result", compress=True)
+            utils.make_sdf(self.MolDrugClass.pop, sdf_name = "local_pop")
+        else:
+            self.MolDrugClass.pickle(f"{self.MolDrugClass.deffnm}_result", compress=True)
+            utils.make_sdf(self.MolDrugClass.pop, sdf_name = f"{self.MolDrugClass.deffnm}_pop")
+
+    def __repr__(self) -> str:
+        string = self.args.__repr__().replace('Namespace', self.__class__.__name__)
+        if self.continuation:
+            string += f"\nContinuationPoint(pbz2={self.pbz2}, do_iter={self.new_maxiter})"
+        return string
+             
+
+
+
 def __moldrug_cmd():
     """
     This function is only used in as part of the command line interface of MolDrug.
@@ -29,172 +252,72 @@ def __moldrug_cmd():
         help='The configuration yaml file',
         dest='yaml_file',
         type=str)
-    parser.add_argument(
-        '-v', '--version',
-        action='version',
-        version=f"moldrug: {__version__}")
     parser.add_argument('-f', '--fitness',
                         help="The path to the user-custom fitness module; inside of which the given custom cost function must be implemented. "\
                             "See the docs for how to do it properly. E.g. my/awesome/fitness_module.py."\
                             "By default will look in the moldrug.fitness module.",
                         dest='fitness',
+                        nargs=argparse.OPTIONAL,
                         default=None,
                         type=str)
     parser.add_argument('-o', '--outdir',
                         help="The path to where all the files should be written. "\
                             "By default the current working directory will be used (where the command line was invoked).",
                         dest='outdir',
+                        nargs=argparse.OPTIONAL,
                         default=None,
                         type=str)
-    args = parser.parse_args()
+    parser.add_argument('-c', '--continue',
+                        help='To continue the simulation. The MolDrug command must be the same and all the output MolDrug files must be located '\
+                            'in the working directory. This option is only compatible with moldrug.utils.GA; otherwise, a RuntimeError will be'\
+                            'raised.',
+                        action = "store_true",
+                        dest = 'continuation')
+    parser.add_argument(
+        '-v', '--version',
+        action='version',
+        version=f"moldrug: {__version__}")
+    
+    UserArgs = CommandLineHelper(parser)
 
-    with open(args.yaml_file, 'r') as c:
-        Config = yaml.safe_load(c)
+    print(
+        f"Started at {datetime.datetime.now().strftime('%c')}\n"
+        f"You are using moldrug: {__version__}.\n\n"\
+        f"{UserArgs}\n\n"\
+        # "The main job is being executed.\n\n"\
+        )
 
-    # Checking how many jobs are defined: Main and follows jobs
-    MainConfig = Config.pop(list(Config.keys())[0])
-    FollowConfig = Config
-
-    if args.fitness:
-        # If the fitness module provided is not in the current directory or if its name is not fitness
-        # Create the module inside MolDrug
-        if args.outdir:
-            if not os.path.exists(args.outdir): os.makedirs(args.outdir)
-            destination_path = os.path.join(args.outdir, 'CustomMolDrugFitness.py')
-        else:
-            destination_path = 'CustomMolDrugFitness.py'
-        with open(args.fitness, 'r') as source:
-            with open(destination_path, 'w') as destination:
-                destination.write(source.read())
-        # Changing to the outdir path if provided
-        if args.outdir: os.chdir(args.outdir)
-        sys.path.append('.')
-        import CustomMolDrugFitness
-        Cost = dict(inspect.getmembers(CustomMolDrugFitness))[MainConfig['costfunc']]
-    else:
-        from moldrug import fitness
-        Cost = dict(inspect.getmembers(fitness))[MainConfig['costfunc']]
-
-    if MainConfig['type'].lower() == 'ga':
-        TypeOfRun = utils.GA
-    elif MainConfig['type'].lower() == 'local':
-        TypeOfRun = utils.Local
-    else:
-        raise NotImplementedError(f"\"{MainConfig['type']}\" it is not a possible type. Select from: GA or Local")
-
-    # Convert the SMILES (or path to compress_pickle) to RDKit mol (or list of RDkit mol)
-    if MainConfig['type'].lower() == 'local':
-        MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
-    else:
-        if isinstance(MainConfig['seed_mol'], list):
-            # If the items are path to the pickle objects
-            if any([os.path.isfile(path) for path in MainConfig['seed_mol']]):
-                seed_pop = set()
-                for solution in MainConfig['seed_mol']:
-                    _, pop = utils.decompress_pickle(solution)
-                    seed_pop.update(pop)
-                # Sort
-                seed_pop = sorted(seed_pop)
-                # Select the best and get only the RDKit molecule object
-                MainConfig['seed_mol'] = [individual.mol for individual in seed_pop[:MainConfig['popsize']]]
-            else:
-                # Delete repeated SMILES
-                MainConfig['seed_mol'] = set(MainConfig['seed_mol'])
-                # COnvert to mol
-                MainConfig['seed_mol'] = [Chem.MolFromSmiles(smi) for smi in MainConfig['seed_mol']]
-                # Filter out invalid molecules
-                MainConfig['seed_mol'] = list(filter(None, MainConfig['seed_mol']))
-        else: # It will be assumed that it is a valid SMILES string
-            MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
-
-    # Convert if needed constraint_ref
-    if 'constraint_ref' in MainConfig['costfunc_kwargs']:
-        MainConfig['costfunc_kwargs']['constraint_ref'] = Chem.MolFromMolFile(MainConfig['costfunc_kwargs']['constraint_ref'])
-
-    InitArgs = MainConfig.copy()
-
-    # Modifying InitArgs
-    _ = [InitArgs.pop(key, None) for key in ['type', 'njobs', 'pick']]
-    InitArgs['costfunc'] = Cost
-
-    # Getting call arguments
-    CallArgs = dict()
-    for key in ['njobs', 'pick']:
-        try:
-            CallArgs[key] = MainConfig[key]
-        except KeyError:
-            pass
-
-    # Checking for follow jobs and sanity check on the arguments
-    if FollowConfig:
-        # Defining the possible mutable arguments with its default values depending on the type of run
-        if MainConfig['type'].lower() == 'local':
-            raise ValueError("Type = Local does not accept multiple call from the command line! Remove follow "\
-                "jobs from the yaml file (only the main job is possible)")
-        else:
-            mutable_args = {
-                'njobs': CallArgs['njobs'],
-                'crem_db_path': InitArgs['crem_db_path'],
-                'maxiter': InitArgs['maxiter'],
-                'popsize': InitArgs['popsize'],
-                'beta': InitArgs['beta'],
-                'pc': InitArgs['pc'],
-                'get_similar': InitArgs['get_similar'],
-                # This one it will update with the default values of crem rather thant the previous one.
-                'mutate_crem_kwargs': InitArgs['mutate_crem_kwargs'],
-                'save_pop_every_gen': InitArgs['save_pop_every_gen'],
-                'deffnm': InitArgs['deffnm'],
-            }
-
-
-        # Sanity check
-        for job in FollowConfig:
-            for arg in FollowConfig[job]:
-                if arg not in mutable_args:
-                    raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". "\
-                        f"For now only the following are accepted: {list(mutable_args.keys())}")
-
-    # Initialize the class
-    ResultsClass = TypeOfRun(**InitArgs)
     # Call the class
-    print(f"You are using moldrug: {__version__}.\n\nThe main job is being executed.\n\n"\
-        f"Started at {datetime.datetime.now().strftime('%c')}")
-    ResultsClass(**CallArgs)
+    UserArgs.run_MolDrugClass()
     # Saving data
-    if MainConfig['type'].lower() == 'local':
-        ResultsClass.pickle("local_result", compress=True)
-        utils.make_sdf(ResultsClass.pop, sdf_name = "local_pop")
-    else:
-        ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
-        utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
-    print('The main job finished!')
+    UserArgs.save_data()
+    # print('The main job finished!')
+
     # In case that follows jobs were defined
-    if FollowConfig:
-        for job in FollowConfig:
+    if UserArgs.FollowConfig:
+        MutableArgs = UserArgs.MutableArgs.copy()
+        for job in UserArgs.FollowConfig:
             print(f"The follow job {job} started.")
 
             # Updating arguments
-            mutable_args.update(FollowConfig[job])
-            InitArgs = mutable_args.copy()
-
-            # Getting call arguments
-            CallArgs = dict()
-            for key in ['njobs', 'pick']:
-                try:
-                    CallArgs[key] = InitArgs[key]
-                except KeyError:
-                    pass
+            MutableArgs.update(UserArgs.FollowConfig[job])
+            InitArgs = MutableArgs.copy()
 
             # Changing the attributes values
             for arg in InitArgs:
-                setattr(ResultsClass, arg, InitArgs[arg])
+                setattr(UserArgs.MolDrugClass, arg, InitArgs[arg])
 
             # Call the class again
-            ResultsClass(**CallArgs)
+            UserArgs.run_MolDrugClass()
             # Saving data
-            ResultsClass.pickle(f"{InitArgs['deffnm']}_result", compress=True)
-            utils.make_sdf(ResultsClass.pop, sdf_name = f"{InitArgs['deffnm']}_pop")
+            UserArgs.save_data()
             print(f'The job {job} finished!')
+    
+    # Clean checkpoint on normal end
+    try:
+        os.remove('cpt.pbz2')
+    except Exception:
+        pass
 
 def __constraintconf_cmd():
     """

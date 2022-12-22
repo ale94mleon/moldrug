@@ -47,7 +47,7 @@ def run(command: str, shell: bool = True, executable: str = '/bin/bash'):
     process = subprocess.run(command, shell=shell, executable=executable, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     returncode = process.returncode
     if returncode != 0:
-        print(f'Command {command} returned non-zero exit status {returncode}')
+        # print(f'Command {command} returned non-zero exit status {returncode}')
         raise RuntimeError(process.stderr)
     return process
 
@@ -854,6 +854,9 @@ def tar_errors(error_path:str = 'error'):
     if os.path.isdir(error_path):
         if os.listdir(error_path):
             shutil.make_archive('error', 'gztar', error_path)
+            print(f"\n{50*'=+'}")
+            print(f"Note: Check the running warnings and erorrs in error.tar.gz file!")
+            print(f"{50*'=+'}\n")
         shutil.rmtree(error_path)
 
 
@@ -926,7 +929,7 @@ class Local:
         """
         # Check version of MolDrug
         if self.__moldrug_version != __version__:
-            warn.warning(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} but was called with moldrug-{__version__}")
+            warn(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} but was called with moldrug-{__version__}")
         self.grow_crem_kwargs.update({'return_mol':True})
         new_mols = list(grow_mol(
             self._seed_mol,
@@ -1054,7 +1057,7 @@ class GA:
     def __init__(self, seed_mol:Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],
     costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int,
     beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None,
-    save_pop_every_gen:int = 0, deffnm:str = 'ga', AddHs:bool = False) -> None:
+    save_pop_every_gen:int = 0, checkpoint:bool = False, deffnm:str = 'ga', AddHs:bool = False) -> None:
         """This is the generator
 
         Parameters
@@ -1082,6 +1085,10 @@ class GA:
             Parameters for mutate_mol of CReM, by default {}
         save_pop_every_gen : int, optional
             Frequency to save the population, by default 0
+        checkpoint : bool, optional
+            If True the whole class will be saved as cpt with the frequency of save_pop_every_gen.
+            This means that if save_pop_every_gen = 0 and checkpoint = True, no chackpoint will be
+            output, by default False
         deffnm : str, optional
             Default name for all generated files, by default 'ga'
         AddHs : bool, optional
@@ -1125,6 +1132,7 @@ class GA:
 
         # Saving parameters
         self.save_pop_every_gen = save_pop_every_gen
+        self.checkpoint = checkpoint
         self.deffnm = deffnm
 
         # Tracking parameters
@@ -1172,7 +1180,7 @@ class GA:
 
         # Check version of MolDrug
         if self.__moldrug_version__ != __version__:
-            warn.warning(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version__} but was called with moldrug-{__version__}")
+            warn(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version__} but was called with moldrug-{__version__}")
 
         # Here we will update if needed some parameters for the crem operations that could change between different calls.
         # We need to return the molecule, so we override the possible user definition respect to this keyword
@@ -1292,6 +1300,8 @@ class GA:
         if self.save_pop_every_gen:
             compressed_pickle(f"{self.deffnm}_pop", (self.NumGens,sorted(self.pop)))
             make_sdf(sorted(self.pop), sdf_name=f"{self.deffnm}_pop")
+            if self.checkpoint:
+                compressed_pickle('cpt', self)
 
         # Main Loop
         number_of_previous_generations = len(self.best_cost) # Another control variable. In case that the __call__ method is used more than ones.
@@ -1385,6 +1395,8 @@ class GA:
                 if self.NumGens % self.save_pop_every_gen == 0 or it + 1 == self.maxiter:
                     compressed_pickle(f"{self.deffnm}_pop", (self.NumGens, self.pop))
                     make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
+                    if self.checkpoint:
+                        compressed_pickle('cpt', self)
 
             # Show Iteration Information
             print(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}.")
@@ -1392,7 +1404,7 @@ class GA:
 
         # Printing summary information
         print(f"\n{50*'=+'}\n")
-        print(f'The simulation finished successfully after {self.NumGens} generations with a population of {self.popsize} individuals.'\
+        print(f'The simulation finished successfully after {self.NumGens} generations with a population of {self.popsize} individuals. '\
             f'A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.')
         print(f"Initial Individual: {self.InitIndividual}")
         print(f"Final Individual: {self.pop[0]}")

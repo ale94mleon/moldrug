@@ -183,7 +183,7 @@ def test_local_command_line():
     print(result.to_dataframe())
     os.chdir(cwd)
 
-@pytest.mark.filterwarnings("ignore:\nVina failed")
+# @pytest.mark.filterwarnings("ignore:\nVina failed")
 def test_fitness_module():
     individual = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
     individual_corrupted = copy.deepcopy(individual)
