@@ -4,7 +4,7 @@ from rdkit import Chem
 from moldrug import utils, fitness, home
 from moldrug.data import receptor_pdbqt, ligands, boxes, receptor_pdb, constraintref
 import tempfile, os, gzip, shutil, requests, yaml, copy, sys
-import pytest
+# import pytest
 from multiprocessing import cpu_count
 
 

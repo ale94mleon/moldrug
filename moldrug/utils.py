@@ -855,7 +855,7 @@ def tar_errors(error_path:str = 'error'):
         if os.listdir(error_path):
             shutil.make_archive('error', 'gztar', error_path)
             print(f"\n{50*'=+'}")
-            print(f"Note: Check the running warnings and erorrs in error.tar.gz file!")
+            print("Note: Check the running warnings and erorrs in error.tar.gz file!")
             print(f"{50*'=+'}\n")
         shutil.rmtree(error_path)
 
@@ -1240,7 +1240,7 @@ class GA:
             # Creating the arguments
             args_list = []
             # Make a copy of the self.costfunc_kwargs
-                    # Make a copy of the self.costfunc_kwargs
+            # Make a copy of the self.costfunc_kwargs
             kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
 
             for individual in self.pop:

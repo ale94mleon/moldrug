@@ -35,7 +35,7 @@ class CommandLineHelper:
     def _set_config(self):
         with open(self.yaml_file, 'r') as c:
             self.configuration =  yaml.safe_load(c)
-    
+
     def _split_config(self):
         config = self.configuration.copy()
         MainConfig = config.pop(list(config.keys())[0])
