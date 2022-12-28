@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - If `moldrug.utils.run` does not print extra info if the command fails. It only raises the corresponded `RuntimeError`.
 - `moldrug.fitness.__vinadock` by `moldrug.fitness._vinadock`.
 
+### Fixed
+
+- Small bug during initialization of population with multiple `seed_mol`. Now `seed_mol` with the same amount of elements as `popsize` are not submitted to mutations, only evaluation.
+
 ## [3.3.0] - 2020.12.21
 
 ### Changed
