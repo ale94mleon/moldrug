@@ -196,7 +196,7 @@ class CommandLineHelper:
         # Set the attributes
         self.pbz2 = pbz2
         self.new_maxiter = new_maxiter
-    # here there are still a lot of open questions
+
     def _set_init_MolDrugClass(self):
         # Here is where the continuation code is added
 
@@ -227,9 +227,6 @@ class CommandLineHelper:
         if self.continuation:
             string += f"\nContinuationPoint(pbz2={self.pbz2}, do_iter={self.new_maxiter})"
         return string
-             
-
-
 
 def __moldrug_cmd():
     """

@@ -51,7 +51,6 @@ def run(command: str, shell: bool = True, executable: str = '/bin/bash'):
         raise RuntimeError(process.stderr)
     return process
 
-
 def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False):
     """Create a 3D model from a smiles and return a pdbqt string and, a mol if ``return_mol = True``.
 
@@ -77,7 +76,6 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False):
         return (pdbqt_string, mol)
     else:
         return pdbqt_string
-
 
 def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, parent_replace_ids: List[int] = None, parent_protected_ids: List[int] = None):
     """This function will find the difference between offspring and parent based on the Maximum Common Substructure (MCS).
@@ -138,7 +136,6 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol, pa
                 pass
     return offspring_replace_ids, offspring_protected_ids
 
-
 def get_sim(ms: List[Chem.rdchem.Mol], ref_fps: List):
     """Get the molecules with higher similarity to each member of ref_fps.
 
@@ -161,7 +158,6 @@ def get_sim(ms: List[Chem.rdchem.Mol], ref_fps: List):
         i = np.argmax(v)
         output.append([v[i], i])
     return output
-
 
 def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, beta: float = 0.01):
     """Pick the similar molecules from mols respect to ref_mol using a roulette wheel selection strategy.
@@ -195,7 +191,6 @@ def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, beta: floa
             r = sum(probs)*np.random.rand()
             indexes.add(np.argwhere(r <= cumsum)[0][0])
         return [mols[index] for index in indexes]
-
 
 def lipinski_filter(mol: Chem.rdchem.Mol, maxviolation: int = 2):
     """Implementation of Lipinski filter.
@@ -377,6 +372,7 @@ def DerringerSuichDesirability():
         'NominalTheBest': NominalTheBest
     }
     return my_dict
+
 # Saving data
 def full_pickle(title: str, data: object):
     """Normal pickle.
@@ -502,7 +498,6 @@ class Atom:
     def __getitem__(self, key):
         return self.__dict__[key]
 
-
 class CHUNK_VINA_OUT:
     """This class will be used by VINA_OUT in order to read the pdbqt ouput of a vina docking results.
     """
@@ -538,7 +533,6 @@ class CHUNK_VINA_OUT:
         else:
             with open(f"Run_{self.run}.pdbqt","w") as f:
                 f.writelines(self.chunk)
-
 
 class VINA_OUT:
     """
@@ -858,7 +852,6 @@ def tar_errors(error_path:str = 'error'):
             print("Note: Check the running warnings and erorrs in error.tar.gz file!")
             print(f"{50*'=+'}\n")
         shutil.rmtree(error_path)
-
 
 class Local:
     """For local search
