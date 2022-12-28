@@ -1184,7 +1184,7 @@ class GA:
         if len(self.pop) == 0:
             GenInitStructs = []
             # in case that the input has the popsize memebers there is not need to generate new structures
-            if len(self._seed_mol) <= self.popsize:
+            if len(self._seed_mol) < self.popsize:
                 for mol in self._seed_mol:
                     tmp_GenInitStructs = list(
                         mutate_mol(
