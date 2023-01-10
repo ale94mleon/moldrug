@@ -1024,18 +1024,26 @@ def roulette_wheel_selection(p:List[float]):
     ind = np.argwhere(r <= c)
     return ind[0][0]
 
-def to_dataframe(individuals:List[Individual]):
-    """Create a DataFrame from individuals.
+def to_dataframe(individuals:List[Individual], return_mol = False) -> pd.DataFrame:
+    """Convert a list of individuals to a DataFrame
+
+    Parameters
+    ----------
+    individuals : List[Individual]
+        The list of individuals
+    return_mol : bool, optional
+        If True the attribute mol will bot be return, by default False
 
     Returns
     -------
-    pandas.DataFrame
+    pd.DataFrame
         The DataFrame
     """
     list_of_dictionaries = []
     for individual in individuals:
         dictionary = individual.__dict__.copy()
-        del dictionary['mol']
+        if not return_mol:
+            del dictionary['mol']
         list_of_dictionaries.append(dictionary)
     return pd.DataFrame(list_of_dictionaries)
 
