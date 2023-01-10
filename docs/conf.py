@@ -66,12 +66,13 @@ source_suffix = ['.rst', '.md']
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-pygments_style = 'sphinx'
+pygments_style = "manni"
+html_logo = "_static/mols2grid_logo.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [] #['_static']
+html_static_path = ['_static']
 
 intersphinx_mapping = {'https://docs.python.org/3/': None,
                        'https://numpy.org/doc/stable/': None,

@@ -21,6 +21,7 @@ from typing import  Optional
 from tqdm import tqdm
 import Bio.PDB as PDB
 from moldrug.utils import compressed_pickle
+
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
     """
     Check if a conformer with index new_onf_idx it is duplicated based on rms_limit

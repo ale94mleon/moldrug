@@ -56,7 +56,7 @@ Citing **MolDrug**
 
 Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/source/citations.html>`__ on the documentation.
 
-..  |logo|  image:: https://github.com/ale94mleon/moldrug/blob/main/row_data/logo.png?raw=true
+..  |logo|  image:: https://github.com/ale94mleon/moldrug/blob/main/docs/_static/logo.png?raw=true
     :target: https://github.com/ale94mleon/moldrug/
     :alt: logo
 ..  |docs|  image:: https://readthedocs.org/projects/moldrug/badge/?version=latest
@@ -73,7 +73,7 @@ Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/sou
     :alt: codecov
 ..  |codacy| image:: https://app.codacy.com/project/badge/Grade/08a3ac7c13df4339b8a1da0e8d31810e
     :target: https://www.codacy.com/gh/ale94mleon/MolDrug/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ale94mleon/MolDrug&amp;utm_campaign=Badge_Grade
-    :alt: codacy 
+    :alt: codacy
 ..  |CodeQL| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml/badge.svg
     :target: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml
     :alt: CodeQL
