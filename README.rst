@@ -56,7 +56,7 @@ Citing **MolDrug**
 
 Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/source/citations.html>`__ on the documentation.
 
-..  |logo|  image:: https://github.com/ale94mleon/moldrug/blob/main/docs/_static/logo.png?raw=true
+..  |logo|  image:: https://github.com/ale94mleon/moldrug/blob/main/docs/_static/source/logo.png?raw=true
     :target: https://github.com/ale94mleon/moldrug/
     :alt: logo
 ..  |docs|  image:: https://readthedocs.org/projects/moldrug/badge/?version=latest

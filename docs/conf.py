@@ -67,7 +67,7 @@ source_suffix = ['.rst', '.md']
 #
 html_theme = 'sphinx_rtd_theme'
 pygments_style = "manni"
-html_logo = "_static/mols2grid_logo.png"
+html_logo = "source/_static/mols2grid_logo.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
