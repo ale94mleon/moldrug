@@ -1,7 +1,0 @@
-mols2grid>=1.1.0
-rdkit
-numpy
-streamlit
-prolif
-meeko
-moldrug>=3.3.0

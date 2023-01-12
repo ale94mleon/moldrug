@@ -1,0 +1,16 @@
+name: moldrug
+channels:
+  - conda-forge
+dependencies:
+  - ipykernel
+  - ipython
+  - ipywidgets
+  - pip
+  - python==3.9.*
+  - rdkit
+  - conda-build
+  - pip:
+    - moldrug
+    - mols2grid
+    - prolif
+    - streamlit
