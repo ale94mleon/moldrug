@@ -36,6 +36,8 @@ It use a Genetic Algorithm (GA) as searching engine in the chemical space and
 
 You can try it out prior to any installation on `Binder <https://mybinder.org/v2/gh/ale94mleon/moldrug/HEAD?labpath=%2Fdocs%2Fnotebooks%2F>`__.
 
+You can use `MolDrug-Dashboard <https://ale94mleon-moldrug-streamlitstreamlit-app-nltunu.streamlit.app/>`__ to process the results.
+
 Documentation
 -------------
 
