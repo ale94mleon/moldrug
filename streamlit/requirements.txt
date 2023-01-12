@@ -4,3 +4,7 @@ mols2grid
 prolif
 streamlit
 rdkit
+seaborn
+matplotlib
+pandas
+stmol==0.0.7
