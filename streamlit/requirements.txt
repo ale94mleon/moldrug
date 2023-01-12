@@ -1,0 +1,6 @@
+opencv-python-headless
+moldrug
+mols2grid
+prolif
+streamlit
+rdkit
