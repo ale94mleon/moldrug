@@ -2,14 +2,12 @@ name: moldrug
 channels:
   - conda-forge
 dependencies:
-  - ipykernel
-  - ipython
-  - ipywidgets
   - pip
   - python==3.9.*
   - rdkit
   - conda-build
   - pip:
+    - opencv-python-headless
     - moldrug
     - mols2grid
     - prolif
