@@ -120,7 +120,7 @@ def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
     prolif_ligplot_html_document = net.display(height="400px").data
     return prolif_ligplot_html_document
 
-def py3Dmol_plot(ligand_pdbqt_string,protein_pdb_string):
+def py3Dmol_plot(ligand_pdbqt_string,protein_pdb_string, spin = False):
     
     ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
     view = py3Dmol.view()
@@ -135,7 +135,10 @@ def py3Dmol_plot(ligand_pdbqt_string,protein_pdb_string):
     view.addModel(Chem.MolToMolBlock(ligand),format='mol2')
     ref_m = view.getModel()
     ref_m.setStyle({},{'stick':{'colorscheme':'greenCarbon','radius':0.2}})
-
+    if spin:
+        view.spin(True)
+    else:
+        view.spin(False)
     view.zoomTo()
     showmol(view,height=500,width=800)
 
@@ -267,9 +270,11 @@ if pbz2:
                 with tab1:
                     components.html(prolif_ligplot_html_document,width=None, height=500, scrolling=True)
         else:
+            spin = st.sidebar.checkbox('Spin', value = False)
             py3Dmol_plot(
                 ligand_pdbqt_string=pdbqt_dataframe.loc[idx, 'pdbqt'],
                 protein_pdb_string=protein_pdb_string,
+                spin = spin
             )
     else:
         st.sidebar.info('☝️ Upload the PDB protein file.')
