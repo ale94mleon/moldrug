@@ -186,7 +186,7 @@ if pbz2:
     gen, moldrug_result, pdbqt_dataframe, dataframe = load_pbz2(pbz2)
     st.sidebar.write(f"**Loaded generation = {gen}**")
     try:
-        dataframe['mol'] = dataframe['mol'].apply(lambda x: Chem.RemoveHs(x))
+        dataframe['mol'] = dataframe['mol'].apply(Chem.RemoveHs)
     except KeyError:
         dataframe['mol'] = dataframe['pdbqt'].apply(lambda x: Chem.RemoveHs(MolFromPdbqtBlock(x)))
 
