@@ -58,7 +58,7 @@ class CommandLineHelper:
             if self.outdir: os.chdir(self.outdir)
             sys.path.append('.')
             import CustomMolDrugFitness
-            
+
             costfunc = dict(inspect.getmembers(CustomMolDrugFitness))[self._split_config()[0]['costfunc']]
         else:
             from moldrug import fitness
@@ -127,6 +127,19 @@ class CommandLineHelper:
                 raise ValueError("Type = Local does not accept multiple call from the command line! Remove follow "\
                     "jobs from the yaml file (only the main job is possible)")
             else:
+                # Add default value in case it is not provided for keyword arguments
+                ga_keywords = {}
+                list_of_keywords = [
+                    'beta', 'pc', 'get_similar','mutate_crem_kwargs',
+                    'save_pop_every_gen', 'checkpoint', 'deffnm',
+                ]
+                for param in  inspect.signature(self.TypeOfRun).parameters.values():
+                    if (param.kind == param.POSITIONAL_OR_KEYWORD and
+                                    param.default is not param.empty and
+                                    param.name in list_of_keywords and
+                                    param.name not in InitArgs):
+                        InitArgs[param.name] = param.default
+
                 MutableArgs = {
                     'njobs': CallArgs['njobs'],
                     'crem_db_path': InitArgs['crem_db_path'],
@@ -138,6 +151,7 @@ class CommandLineHelper:
                     # This one it will update with the default values of crem rather thant the previous one.
                     'mutate_crem_kwargs': InitArgs['mutate_crem_kwargs'],
                     'save_pop_every_gen': InitArgs['save_pop_every_gen'],
+                    'checkpoint': InitArgs['checkpoint'],
                     'deffnm': InitArgs['deffnm'],
                 }
 
@@ -149,7 +163,7 @@ class CommandLineHelper:
                             f"For now only the following are accepted: {list(MutableArgs.keys())}")
         else:
             MutableArgs = None
-        
+
         self.MainConfig = MainConfig
         self.FollowConfig = FollowConfig
         self.InitArgs = InitArgs
@@ -173,7 +187,7 @@ class CommandLineHelper:
                         del self.FollowConfig[job]
                     # Stay with the last one
                     pbz2 = f"{self.configuration[job]['deffnm']}_result.pbz2"
-            
+
             # If there is a continuation file, use this
             if os.path.isfile("cpt.pbz2"):
                 pbz2 = 'cpt.pbz2'
@@ -192,7 +206,7 @@ class CommandLineHelper:
         else:
             # In this case we must start from scratch. There are not .pbz2 files in the directory
             pbz2, new_maxiter = None, 0
-        
+
         # Set the attributes
         self.pbz2 = pbz2
         self.new_maxiter = new_maxiter
@@ -202,14 +216,14 @@ class CommandLineHelper:
 
         # Get if if needed to continue and make the corresponded updates on self.FollowConfig
         self._get_continuation_point()
-        
+
         if self.pbz2:
             self.MolDrugClass = utils.decompress_pickle(self.pbz2)
             self.MolDrugClass.maxiter = self.new_maxiter
         else:
             # Initialize the class from scratch
             self.MolDrugClass = self.TypeOfRun(**self.InitArgs)
-    
+
     def run_MolDrugClass(self):
         self.MolDrugClass(**self.CallArgs)
 
@@ -274,7 +288,7 @@ def __moldrug_cmd():
         '-v', '--version',
         action='version',
         version=f"moldrug: {__version__}")
-    
+
     UserArgs = CommandLineHelper(parser)
 
     print(
@@ -309,7 +323,7 @@ def __moldrug_cmd():
             # Saving data
             UserArgs.save_data()
             print(f'The job {job} finished!')
-    
+
     # Clean checkpoint on normal end
     try:
         os.remove('cpt.pbz2')
