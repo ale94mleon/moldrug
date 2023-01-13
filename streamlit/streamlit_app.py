@@ -83,7 +83,7 @@ def plot_dist(individuals:list[utils.Individual], properties:list[str], every_ge
         pops = pd.concat([pops, pop.copy()])
     # Draw a violinplot with a narrow bandwidth than the default
     pops = pops.loc[pops['genID'].isin([gen for gen in range(0, NumGens+every_gen, every_gen)])]
-    
+
     if len(properties) <= 1:
         sns.violinplot(x = 'genID', y = properties[0], data=pops, palette="Set3", bw=.2, cut=0, linewidth=1, ax=axes)
     else:
@@ -121,7 +121,7 @@ def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
     return prolif_ligplot_html_document
 
 def py3Dmol_plot(ligand_pdbqt_string,protein_pdb_string, spin = False):
-    
+
     ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
     view = py3Dmol.view()
     view.removeAllModels()
@@ -195,7 +195,7 @@ if pbz2:
     "Choose properties", properties, ["cost"]
     )
 
-    
+
     # # Plot the prolif and the tridimensional structure with py3Dmol
     # # That two columns
 
@@ -205,7 +205,7 @@ if pbz2:
     sliders = []
     for prop in properties:
         minimum, maximum = convert(dataframe[prop].min()), convert(dataframe[prop].max())
-        sliders.append(st.sidebar.slider(f'**{prop}**', minimum,maximum,[minimum,maximum]))        
+        sliders.append(st.sidebar.slider(f'**{prop}**', minimum,maximum,[minimum,maximum]))
 
 
     grid = mols2grid.MolGrid(
@@ -237,7 +237,7 @@ if pbz2:
             # sort the grid in a different order by default
             sort_by="cost",
             n_rows=3,
-        
+
             callback=mols2grid.callbacks.info(img_size=(200, 150)),
         )
 
@@ -247,10 +247,10 @@ if pbz2:
     except ValueError:
         with tab1:
             st.info('Nothing to show')
-    
-    
+
+
     plif = st.empty()
-    
+
     st.sidebar.subheader('**Ligand-protein network interaction**')
 
 
@@ -271,14 +271,16 @@ if pbz2:
                     components.html(prolif_ligplot_html_document,width=None, height=500, scrolling=True)
         else:
             spin = st.sidebar.checkbox('Spin', value = False)
-            py3Dmol_plot(
-                ligand_pdbqt_string=pdbqt_dataframe.loc[idx, 'pdbqt'],
-                protein_pdb_string=protein_pdb_string,
-                spin = spin
-            )
+            with plif:
+                with tab1:
+                    py3Dmol_plot(
+                        ligand_pdbqt_string=pdbqt_dataframe.loc[idx, 'pdbqt'],
+                        protein_pdb_string=protein_pdb_string,
+                        spin = spin
+                    )
     else:
         st.sidebar.info('☝️ Upload the PDB protein file.')
-    
+
     # Plot the distribution
     with tab2:
         every_gen = st.number_input("Every how many generations:",min_value=1, max_value=moldrug_result.NumGens, value=10)
