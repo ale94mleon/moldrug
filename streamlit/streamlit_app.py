@@ -304,8 +304,7 @@ if pbz2:
             fig, axes = plot_dist(moldrug_result.SawIndividuals,properties=properties_to_plot, every_gen=every_gen)
             st.pyplot(fig)
         except Exception as e:
-            st.write(e)
-            st.info('Nothing to show')
+            st.info('Nothing to show. Consider to select some properties in the side bar.')
 
 else:
     st.sidebar.info('☝️ Upload a MolDrug pbz2 file.')
