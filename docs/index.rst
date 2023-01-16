@@ -29,6 +29,8 @@ Welcome to moldrug's documentation!
    notebooks/oncoming
    notebooks/desirability
 
+   source/moldrug_dahsboard
+
 .. toctree::
    :caption: Documentation
    :maxdepth: 2

@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Continuation option to the command line.
 - `moldrug.cli.CommandLineHelper` class to work with the parameters passed through the command line.
 - `checkpoint` option to `moldrug.utils.GA`.
+- [MolDrug-Dashboard](https://ale94mleon-moldrug-streamlitstreamlit-app-nltunu.streamlit.app) add-on. This is not included on the package itself, but could be used online or locally. In the case of locally you must check [Streamlit](https://streamlit.io/), the [requirements.txt](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/requirements.txt) and the [app script](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/streamlit_app.py).
 
 ### Changed
 
@@ -22,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Small bug during initialization of population with multiple `seed_mol`. Now `seed_mol` with the same amount of elements as `popsize` are not submitted to mutations, only evaluation.
+- Problems with default parameters definition on the command line. Parameters with default values by the `type` of run defined in the configuration file are not needed to redefined any more. the CLI will guess those.
 
 ## [3.3.0] - 2020.12.21
 
