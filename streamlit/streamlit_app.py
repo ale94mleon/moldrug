@@ -2,6 +2,7 @@ import mols2grid
 from rdkit import Chem
 from prolif.plotting.network import LigNetwork
 import prolif as plf
+import MDAnalysis as mda
 import numpy as np
 import streamlit as st
 import tempfile
@@ -21,7 +22,9 @@ st.title('Dashboard')
 st.image('https://github.com/ale94mleon/MolDrug/raw/main/docs/source/_static/logo.png?raw=true', width=150)
 
 with st.expander('**About the App**'):
-    st.markdown("Check the [MolDrug](https://moldrug.rtfd.io/) documentation or our [GitHub Repo](https://github.com/ale94mleon/moldrug/).")
+    st.markdown("👈 Open the side bar to introduce the data.\n\n"\
+        "This app is to get an overview of a Moldrug result at glance. \n"
+        "Check [MolDrug's docs](https://moldrug.rtfd.io/) and [MolDrug's GitHub](https://github.com/ale94mleon/moldrug/) for more information.")
 
 tab1, tab2 = st.tabs(["Molecules", "Running info"])
 
@@ -97,8 +100,14 @@ def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
     # ProLIF example
     # load topology
     # Protein
-    protein = Chem.MolFromPDBBlock(protein_pdb_string, removeHs = False)
-    protein = plf.Molecule.from_rdkit(protein)
+    with tempfile.NamedTemporaryFile(prefix='.pro', suffix='.pdb', mode='w+') as tmp:
+        tmp.write(protein_pdb_string)
+        protein = mda.Universe(tmp.name)
+        protein = plf.Molecule.from_mda(protein)
+
+    # protein = Chem.MolFromPDBBlock(protein_pdb_string, removeHs = False)
+    # protein = plf.Molecule.from_rdkit(protein)
+
     ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
     ligand = plf.Molecule.from_rdkit(ligand)
     fp = plf.Fingerprint()
