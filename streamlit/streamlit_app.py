@@ -275,6 +275,7 @@ if pbz2:
         # Input widge
         idx = st.sidebar.selectbox('idx', sorted(pdbqt_dataframe.index))
         representation = st.sidebar.selectbox('Representation', ['ProLIF', 'Py3Dmol'])
+        spin = st.sidebar.empty()
         if representation == 'ProLIF':
             prolif_ligplot_html_document = prolif_plot(
                 ligand_pdbqt_string=pdbqt_dataframe.loc[idx, 'pdbqt'],
@@ -284,7 +285,7 @@ if pbz2:
                 with tab1:
                     components.html(prolif_ligplot_html_document,width=None, height=500, scrolling=True)
         else:
-            spin = st.sidebar.checkbox('Spin', value = False)
+            spin.checkbox('Spin', value = False)
             with plif:
                 with tab1:
                     py3Dmol_plot(
