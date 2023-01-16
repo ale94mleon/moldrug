@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `moldrug.cli.CommandLineHelper` class to work with the parameters passed through the command line.
 - `checkpoint` option to `moldrug.utils.GA`.
 - [MolDrug-Dashboard](https://ale94mleon-moldrug-streamlitstreamlit-app-nltunu.streamlit.app) add-on. This is not included on the package itself, but could be used online or locally. In the case of locally you must check [Streamlit](https://streamlit.io/), the [requirements.txt](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/requirements.txt) and the [app script](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/streamlit_app.py).
+- `retunr_mol` option to `utils.to_dataframe`
 
 ### Changed
 
