@@ -95,26 +95,32 @@ def plot_dist(individuals:list[utils.Individual], properties:list[str], every_ge
 
     return fig, axes
 
+@st.cache
+def ProtPdbBlockToProlifMol(protein_pdb_string):
+    with tempfile.NamedTemporaryFile(prefix='.pro', suffix='.pdb', mode='w+') as tmp:
+        tmp.write(protein_pdb_string)
+        protein = mda.Universe(tmp.name)
+        protein = plf.Molecule.from_mda(protein)
+    return protein
+
+@st.cache
+def LigPdbqtBlockToProlifMol(ligand_pdbqt_string):
+    ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
+    ligand = plf.Molecule.from_rdkit(ligand)
+    return ligand
+
+@st.cache
 def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
 
     # ProLIF example
     # load topology
     # Protein
-    with tempfile.NamedTemporaryFile(prefix='.pro', suffix='.pdb', mode='w+') as tmp:
-        tmp.write(protein_pdb_string)
-        protein = mda.Universe(tmp.name)
-        protein = plf.Molecule.from_mda(protein)
+    protein = ProtPdbBlockToProlifMol(protein_pdb_string)
+    ligand = LigPdbqtBlockToProlifMol(ligand_pdbqt_string)
 
-    # protein = Chem.MolFromPDBBlock(protein_pdb_string, removeHs = False)
-    # protein = plf.Molecule.from_rdkit(protein)
-
-    ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
-    ligand = plf.Molecule.from_rdkit(ligand)
     fp = plf.Fingerprint()
     fp.run_from_iterable([ligand], protein)
     df_fp = fp.to_dataframe(return_atoms=True)
-
-
 
     net = LigNetwork.from_ifp(
         df_fp,
@@ -124,7 +130,6 @@ def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
         threshold=0.3,
         rotation=270,
     )
-
 
     prolif_ligplot_html_document = net.display(height="400px").data
     return prolif_ligplot_html_document
