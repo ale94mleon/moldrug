@@ -134,6 +134,7 @@ def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
     prolif_ligplot_html_document = net.display(height="400px").data
     return prolif_ligplot_html_document
 
+
 def py3Dmol_plot(ligand_pdbqt_string,protein_pdb_string, spin = False):
 
     ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
@@ -285,7 +286,7 @@ if pbz2:
                 with tab1:
                     components.html(prolif_ligplot_html_document,width=None, height=500, scrolling=True)
         else:
-            spin.checkbox('Spin', value = False)
+            spin = spin.checkbox('Spin', value = False)
             with plif:
                 with tab1:
                     py3Dmol_plot(
