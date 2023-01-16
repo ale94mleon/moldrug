@@ -853,6 +853,51 @@ def tar_errors(error_path:str = 'error'):
             print(f"{50*'=+'}\n")
         shutil.rmtree(error_path)
 
+######################################################################################################################################
+#                                             Selection functions                                                                    #
+######################################################################################################################################
+
+def roulette_wheel_selection(p:List[float]):
+    """Function to select the offsprings based on their fitness.
+
+    Parameters
+    ----------
+    p : list[float]
+        Probabilities
+
+    Returns
+    -------
+    int
+        The selected index
+    """
+    c = np.cumsum(p)
+    r = sum(p)*np.random.rand()
+    ind = np.argwhere(r <= c)
+    return ind[0][0]
+
+def to_dataframe(individuals:List[Individual], return_mol = False) -> pd.DataFrame:
+    """Convert a list of individuals to a DataFrame
+
+    Parameters
+    ----------
+    individuals : List[Individual]
+        The list of individuals
+    return_mol : bool, optional
+        If True the attribute mol will bot be return, by default False
+
+    Returns
+    -------
+    pd.DataFrame
+        The DataFrame
+    """
+    list_of_dictionaries = []
+    for individual in individuals:
+        dictionary = individual.__dict__.copy()
+        if not return_mol:
+            del dictionary['mol']
+        list_of_dictionaries.append(dictionary)
+    return pd.DataFrame(list_of_dictionaries)
+
 class Local:
     """For local search
     """
@@ -986,66 +1031,15 @@ class Local:
         else:
             full_pickle(title, result)
 
-    def to_dataframe(self):
-        """Create a DataFrame of the generated population.
+    def to_dataframe(self, return_mol = False):
+        """Create a DataFrame from self.pop.
 
         Returns
         -------
         pandas.DataFrame
             The DataFrame
         """
-        list_of_dictionaries = []
-        for individual in self.pop:
-            dictionary = individual.__dict__.copy()
-            del dictionary['mol']
-            list_of_dictionaries.append(dictionary)
-        return pd.DataFrame(list_of_dictionaries)
-
-
-######################################################################################################################################
-#                                             Selection functions                                                                    #
-######################################################################################################################################
-
-def roulette_wheel_selection(p:List[float]):
-    """Function to select the offsprings based on their fitness.
-
-    Parameters
-    ----------
-    p : list[float]
-        Probabilities
-
-    Returns
-    -------
-    int
-        The selected index
-    """
-    c = np.cumsum(p)
-    r = sum(p)*np.random.rand()
-    ind = np.argwhere(r <= c)
-    return ind[0][0]
-
-def to_dataframe(individuals:List[Individual], return_mol = False) -> pd.DataFrame:
-    """Convert a list of individuals to a DataFrame
-
-    Parameters
-    ----------
-    individuals : List[Individual]
-        The list of individuals
-    return_mol : bool, optional
-        If True the attribute mol will bot be return, by default False
-
-    Returns
-    -------
-    pd.DataFrame
-        The DataFrame
-    """
-    list_of_dictionaries = []
-    for individual in individuals:
-        dictionary = individual.__dict__.copy()
-        if not return_mol:
-            del dictionary['mol']
-        list_of_dictionaries.append(dictionary)
-    return pd.DataFrame(list_of_dictionaries)
+        return to_dataframe(self.pop, return_mol=return_mol)
 
 
 ######################################################################################################################################
@@ -1484,7 +1478,7 @@ class GA:
         else:
             full_pickle(title, result)
 
-    def to_dataframe(self):
+    def to_dataframe(self, return_mol = False):
         """Create a DataFrame from self.SawIndividuals.
 
         Returns
@@ -1492,7 +1486,7 @@ class GA:
         pandas.DataFrame
             The DataFrame
         """
-        return to_dataframe(self.SawIndividuals)
+        return to_dataframe(self.SawIndividuals, return_mol=return_mol)
 
 
 if __name__ == '__main__':
