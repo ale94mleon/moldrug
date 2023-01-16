@@ -23,8 +23,8 @@ st.image('https://github.com/ale94mleon/MolDrug/raw/main/docs/source/_static/log
 
 with st.expander('**About the App**'):
     st.markdown("👈 Open the side bar to introduce the data.\n\n"\
-        "This app is to get an overview of a Moldrug result at glance. \n"
-        "Check this [flash tutorial](https://moldrug.readthedocs.io/en/latest/source/moldrug_dahsboard.html) in case you get stock on how to use the app. \n"
+        "This app is to get an overview of a Moldrug result at glance. \n\n"
+        "Check this [flash tutorial](https://moldrug.readthedocs.io/en/latest/source/moldrug_dahsboard.html) in case you get stock on how to use the app. \n\n"
         "Check [MolDrug's docs](https://moldrug.rtfd.io/) and [MolDrug's GitHub](https://github.com/ale94mleon/moldrug/) for more information.")
 
 tab1, tab2 = st.tabs(["Molecules", "Running info"])
