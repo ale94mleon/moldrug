@@ -277,10 +277,11 @@ def _vinadock(
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
 
-        # Remove conformers that clash with the protein
-        clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath = constraint_receptor_pdb_path, distance=1.5)
-        clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
-        _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
+        # Remove conformers that clash with the protein in case of score_only, for local_only vina will handle the clash.
+        if constraint_type == 'score_only':
+            clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath = constraint_receptor_pdb_path, distance=1.5)
+            clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
+            _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
         # Check first if some valid conformer exist
         if len(out_mol.GetConformers()):
