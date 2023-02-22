@@ -19,6 +19,8 @@ from stmol import showmol
 import os
 import pubchempy as pcp
 import requests
+import urllib.parse
+from bs4 import BeautifulSoup
 import time
 
 from pandas.api.types import (
@@ -314,7 +316,24 @@ def upload_file_to_string(uploaded_file):
     string_data = stringio.read()
     return string_data
 
-# PubChem functions
+# PubChem functions and interaction with web servers
+
+def get_chemazone_prize(smiles):
+    encoded_smiles = urllib.parse.quote(smiles)
+
+    url = f"https://chemazone.com/StrSearch.asp?allfields={encoded_smiles}"
+    # Make a POST request with the SMILES data
+    response = requests.get(url)
+
+    # Parse the HTML content using BeautifulSoup
+    soup = BeautifulSoup(response.content, "html.parser")
+    # Find the relevant HTML element
+    option_tag = soup.find("option")
+    try:
+        return option_tag['value'], option_tag['data-price']
+    except TypeError:
+        return '-', '-'
+
 def get_similarity(smiles1:str, smiles2:str) -> float:
     """Get the similarity between two molecules
 
@@ -388,9 +407,10 @@ def get_pubchem_data(smiles:str, Threshold:int = 95) -> dict:
     result = {
         'smiles': None,
         'cid': None,
-        'similarity': None,
+        'similarity': 0,
         'vendors_link':None,
         'num_vendors': 0,
+        'chemazone_prize': None,
         
     }
     num_iter = 1
@@ -410,6 +430,7 @@ def get_pubchem_data(smiles:str, Threshold:int = 95) -> dict:
                         'similarity': 1,
                         'vendors_link': vendors_link,
                         'num_vendors': num_vendors,
+                        # 'chemazone_prize': '/'.join(get_chemazone_prize(smiles))
                     })
                     break
                 else:
@@ -430,6 +451,7 @@ def get_pubchem_data(smiles:str, Threshold:int = 95) -> dict:
                         'similarity': get_similarity(smiles, compound.isomeric_smiles),
                         'vendors_link': vendors_link,
                         'num_vendors': num_vendors,
+                        # 'chemazone_prize': '/'.join(get_chemazone_prize(compound.isomeric_smiles)),
                     })
                     break
         except pcp.PubChemHTTPError as e:
@@ -463,7 +485,7 @@ def get_pubchem_dataframe(df:pd.DataFrame) -> pd.DataFrame:
         new_row = get_pubchem_data(smiles=row['smiles'])
         new_row['idx'] = row['idx']
         data.append(new_row)
-    return pd.DataFrame(data)[['idx', 'cid', 'similarity', 'smiles', 'num_vendors', 'vendors_link']]
+    return pd.DataFrame(data)[['idx', 'cid', 'similarity', 'smiles', 'num_vendors', 'vendors_link']]#, 'chemazone_prize']]
 
     # data = []
     # with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -555,23 +577,30 @@ if pbz2:
         PubChemCheck = st.checkbox("Explore PubChem")
         download_button = st.empty()
         if PubChemCheck:
-            st.info("Be patient, this could take a while ⌛")
             dataframe = dataframe.copy()
             dataframe['smiles'] = dataframe['mol'].apply(Chem.MolToSmiles)
-            pubchem_dataframe = get_pubchem_dataframe(dataframe[['idx', 'smiles']])
-            pubchem_dataframe = pubchem_dataframe[pubchem_dataframe['idx'].isin(grid.dataframe['idx'])]
-            pubchem_dataframe = pubchem_dataframe.set_index('idx')
-            st.dataframe(pubchem_dataframe)
-            download_button.download_button(
-                "Press to Download",
-                convert_df(pubchem_dataframe),
-                "PubChemData.csv",
-                "text/csv",
-                key='download-csv'
+            # It consume to much resources, for the moment, we will include some manual index selections
+            idx_selection = st.multiselect(
+                label = "Choose some idxs",
+                options = dataframe['idx'],
+                default = None#dataframe['idx'][:2],
                 )
+            
+            if idx_selection:
+                pubchem_dataframe = get_pubchem_dataframe(dataframe[dataframe[['idx', 'smiles']]['idx'].isin(idx_selection)])
+                # pubchem_dataframe = pubchem_dataframe[pubchem_dataframe['idx'].isin(grid.dataframe['idx'])]
+                pubchem_dataframe = pubchem_dataframe.set_index('idx')
+                st.dataframe(pubchem_dataframe)
+                download_button.download_button(
+                    "Press to Download",
+                    convert_df(pubchem_dataframe),
+                    "PubChemData.csv",
+                    "text/csv",
+                    key='download-csv'
+                    )
+            else:
+                st.info('☝️ You must select something. Be patient, this could take a while ⌛')
 
-    
-        
     plif = st.empty()
 
     st.sidebar.subheader('**Ligand-protein network interaction**')
