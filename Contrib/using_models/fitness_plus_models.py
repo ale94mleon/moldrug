@@ -122,7 +122,7 @@ def Cost(
     constraint_receptor_pdb_path:str = None,
     constraint_num_conf:int = 100,
     constraint_minimum_conf_rms:int = 0.01,
-    adme_models:Dict = None,
+    models:Dict = None,
     desirability:Dict = None,
     ):
     """
@@ -173,10 +173,10 @@ def Cost(
         Maximum number of conformer to be generated internally by MolDrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
-    adme_models : dict = None,
+    models : dict = None,
         The definition of the models,
         by default None which means that it will be used:
-        adme_models = {
+        models = {
         'hppb': 'hppb.jlib',
         'clearance': 'clearance.jlib',
         }
@@ -205,8 +205,8 @@ def Cost(
         pdbqt, qed, vina_score, sa_score and cost.
         cost attribute will be a number between 0 and 1, been 0 the optimal value.
     """
-    if not adme_models:
-        adme_models = {
+    if not models:
+        models = {
             'hppb':  'hppb.jlib',
             'clearance': 'clearance.jlib',
         }
@@ -237,8 +237,8 @@ def Cost(
                 }
             }
         }
-    # Check that everything is ok with naming in adme_models and desirability
-    diff = list(set(desirability) - set(adme_models))
+    # Check that everything is ok with naming in models and desirability
+    diff = list(set(desirability) - set(models))
     if len(diff) == 0:
         # vina_score was not defined. the default values will be used.
         desirability['vina_score'] = {
@@ -251,17 +251,17 @@ def Cost(
         }
     else:
         if len(diff) != 1:
-            raise Exception(f"You provided adme_models = {adme_models.keys()} and desirability = {desirability.keys()}. "\
-                "However, desirability must have the same keywords as adme_models and optionally the keyword vina_score")
+            raise Exception(f"You provided models = {models.keys()} and desirability = {desirability.keys()}. "\
+                "However, desirability must have the same keywords as models and optionally the keyword vina_score")
         elif diff[0] != 'vina_score':
-            raise Exception(f"desirability has the keyword: '{diff[0]}' which is not defined in adme_models =  {adme_models.keys()} and is not vina_score")
+            raise Exception(f"desirability has the keyword: '{diff[0]}' which is not defined in models =  {models.keys()} and is not vina_score")
 
     # Getting and setting properties on the Individual
-    predictor = Predictors(featurizer=Featurizer(), models=adme_models.values())
+    predictor = Predictors(featurizer=Featurizer(), models=models.values())
 
     # MUST be a copy of Individual.mol becasue if not creazy stuffs will happen!!
     predictions = predictor.predict(deepcopy(Individual.mol))
-    _ = [setattr(Individual, name, value) for name, value in zip(adme_models, predictions)]
+    _ = [setattr(Individual, name, value) for name, value in zip(models, predictions)]
 
 
     # Getting vina_score and update pdbqt

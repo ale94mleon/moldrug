@@ -8,7 +8,27 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from featurize import Featurizer
 import joblib
+from urllib.parse import urlparse
+import os
 
+def is_url(string:str) -> bool:
+    """Check if the string is a valid URL
+
+    Parameters
+    ----------
+    string : str
+        The input string to check
+
+    Returns
+    -------
+    bool
+        True if URL, False otherwise.
+    """
+    try:
+        result = urlparse(string)
+        return all([result.scheme, result.netloc])
+    except:
+        return False
 
 def download_dataset(url):
     with urllib.request.urlopen(url) as f:
@@ -18,13 +38,18 @@ def download_dataset(url):
         return df
 
 
-def prepare_model(name, url, y_transform = None):
+def prepare_model(name, source, y_transform = None):
     """
-    Fetches dataset and build a predictive model
+    Fetches dataset and build a predictive model.
+    source could be a path to a csv file with the columns smiles and target;
+    or a valid URL that return a csv file with the aforementioned columns.
     """
 
     my_featurizer = Featurizer()
-    df = download_dataset(url)
+    if is_url(source):
+        df = download_dataset(source)
+    elif os.path.isfile(source):
+        df = pd.read_csv(source)
     print(len(df))
 
     scol = "smile" if "smile" in df.columns else "smiles"
@@ -56,3 +81,7 @@ if __name__ == '__main__':
     url2 = "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/hppb.csv"
     name2 = "hppb"
     prepare_model(name2, url2, y_transform=lambda x: np.log10(100-x))
+
+    # df = download_dataset(url1)
+    # df.to_csv('clearance.csv')
+    # prepare_model(name1, 'clearance.csv')
