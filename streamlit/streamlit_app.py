@@ -83,7 +83,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     with modification_container:
         to_filter_columns = st.multiselect("Filter dataframe on", df.columns)
         for column in to_filter_columns:
-            left, right = st.columns((1, 20))
+            _, right = st.columns((1, 20))
             # Treat columns with < 10 unique values as categorical
             if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
                 user_cat_input = right.multiselect(
@@ -333,7 +333,7 @@ def get_similarity(smiles1:str, smiles2:str) -> float:
     # Convert SMILES strings to RDKit molecules
     mol1 = Chem.MolFromSmiles(smiles1)
     mol2 = Chem.MolFromSmiles(smiles2)
-    
+
     # Calculate fingerprints for each molecule
 
     fp1 = Chem.RDKFingerprint(mol1)
@@ -414,7 +414,7 @@ def get_pubchem_data(smiles:str, Threshold:int = 95) -> dict:
                     break
                 else:
                     onsimilarity = True
-            if onsimilarity == True:
+            if onsimilarity:
                 compound = pcp.get_compounds(
                     identifier = smiles,
                     namespace='smiles',
@@ -618,7 +618,7 @@ if pbz2:
             properties_to_plot = [prop for prop in properties if prop not in ['genID']]
             fig, axes = plot_dist(moldrug_result.SawIndividuals,properties=properties_to_plot, every_gen=every_gen)
             st.pyplot(fig)
-        except Exception as e:
+        except Exception:
             st.info('Nothing to show. Consider to select some properties in the side bar.')
 
 else:
