@@ -8,3 +8,4 @@ seaborn
 matplotlib
 pandas
 stmol==0.0.7
+pubchempy

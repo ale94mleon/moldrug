@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The warnings are not printed for: `moldrug.fitness._vinadock` and `moldrug.constraintconf.generate_conformers`. Now, only at the end of a MolDrug simulation a note will be printed if the `error.tar.gz` file is created.
 - If `moldrug.utils.run` does not print extra info if the command fails. It only raises the corresponded `RuntimeError`.
 - `moldrug.fitness.__vinadock` by `moldrug.fitness._vinadock`.
+- Remove conformers that clash with the protein in case of score_only, for local_only vina will handle the clash.
 
 ### Fixed
 
