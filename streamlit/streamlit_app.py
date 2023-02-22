@@ -318,7 +318,7 @@ def upload_file_to_string(uploaded_file):
 
 # PubChem functions and interaction with web servers
 
-def get_chemazone_prize(smiles):
+def get_chemazone_price(smiles):
     encoded_smiles = urllib.parse.quote(smiles)
 
     url = f"https://chemazone.com/StrSearch.asp?allfields={encoded_smiles}"
@@ -410,7 +410,7 @@ def get_pubchem_data(smiles:str, Threshold:int = 95) -> dict:
         'similarity': 0,
         'vendors_link':None,
         'num_vendors': 0,
-        'chemazone_prize': None,
+        # 'chemazone_price': None,
         
     }
     num_iter = 1
@@ -430,7 +430,7 @@ def get_pubchem_data(smiles:str, Threshold:int = 95) -> dict:
                         'similarity': 1,
                         'vendors_link': vendors_link,
                         'num_vendors': num_vendors,
-                        # 'chemazone_prize': '/'.join(get_chemazone_prize(smiles))
+                        # 'chemazone_price': '/'.join(get_chemazone_price(smiles))
                     })
                     break
                 else:
@@ -451,7 +451,7 @@ def get_pubchem_data(smiles:str, Threshold:int = 95) -> dict:
                         'similarity': get_similarity(smiles, compound.isomeric_smiles),
                         'vendors_link': vendors_link,
                         'num_vendors': num_vendors,
-                        # 'chemazone_prize': '/'.join(get_chemazone_prize(compound.isomeric_smiles)),
+                        # 'chemazone_price': '/'.join(get_chemazone_price(compound.isomeric_smiles)),
                     })
                     break
         except pcp.PubChemHTTPError as e:
@@ -485,7 +485,7 @@ def get_pubchem_dataframe(df:pd.DataFrame) -> pd.DataFrame:
         new_row = get_pubchem_data(smiles=row['smiles'])
         new_row['idx'] = row['idx']
         data.append(new_row)
-    return pd.DataFrame(data)[['idx', 'cid', 'similarity', 'smiles', 'num_vendors', 'vendors_link']]#, 'chemazone_prize']]
+    return pd.DataFrame(data)[['idx', 'cid', 'similarity', 'smiles', 'num_vendors', 'vendors_link']]#, 'chemazone_price']]
 
     # data = []
     # with concurrent.futures.ThreadPoolExecutor() as executor:
