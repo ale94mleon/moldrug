@@ -5,7 +5,6 @@ from moldrug.fitness import _vinadock
 from rdkit import Chem
 import numpy as np
 from typing import Dict, List
-
 import joblib
 from rdkit.Chem import AllChem
 from rdkit.Chem import Descriptors
@@ -15,7 +14,7 @@ RDLogger.DisableLog('rdApp.*')
 
 
 class Featurizer:
-    def __init__(self, fpb=2048, calc_descriptors=True):
+    def __init__(self, fpb=2048, calc_descriptors=True, scale = False):
         """
         :param fpb: number of Morgan bits
         :param descriptors: boolean - calculate descriptors.
@@ -103,7 +102,20 @@ class Predictors():
         :return:
         """
         X = self.featurizer.featurize(molecule)
-        return [model.predict(X[np.newaxis,:])[0] for model in self.models]
+        to_return = []
+        for item in self.models:
+            # To avoid inplace modifications:
+            model = item['model']
+            scaler = item['scaler']
+            if scaler:
+                X_to_use = scaler.transform(np.copy(X).reshape(1, -1))
+                X_to_use = X_to_use.flatten()
+                prediction = model.predict(X_to_use[np.newaxis,:])[0]
+            else:
+                prediction = model.predict(X[np.newaxis,:])[0]
+            to_return.append(prediction)
+
+        return to_return
 
 def Cost(
     Individual:utils.Individual,

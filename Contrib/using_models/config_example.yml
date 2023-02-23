@@ -18,10 +18,17 @@
     exhaustiveness: 9
     ncores: 4
     num_modes: 1
-    adme_models:
+    models:
+      egfr: /path/where/the/model/is/egfr.jlib
       hppb: /path/where/the/model/is/hppb.jlib
       clearance:  /path/where/the/model/is/clearance.jlib
     desirability:
+      egfr:
+        LargerTheBest:
+          LowerLimit: 4
+          Target: 10
+          r: 0.5
+        w: 1
       hppb:
         LargerTheBest:
           LowerLimit: 25

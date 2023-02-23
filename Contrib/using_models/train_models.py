@@ -5,6 +5,7 @@ from scipy.stats import pearsonr
 import numpy as np
 from rdkit import Chem
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from featurize import Featurizer
 import joblib
@@ -38,7 +39,7 @@ def download_dataset(url):
         return df
 
 
-def prepare_model(name, source, y_transform = None):
+def prepare_model(name, source, y_transform = None, scaler = None):
     """
     Fetches dataset and build a predictive model.
     source could be a path to a csv file with the columns smiles and target;
@@ -50,15 +51,33 @@ def prepare_model(name, source, y_transform = None):
         df = download_dataset(source)
     elif os.path.isfile(source):
         df = pd.read_csv(source)
-    print(len(df))
+
 
     scol = "smile" if "smile" in df.columns else "smiles"
     X = df[scol].apply(lambda x: my_featurizer.featurize(Chem.MolFromSmiles(x)))
     X = np.stack(X)
-    print(X.shape)
+
     y = df["target"].values
     if not (y_transform is None):
         y = y_transform(y)
+
+    print(f"Original shape of X: {X.shape}")
+    # Find rows and columns containing NaN or infinite values
+    nan_rows = np.isnan(X).any(axis=1)
+    inf_rows = np.isinf(X).any(axis=1)
+
+
+    # Remove rows and columns containing NaN or infinite values
+    X = X[~(nan_rows | inf_rows), :]
+    y = y[~(nan_rows | inf_rows)]
+    
+    print(f"New shape of X: {X.shape}")
+    if scaler:
+        # Call the scaler
+        scaler = scaler()
+        X = scaler.fit_transform(X)
+
+
     X_tr, X_te, y_tr, y_te = train_test_split(X, y, train_size=0.9, random_state=1)
 
     model = RandomForestRegressor(n_estimators=1000, n_jobs=-1)
@@ -68,20 +87,28 @@ def prepare_model(name, source, y_transform = None):
 
     # Change n_jobs to 1 in order to avoid warnings during MolDrug run.
     model.n_jobs = 1
-    joblib.dump(model, "{}.jlib".format(name))
+
+    joblib.dump(
+        {
+            'model':model,
+            'scaler':scaler,
+        },
+        
+        "{}.jlib".format(name)
+    )
 
 
 if __name__ == '__main__':
 
-    url1 = "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/clearance.csv"
+    source1 = "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/clearance.csv"
     name1 = "clearance"
-    prepare_model(name1, url1)
+    prepare_model(name1, source1)
 
 
-    url2 = "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/hppb.csv"
+    source2 = "https://deepchemdata.s3-us-west-1.amazonaws.com/datasets/hppb.csv"
     name2 = "hppb"
-    prepare_model(name2, url2, y_transform=lambda x: np.log10(100-x))
+    prepare_model(name2, source2, y_transform=lambda x: np.log10(100-x))
 
-    # df = download_dataset(url1)
-    # df.to_csv('clearance.csv')
-    # prepare_model(name1, 'clearance.csv')
+    source3 = 'EGFR_compounds.csv'
+    name3 = "egfr"
+    prepare_model(name3, source3, scaler=StandardScaler)
