@@ -621,7 +621,7 @@ if pbz2:
             st.dataframe(filter_dataframe(df_overview[df_overview.index.isin(grid.dataframe['idx'])]))
 
         # Input widget
-        idx = st.sidebar.selectbox('idx', sorted(pdbqt_dataframe.index))
+        idx = st.sidebar.selectbox('idx', sorted(grid.dataframe['idx']))
         representation = st.sidebar.selectbox('Representation', ['ProLIF', 'Py3Dmol'])
         spin = st.sidebar.empty()
         if representation == 'ProLIF':
