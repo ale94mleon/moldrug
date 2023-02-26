@@ -586,7 +586,7 @@ if pbz2:
             # It consume to much resources, for the moment, we will include some manual index selections
             idx_selection = st.multiselect(
                 label = "Choose some idxs",
-                options = dataframe['idx'],
+                options = grid.dataframe['idx'],
                 default = None#dataframe['idx'][:2],
                 )
             
