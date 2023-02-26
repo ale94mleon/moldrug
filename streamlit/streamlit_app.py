@@ -85,9 +85,9 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     with modification_container:
         to_filter_columns = st.multiselect("Filter dataframe on", df.columns)
         for column in to_filter_columns:
-            _, right = st.columns((1, 20))
+            left, right = st.columns((1, 20))
             # Treat columns with < 10 unique values as categorical
-            if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
+            if is_categorical_dtype(df[column]) or df[column].nunique() < 3:
                 user_cat_input = right.multiselect(
                     f"Values for {column}",
                     df[column].unique(),
@@ -95,16 +95,21 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 )
                 df = df[df[column].isin(user_cat_input)]
             elif is_numeric_dtype(df[column]):
-                _min = float(df[column].min())
-                _max = float(df[column].max())
-                step = (_max - _min) / 100
+                if all([isinstance(item, (int, np.uint)) for item in df[column]]):
+                    _min = int(df[column].min())
+                    _max = int(df[column].max())
+                    step = 1
+                else:
+                    _min = float(df[column].min())
+                    _max = float(df[column].max())
+                    step = (_max - _min) / 100
+
                 user_num_input = right.slider(
                     f"Values for {column}",
                     min_value=_min,
                     max_value=_max,
                     value=(_min, _max),
-                    step=step,
-                )
+                    step=step,)
                 df = df[df[column].between(*user_num_input)]
             elif is_datetime64_any_dtype(df[column]):
                 user_date_input = right.date_input(
@@ -126,8 +131,6 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
 
     return df
-
-
 def MolFromPdbqtBlock(pdbqt_string):
     pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
     with open(pdbqt_tmp.name, 'w') as f:
@@ -255,6 +258,7 @@ def lig_prot_overview(_pop, protein_pdb_string):
 
     df.index = [individual.idx for individual in _pop]
     df.index.names = ['idx']
+    df = df.groupby(level='interaction', axis=1).sum()
 
 
     # # show all interactions with a specific protein residue
