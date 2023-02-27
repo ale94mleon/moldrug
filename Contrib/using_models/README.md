@@ -1,10 +1,10 @@
 # ADME models
 
-The fitness module: `fitness_plus_admes.py` is able to use the models `hppb.jlib` and `clearence.jlib` by default and any other `jlib` model must be specified through the keywords: `adme_models` and `desirability`. The models will be evaluated as follow:
+The fitness module: `fitness_plus_models.py` is able to use the models `hppb.jlib` and `clearence.jlib` by default and any other `jlib` model must be specified through the keywords: `models` and `desirability`. The models will be evaluated as follow:
 
 ```python
 # The classes Featurizer and Predictors are already inside fitness_plus_admes.py
-predictor = Predictors(featurizer=Featurizer(), models=adme_models.values())
+predictor = Predictors(featurizer=Featurizer(), models=models.values())
 predictions = predictor.predict(Individual.mol)
 ```
 

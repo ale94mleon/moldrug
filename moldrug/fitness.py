@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from copy import deepcopy
+from shutil import rmtree
 from moldrug import utils, constraintconf
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
@@ -375,6 +376,10 @@ def _vinadock(
         # Getting the information
         best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
         vina_score_pdbqt = (best_energy.freeEnergy, ''.join(best_energy.chunk))
+    
+    # Cleaning error directory if needed
+    if not os.listdir('error'):
+        rmtree('error')
     return vina_score_pdbqt
 
 def Cost(
