@@ -376,10 +376,7 @@ def _vinadock(
         # Getting the information
         best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
         vina_score_pdbqt = (best_energy.freeEnergy, ''.join(best_energy.chunk))
-    
-    # Cleaning error directory if needed
-    if not os.listdir('error'):
-        rmtree('error')
+
     return vina_score_pdbqt
 
 def Cost(
