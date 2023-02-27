@@ -82,7 +82,7 @@ def Cost(
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
         by default None which means that it will be used:
         desirability = {
-        'qed': {'w': 1,'LargerTheBest': {'LowerLimit': 0.1,'Target': 0.75, 'r': 1}
+        'molskill_score': {'w': 1,'SmallerTheBest': {'Target': -15,'UpperLimit': 0,'r': 1}
         },
         'sa_score': {'w': 1,'SmallerTheBest': {'Target': 3,'UpperLimit': 7,'r': 1}
         },
