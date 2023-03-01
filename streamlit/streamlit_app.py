@@ -42,9 +42,13 @@ with st.expander('**About the App**'):
     st.markdown("👈 Open the side bar to introduce the data.\n\n"\
         "This app is to get an overview of a **MolDrug**'s result at glance."
         "Check this [flash tutorial](https://moldrug.readthedocs.io/en/latest/source/moldrug_dahsboard.html) in case you get stock on how to use the app; "
-        "or [MolDrug's docs](https://moldrug.rtfd.io/) and [MolDrug's GitHub](https://github.com/ale94mleon/moldrug/) for more information.")
+        "or [MolDrug's docs](https://moldrug.rtfd.io/) and [MolDrug's GitHub](https://github.com/ale94mleon/moldrug/) for more information.\n\n"
 
-tab1, tab2, tab3, tab4 = st.tabs(["Molecules", "Running info","Ligand-protein network interaction overview", "Compound Vendors"])
+        "This project received foundings from [Marie Skłodowska-Curie Actions](https://cordis.europa.eu/project/id/860592). It was developed in the "
+        "[Computational Biophysics Group](https://biophys.uni-saarland.de/) of [Saarland University](https://www.uni-saarland.de/en/home.html) in collaboration "
+        "with the pharmaceutical company [Boehringer Ingelheim](https://www.boehringer-ingelheim.com/de/).")
+
+tab1, tab2, tab3 = st.tabs(["Molecules", "Running info", "Compound Vendors"])
 
 
 @st.cache_data
@@ -571,13 +575,23 @@ if pbz2:
 
         with tab1:
             components.html(view.data, width=None, height=700, scrolling=True)
+            with st.expander('Show table of properties'):
+                prop_df = grid.dataframe.drop(['mol', 'pdbqt', 'kept_gens', 'img','mols2grid-id'], axis=1).set_index('idx')
+                st.download_button(
+                    "Press to Download",
+                    convert_df(prop_df),
+                    "MolDrug_properties.csv",
+                    "text/csv",
+                    key='download-MolDrug_prop-csv'
+                    )
+                st.dataframe(prop_df)
 
     except ValueError:
         with tab1:
             st.info('Nothing to show')
 
 
-    with tab4:
+    with tab3:
         PubChemCheck = st.checkbox("Explore PubChem")
         download_button = st.empty()
         if PubChemCheck:
@@ -600,7 +614,7 @@ if pbz2:
                     convert_df(pubchem_dataframe),
                     "PubChemData.csv",
                     "text/csv",
-                    key='download-csv'
+                    key='download-PubChemData-csv'
                     )
             else:
                 st.info('☝️ You must select something. Be patient, this could take a while ⌛')
@@ -617,8 +631,7 @@ if pbz2:
 
         # Get overview
         df_overview = lig_prot_overview(moldrug_result.pop, protein_pdb_string=protein_pdb_string)
-        with tab3:
-            st.dataframe(filter_dataframe(df_overview[df_overview.index.isin(grid.dataframe['idx'])]))
+
 
         # Input widget
         idx = st.sidebar.selectbox('idx', sorted(grid.dataframe['idx']))
@@ -641,6 +654,17 @@ if pbz2:
                         protein_pdb_string=protein_pdb_string,
                         spin = spin
                     )
+        with tab1:
+            with st.expander('Table of interactions'):
+                filter_df_overview = filter_dataframe(df_overview[df_overview.index.isin(grid.dataframe['idx'])])
+                st.download_button(
+                    "Press to Download",
+                    convert_df(filter_df_overview),
+                    "Protein-ligand_interactions.csv",
+                    "text/csv",
+                    key='download-pli-csv'
+                    )
+                st.dataframe(filter_df_overview)
     else:
         st.sidebar.info('☝️ Upload the PDB protein file.')
 
