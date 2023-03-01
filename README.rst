@@ -58,6 +58,14 @@ Citing **MolDrug**
 
 Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/source/citations.html>`__ on the documentation.
 
+Foundings
+---------
+
+This project recived foundings from `Marie Skłodowska-Curie Actions <https://cordis.europa.eu/project/id/860592>`__. It was developed in the 
+`Computational Biophysics Group <https://biophys.uni-saarland.de/>`__ of `Saarland University <https://www.uni-saarland.de/en/home.html>`__ in colaboration
+with the pharmaceutical company `Boehringer Ingelheim <https://www.boehringer-ingelheim.com/de/>`__.
+
+
 ..  |logo|  image:: https://github.com/ale94mleon/MolDrug/blob/main/docs/source/_static/logo.png?raw=true
     :target: https://github.com/ale94mleon/moldrug/
     :alt: logo
