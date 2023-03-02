@@ -630,7 +630,10 @@ if pbz2:
         protein_pdb_string=upload_file_to_string(protein_pdb)
 
         # Get overview
-        df_overview = lig_prot_overview(moldrug_result.pop, protein_pdb_string=protein_pdb_string)
+        try:
+            df_overview = lig_prot_overview(moldrug_result.pop, protein_pdb_string=protein_pdb_string)
+        except AttributeError:
+            df_overview = lig_prot_overview(moldrug_result[1], protein_pdb_string=protein_pdb_string)
 
 
         # Input widget
@@ -670,8 +673,8 @@ if pbz2:
 
     # Plot the distribution
     with tab2:
-        every_gen = st.number_input("Every how many generations:",min_value=1, max_value=moldrug_result.NumGens, value=10)
         try:
+            every_gen = st.number_input("Every how many generations:",min_value=1, max_value=moldrug_result.NumGens, value=10)
             properties_to_plot = [prop for prop in properties if prop not in ['genID']]
             fig, axes = plot_dist(moldrug_result.SawIndividuals,properties=properties_to_plot, every_gen=every_gen)
             st.pyplot(fig)
