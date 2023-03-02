@@ -135,13 +135,7 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     df = df[df[column].astype(str).str.contains(user_text_input)]
 
     return df
-def MolFromPdbqtBlock(pdbqt_string):
-    pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
-    with open(pdbqt_tmp.name, 'w') as f:
-        f.write(pdbqt_string)
-    pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
-    mol = RDKitMolCreate.from_pdbqt_mol(pdbqt_mol)[0]
-    return mol
+
 
 #TODO use the selection of the table and download The docking pose storage in the Individual
 # Or something like make_sdf of moldrug and download the info
@@ -208,6 +202,14 @@ def ProtPdbBlockToProlifMol(protein_pdb_string):
         protein = plf.Molecule.from_mda(protein)
     return protein
 
+def MolFromPdbqtBlock(pdbqt_string):
+    pdbqt_tmp = tempfile.NamedTemporaryFile(suffix='.pdbqt')
+    with open(pdbqt_tmp.name, 'w') as f:
+        f.write(pdbqt_string)
+    pdbqt_mol = PDBQTMolecule.from_file(pdbqt_tmp.name, skip_typing=True)
+    mol = RDKitMolCreate.from_pdbqt_mol(pdbqt_mol)[0]
+    return mol
+
 @st.cache_data
 def LigPdbqtBlockToProlifMol(ligand_pdbqt_string):
     ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
@@ -226,17 +228,19 @@ def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
     fp = plf.Fingerprint()
     fp.run_from_iterable([ligand], protein)
     df_fp = fp.to_dataframe(return_atoms=True)
+    try:
+        net = LigNetwork.from_ifp(
+            df_fp,
+            ligand,
+            # replace with `kind="frame", frame=0` for the other depiction
+            kind="aggregate",
+            threshold=0.3,
+            rotation=270,
+        )
 
-    net = LigNetwork.from_ifp(
-        df_fp,
-        ligand,
-        # replace with `kind="frame", frame=0` for the other depiction
-        kind="aggregate",
-        threshold=0.3,
-        rotation=270,
-    )
-
-    prolif_ligplot_html_document = net.display(height="400px").data
+        prolif_ligplot_html_document = net.display(height="400px").data
+    except ValueError:
+        prolif_ligplot_html_document = None
     return prolif_ligplot_html_document
 
 @st.cache_data
@@ -297,8 +301,10 @@ def py3Dmol_plot(ligand_pdbqt_string,protein_pdb_string, spin = False):
 @st.cache_data
 def load_pbz2(pbz2):
     moldrug_result = utils.decompress_pickle(pbz2)
+    is_GA = False
     if isinstance(moldrug_result, utils.GA):
         gen, pop = moldrug_result.NumGens, moldrug_result.pop
+        is_GA = True
     elif isinstance(moldrug_result, utils.Local):
         gen, pop = 0, moldrug_result.pop
     elif isinstance(moldrug_result, tuple):
@@ -314,7 +320,7 @@ def load_pbz2(pbz2):
         dataframe = utils.to_dataframe(pop)
     pdbqt_dataframe = dataframe[['idx','pdbqt']]
     pdbqt_dataframe.set_index('idx', inplace=True)
-    return gen, moldrug_result, pdbqt_dataframe, dataframe
+    return gen, moldrug_result, pdbqt_dataframe, dataframe, is_GA
 
 @st.cache_data
 def upload_file_to_string(uploaded_file):
@@ -515,13 +521,12 @@ pbz2 = st.sidebar.file_uploader('**MolDrug pbz2**', accept_multiple_files = Fals
 
 if pbz2:
 
-    gen, moldrug_result, pdbqt_dataframe, dataframe = load_pbz2(pbz2)
+    gen, moldrug_result, pdbqt_dataframe, dataframe, is_GA = load_pbz2(pbz2)
     st.sidebar.write(f"**Loaded generation = {gen}**")
     try:
         dataframe['mol'] = dataframe['mol'].apply(Chem.RemoveHs)
     except KeyError:
         dataframe['mol'] = dataframe['pdbqt'].apply(lambda x: Chem.RemoveHs(MolFromPdbqtBlock(x)))
-
     properties = [prop for prop in dataframe.columns if prop not in ['idx','pdbqt', 'mol', 'kept_gens']]
     properties = st.sidebar.multiselect(
     "Choose properties", properties, ["cost"]
@@ -576,6 +581,11 @@ if pbz2:
         with tab1:
             components.html(view.data, width=None, height=700, scrolling=True)
             with st.expander('Show table of properties'):
+                # For compatibility with older versions
+                props_to_drop = ['mol', 'pdbqt', 'img','mols2grid-id']
+                if 'kept_gens' in grid.dataframe.columns:
+                    props_to_drop.append('kept_gens')
+
                 prop_df = grid.dataframe.drop(['mol', 'pdbqt', 'kept_gens', 'img','mols2grid-id'], axis=1).set_index('idx')
                 st.download_button(
                     "Press to Download",
@@ -597,7 +607,7 @@ if pbz2:
         if PubChemCheck:
             dataframe = dataframe.copy()
             dataframe['smiles'] = dataframe['mol'].apply(Chem.MolToSmiles)
-            # It consume to much resources, for the moment, we will include some manual index selections
+            # It consumes to much resources, for the moment, we will include some manual index selections
             idx_selection = st.multiselect(
                 label = "Choose some idxs",
                 options = grid.dataframe['idx'],
@@ -630,9 +640,9 @@ if pbz2:
         protein_pdb_string=upload_file_to_string(protein_pdb)
 
         # Get overview
-        try:
+        if is_GA:
             df_overview = lig_prot_overview(moldrug_result.pop, protein_pdb_string=protein_pdb_string)
-        except AttributeError:
+        else:
             df_overview = lig_prot_overview(moldrug_result[1], protein_pdb_string=protein_pdb_string)
 
 
@@ -647,7 +657,10 @@ if pbz2:
             )
             with plif:
                 with tab1:
-                    components.html(prolif_ligplot_html_document,width=None, height=500, scrolling=True)
+                    if prolif_ligplot_html_document:
+                        components.html(prolif_ligplot_html_document,width=None, height=500, scrolling=True)
+                    else:
+                        st.error("It was not possible to genereate the ProLIF image.")
         else:
             spin = spin.checkbox('Spin', value = False)
             with plif:
@@ -679,7 +692,10 @@ if pbz2:
             fig, axes = plot_dist(moldrug_result.SawIndividuals,properties=properties_to_plot, every_gen=every_gen)
             st.pyplot(fig)
         except Exception:
-            st.info('Nothing to show. Consider to select some properties in the side bar.')
+            if is_GA:
+                st.info('Nothing to show. Consider to select some properties in the side bar.')
+            else:
+                st.info('Nothing to show. The input is not a MoDrug GA.')
 
 else:
     st.sidebar.info('☝️ Upload a MolDrug pbz2 file.')
