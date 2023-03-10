@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.4.0] - 2023.03.10
+
 ### Added
 
 - Continuation option to the command line.
@@ -27,7 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Small bug during initialization of population with multiple `seed_mol`. Now `seed_mol` with the same amount of elements as `popsize` are not submitted to mutations, only evaluation.
 - Problems with default parameters definition on the command line. Parameters with default values by the `type` of run defined in the configuration file are not needed to redefined any more; `moldrug.cli` will guess those.
 
-## [3.3.0] - 2020.12.21
+## [3.3.0] - 2022.12.21
 
 ### Changed
 
@@ -41,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The use of `moldrug.utils.tar_errors` inside of `moldrug.utils.Local` and `moldrug.utils.GA`.
 - Clean code.
 
-## [3.2.5] - 2020.12.20
+## [3.2.5] - 2022.12.20
 
 ### Fixed
 
@@ -49,7 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Cleaning of temporal files in `/tmp` directory. Now it is created temporal directories in the working directory with the pattern: `.costfunc_MolDrug_XXXXXXXX`.
 - Cleaning errors. Now all warnings and errors are saved in .error directory and at the end they are compress to `error.tar.gz`.
 
-## [3.2.2] - 2020.12.12
+## [3.2.2] - 2022.12.12
 
 ### Fixed
 
