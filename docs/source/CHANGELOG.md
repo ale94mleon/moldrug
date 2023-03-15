@@ -315,7 +315,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.3.0...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.4.0...HEAD
+[3.4.0]: https://github.com/ale94mleon/MolDrug/compare/3.3.0...3.4.0
 [3.3.0]: https://github.com/ale94mleon/MolDrug/compare/3.2.5...3.3.0
 [3.2.5]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...3.2.5
 [3.2.2]: https://github.com/ale94mleon/MolDrug/compare/3.2.0...3.2.2
