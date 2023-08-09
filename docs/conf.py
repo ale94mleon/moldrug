@@ -74,11 +74,11 @@ html_logo = "source/_static/logo.png"
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = [] #['_static']
 
-intersphinx_mapping = {'https://docs.python.org/3/': None,
-                       'https://numpy.org/doc/stable/': None,
-                       'https://crem.readthedocs.io/en/latest/': None,
-                       'https://www.rdkit.org/docs/': None,
-                       'https://pandas.pydata.org/docs/': None,
+intersphinx_mapping = {'Python': ('https://docs.python.org/3/', None),
+                       'NumPy': ('https://numpy.org/doc/stable/', None),
+                       'CReM': ('https://crem.readthedocs.io/en/latest/', None),
+                       'RDKit': ('https://www.rdkit.org/docs/', None),
+                       'Pandas': ('https://pandas.pydata.org/docs/', None),
                        }
 
 # app setup hook
