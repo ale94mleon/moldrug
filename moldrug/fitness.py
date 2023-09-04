@@ -9,7 +9,7 @@ import os
 import numpy as np
 from typing import Dict, List
 # from warnings import import warn
-from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate
+from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate, PDBQTWriterLegacy
 
 def __get_mol_cost(
     mol:Chem.rdchem.Mol,
@@ -110,8 +110,9 @@ def __get_mol_cost(
     # Getting vina_score and update pdbqt
     # Making the ligand pdbqt
     preparator = MoleculePreparation()
-    preparator.prepare(Chem.AddHs(mol, addCoords=True))
-    preparator.write_pdbqt_file(os.path.join(wd, 'ligand.pdbqt'))
+    mol_setups = preparator.prepare(Chem.AddHs(mol, addCoords=True))
+    with open(os.path.join(os.path.join(wd, 'ligand.pdbqt')), 'w') as f:
+        f.write(PDBQTWriterLegacy.write_string(mol_setups[0])[0])
 
     # If the vina_executable is a path
     if os.path.isfile(vina_executable):
@@ -293,8 +294,9 @@ def _vinadock(
                 temp_mol.AddConformer(out_mol.GetConformer(conf.GetId()), assignId=True)
 
                 preparator = MoleculePreparation()
-                preparator.prepare(Chem.AddHs(temp_mol, addCoords=True))
-                preparator.write_pdbqt_file(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt'))
+                mol_setups = preparator.prepare(Chem.AddHs(temp_mol, addCoords=True))
+                with open(os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}.pdbqt'), 'w') as f:
+                    f.write(PDBQTWriterLegacy.write_string(mol_setups[0])[0])
 
                 # Make a copy to the vina command string and add the out (is needed) and ligand options
                 cmd_vina_str_tmp = cmd_vina_str[:]
@@ -315,14 +317,14 @@ def _vinadock(
                         'Exception': e,
                         'Individual': Individual,
                         f'used_mol_conf_{conf.GetId()}': temp_mol,
-                        f'used_ligand_pdbqt_conf_{conf.GetId()}': preparator.write_pdbqt_string(),
+                        f'used_ligand_pdbqt_conf_{conf.GetId()}': PDBQTWriterLegacy.write_string(mol_setups[0])[0],
                         'receptor_str': receptor_str,
                         'boxcenter': boxcenter,
                         'boxsize': boxsize,
                     }
                     utils.compressed_pickle(f'error/idx_{Individual.idx}_conf_{conf.GetId()}_error', error)
                     # warn(f"\nVina failed! Check: idx_{Individual.idx}_conf_{conf.GetId()}_error.pbz2 file in error.\n")
-                    vina_score_pdbqt = (np.inf, preparator.write_pdbqt_string())
+                    vina_score_pdbqt = (np.inf, PDBQTWriterLegacy.write_string(mol_setups[0])[0])
                     return vina_score_pdbqt
 
                 vina_score = np.inf
@@ -343,7 +345,7 @@ def _vinadock(
                             pdbqt = "NonExistedFileToRead"
                         vina_score_pdbqt = (vina_score, pdbqt)
                     else:
-                        vina_score_pdbqt = (vina_score, preparator.write_pdbqt_string())
+                        vina_score_pdbqt = (vina_score, PDBQTWriterLegacy.write_string(mol_setups[0])[0])
         else:
             vina_score_pdbqt = (np.inf, "NonGenConformer")
     # "Normal" docking

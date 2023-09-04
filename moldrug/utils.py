@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from rdkit import Chem
 from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors, rdFMCS
-from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate
+from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate, PDBQTWriterLegacy
 from crem.crem import mutate_mol, grow_mol
 
 from moldrug import __version__
@@ -70,8 +70,8 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False):
     AllChem.EmbedMolecule(mol)
     AllChem.MMFFOptimizeMolecule(mol)
     preparator = MoleculePreparation()
-    preparator.prepare(mol)
-    pdbqt_string = preparator.write_pdbqt_string()
+    mol_setups = preparator.prepare(mol)
+    pdbqt_string = PDBQTWriterLegacy.write_string(mol_setups[0])[0]
     if return_mol:
         return (pdbqt_string, mol)
     else:
