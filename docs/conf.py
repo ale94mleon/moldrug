@@ -15,13 +15,12 @@ import sys
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('./source/'))
 sys.path.insert(0, os.path.abspath('./notebooks/'))
-from recommonmark.transform import AutoStructify
-from jupyter_client import kernelspec
+from datetime import datetime
 
 # -- Project information -----------------------------------------------------
 
 project = 'MolDrug'
-copyright = '2022, Alejandro Martínez León'
+copyright = f"2022-{datetime.now().year}, Alejandro Martínez León"
 author = 'Alejandro Martínez León'
 
 # # The full version, including alpha/beta/rc tags
@@ -31,23 +30,40 @@ author = 'Alejandro Martínez León'
 # -- General configuration ---------------------------------------------------
 
 github_doc_root = 'https://github.com/ale94mleon/moldrug/tree/main/docs'
-needs_sphinx = '4.1.2'
+needs_sphinx = '"5.3.0"'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx',
-              'sphinx.ext.mathjax', 'sphinx.ext.viewcode',
-              'sphinx.ext.napoleon', 'sphinx.ext.autosectionlabel',
-              'sphinx_rtd_theme', 'recommonmark',
-              'IPython.sphinxext.ipython_console_highlighting',
-              'IPython.sphinxext.ipython_directive',
-              'nbsphinx',
+
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.mathjax",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.autosectionlabel",
+    "recommonmark",
+    "IPython.sphinxext.ipython_console_highlighting",
+    "IPython.sphinxext.ipython_directive",
+    "myst_nb",
+    "sphinx_copybutton",
 ]
+
+
+myst_enable_extensions = [
+    "colon_fence",
+]
+nb_execution_allow_errors = False
+nb_execution_raise_on_error = True
+nb_execution_timeout = -1
 
 mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 autosectionlabel_prefix_document = True
 napoleon_google_docstring = True
+
+# copybutton
+copybutton_exclude = ".linenos, .gp"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -57,7 +73,12 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
-source_suffix = ['.rst', '.md']
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "myst-nb",
+    ".ipynb": "myst-nb",
+    ".myst": "myst-nb",
+}
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -65,8 +86,25 @@ source_suffix = ['.rst', '.md']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinx_rtd_theme'
-pygments_style = "manni"
+html_theme = "sphinx_book_theme"
+pygments_style = "sphinx"
+html_theme_options = {
+    "repository_url": "https://github.com/ale94mleon/moldrug/",
+    "path_to_docs": "docs",
+    "use_source_button": True,
+    "use_download_button": True,
+    "use_repository_button": True,
+    "use_issues_button": True,
+    "launch_buttons": {"colab_url": "https://colab.research.google.com"},
+    "icon_links": [
+        {
+            "name": "GitHub",
+            "url": "https://github.com/ale94mleon/moldrug/",
+            "icon": "fa-brands fa-square-github",
+            "type": "fontawesome",
+        }
+    ],
+}
 html_logo = "source/_static/logo.png"
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -80,14 +118,3 @@ intersphinx_mapping = {'https://docs.python.org/3/': None,
                        'https://www.rdkit.org/docs/': None,
                        'https://pandas.pydata.org/docs/': None,
                        }
-
-# app setup hook
-def setup(app):
-    app.add_config_value('recommonmark_config', {
-        #'url_resolver': lambda url: github_doc_root + url,
-        'auto_toc_tree_section': 'Contents',
-        'enable_math': False,
-        'enable_inline_math': False,
-        'enable_eval_rst': True,
-    }, True)
-    app.add_transform(AutoStructify)

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Fixed
+
+- Refactored changes for for meeko-0.5.0.
+- Update docs.
+
 ## [3.4.0] - 2023.03.10
 
 ### Added

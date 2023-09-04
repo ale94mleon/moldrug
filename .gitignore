@@ -4,9 +4,14 @@ __pycache__
 .vscode
 .pytest_cache
 .ipynb_checkpoints
+jupyter_execute
+error
+*.costfunc_MolDrug*
 .coverage*
 interesting_struct.txt
 nohup.out
+my_cost.py
+.DS_Store
 
 ideas
 projects

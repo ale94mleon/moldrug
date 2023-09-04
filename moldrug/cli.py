@@ -81,6 +81,7 @@ class CommandLineHelper:
         if self._TypeOfRun_str == 'local':
             MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
         else:
+            # TODO make clear errors in case the path does not exist or it was not possible to create a molecule
             if isinstance(MainConfig['seed_mol'], list):
                 # If the items are path to the pickle objects
                 if any([os.path.isfile(path) for path in MainConfig['seed_mol']]):
