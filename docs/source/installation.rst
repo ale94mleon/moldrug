@@ -18,6 +18,11 @@ Requirements:
     But if it is not the case or some version conflicts occurred, think about installed in a isolated environment
     as it will be show in brief.
 
+    MacOS users may face some problems trying to install autodock-vina. If that is so, please visit
+    `Vina Repo <https://github.com/ccsb-scripps/AutoDock-Vina>`_ and check the last release of Vina and download it
+    to you Mac. To proper use the executable you must ground executions permits and probably also allow the execution of 
+    the application in ``Privacy & Security``.
+
 Via pip (standard)
 ------------------
 
