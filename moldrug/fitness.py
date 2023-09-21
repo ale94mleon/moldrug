@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from copy import deepcopy
 from shutil import rmtree
-from moldrug import utils, constraintconf
+from moldrug import utils, constraintconf, verbose
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
 import os
@@ -275,10 +275,12 @@ def _vinadock(
                 num_conf = constraint_num_conf,
                 #ref_smi=Chem.MolToSmiles(constraint_ref),
                 minimum_conf_rms=constraint_minimum_conf_rms)
-        except Exception:
+        except Exception as e:
+            # TODO I should add this kind of lines on the code. It is quite useful for debug
+            if verbose:
+                print(f"constraintconf.generate_conformers fails inside moldrug.fitness._vinadock with {e}")
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
-
         # Remove conformers that clash with the protein in case of score_only, for local_only vina will handle the clash.
         if constraint_type == 'score_only':
             clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath = constraint_receptor_pdb_path, distance=1.5)

@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Refactored changes for for meeko-0.5.0.
 - Update docs.
 
+### Added
+
+- An new environmental variable `MOLDRUG_VERBOSE` can be set to ask for more debug information.
+
 ## [3.4.0] - 2023.03.10
 
 ### Added

@@ -28,3 +28,5 @@ dependencies:
     - recommonmark
     - sphinx_copybutton
     - myst_nb
+    - recommonmark
+    - sphinx_book_theme

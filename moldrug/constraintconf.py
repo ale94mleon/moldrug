@@ -21,6 +21,7 @@ from typing import  Optional
 from tqdm import tqdm
 import Bio.PDB as PDB
 from moldrug.utils import compressed_pickle
+from moldrug import verbose
 
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
     """
@@ -156,7 +157,9 @@ def generate_conformers(mol: Chem.rdchem.Mol,
             temp_mol = Chem.Mol(mol_wh)  # copy to avoid inplace changes
             try:
                 AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
-            except Exception:
+            except Exception as e:
+                if verbose:
+                    print(F"AllChem.ConstrainedEmbed fails with: {e}. On the molecules:\n current mol: {Chem.MolToSmiles(temp_mol)}\ncore: {Chem.MolToSmiles(core1)}\nTrying with gen_aligned_conf")
                 temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi)
             temp_mol = Chem.RemoveHs(temp_mol)
             conf_idx = outmol.AddConformer(temp_mol.GetConformer(0), assignId=True)
