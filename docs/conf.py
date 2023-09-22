@@ -56,7 +56,10 @@ myst_enable_extensions = [
 ]
 nb_execution_allow_errors = False
 nb_execution_raise_on_error = True
-nb_execution_timeout = -1
+# nb_execution_timeout = -1
+# Do not execute the notebooks, they take too much time
+nb_execution_mode = 'off'
+myst_heading_anchors = 6
 
 mathjax_path = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML'
 autosectionlabel_prefix_document = True
