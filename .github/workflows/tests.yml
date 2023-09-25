@@ -8,6 +8,7 @@ on:
     branches: [ "main" ]
     paths:
       - moldrug/**
+      - .github/workflows/tests.yml
       - tests/**
       - pyproject.toml
       - setup.cfg
@@ -16,6 +17,7 @@ on:
     branches: [ "main" ]
     paths:
       - moldrug/**
+      - .github/workflows/tests.yml
       - tests/**
       - pyproject.toml
       - setup.cfg
