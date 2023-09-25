@@ -32,7 +32,7 @@ def __get_mol_cost(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-         This is the name of the vina executable, could be a path to the binary object,
+         This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
          which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
@@ -193,7 +193,7 @@ def _vinadock(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object,
+        This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
         which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
@@ -420,7 +420,7 @@ def Cost(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object,
+        This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
         which must have  execution permits (chmod a+x <your binary file>),  by default 'vina'
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
@@ -597,7 +597,7 @@ def CostOnlyVina(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object,
+        This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
         which must have  execution permits (chmod a+x <your binary file>),  by default 'vina'
     receptor_path : str, optional
         Where the receptor pdbqt file is located, by default None
@@ -728,7 +728,7 @@ def CostMultiReceptors(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object,
+        This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
         which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
@@ -980,7 +980,7 @@ def CostMultiReceptorsOnlyVina(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object, which must have
+        This is the name of the vina executable, could be a path to the binary object (absolute path is recommended), which must have
         execution permits (chmod a+x <your binary file>), by default 'vina'
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None

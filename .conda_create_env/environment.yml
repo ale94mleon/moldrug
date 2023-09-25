@@ -9,15 +9,14 @@ dependencies:
   - ipywidgets
   - pip
   - python==3.9.*
-  - rdkit
   - nbsphinx
   - sphinx==5.3.0
-  - tqdm
-  - vina
   - conda-build
   - pip:
     - numpy
+    - tqdm
     - pandas
+    - rdkit
     - pyyaml
     - meeko
     - scipy
@@ -25,7 +24,6 @@ dependencies:
     - crem
     - requests
     - pytest
-    - recommonmark
     - sphinx_copybutton
     - myst_nb
     - recommonmark

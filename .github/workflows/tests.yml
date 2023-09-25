@@ -40,7 +40,7 @@ jobs:
         conda-channels: anaconda, conda-forge
     - name: Install dependencies from conda
       run: |
-        conda install -y -c conda-forge vina rdkit">=2020.0"
+        conda install -y -c conda-forge vina
     - name: Install pip dependencies and moldrug on test mode
       run: |
         python -m pip install --upgrade pip

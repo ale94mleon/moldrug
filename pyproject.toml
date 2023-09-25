@@ -1,6 +1,86 @@
 [build-system]
-requires = [
-    "setuptools >= 54",
-    "wheel",
+requires=[
+	"setuptools>=61.0",
+	"versioningit",
 ]
 build-backend = "setuptools.build_meta"
+
+[project.urls]
+"Hompage" = "https://github.com/ale94mleon/moldrug"
+"Discussions" = "https://github.com/ale94mleon/moldrug/discussions"
+"Documentation" = "https://moldrug.readthedocs.io/en/latest/"
+"Issues" = "https://github.com/ale94mleon/moldrug/issues"
+
+[project]
+name = "moldrug"
+dynamic = ["version"]
+description = "MolDrug (from Molecule to Drug) is a python package for drug-oriented optimization on the chemical space."
+readme = "README.rst"
+
+authors=[
+    {name="Alejandro Martínez-León", email="ale94mleon@gmail.com"},
+]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Operating System :: OS Independent",
+    "License :: OSI Approved :: Apache Software License",
+    "rogramming Language :: Python :: 3",
+    "rogramming Language :: Python :: 3.8",
+    "rogramming Language :: Python :: 3.9",
+    "rogramming Language :: Python :: 3.10",
+    "opic :: Scientific/Engineering :: Bio-Informatics",
+    "opic :: Scientific/Engineering :: Chemistry",
+]
+keywords = [
+    "science",
+    "chemistry",
+    "biology",
+    "drug-design",
+    "chemoinformatics",
+    "genetic algorithm",
+]
+
+requires-python = ">= 3.8 , <= 3.10"
+dependencies = [
+    "crem",
+    "tqdm",
+    "numpy",
+    "pandas",
+    "pyyaml",
+    "meeko>=0.4.0",
+    "scipy",
+    "six",
+    "bio",
+    "rdkit>=2022.3.5"
+]
+
+[project.optional-dependencies]
+dev = ["requests", "pytest"]
+
+[tool.versioningit]
+default-version = "1+unknown"
+
+[tool.versioningit.format]
+distance = "{base_version}"
+dirty = "{base_version}"
+distance-dirty = "{base_version}"
+
+[tool.versioningit.vcs]
+method = "git" 
+match = ["*"]
+default-tag = "0.0.0"
+
+[tool.versioningit.write]
+file = "src/moldrug/_version.py"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[project.scripts]
+moldrug = "moldrug.cli:__moldrug_cmd"
+constrainconf_moldrug = "moldrug.cli:__constraintconf_cmd"

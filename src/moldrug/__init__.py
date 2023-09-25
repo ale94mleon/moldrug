@@ -6,7 +6,7 @@ For information of MolDrug:
     Source Code: https://github.com/ale94mleon/moldrug
 """
 import os
-from moldrug._version import __version__, __version_tuple__
+from moldrug._version import __version__
 
 __author__ = "Alejandro Martínez León"
 __email__ = "ale94mleon@gmail.com"

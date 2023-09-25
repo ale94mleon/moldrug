@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - An new environmental variable `MOLDRUG_VERBOSE` can be set to ask for more debug information.
 
+### Changed
+
+- From `csf` to `toml` package configuration.
+- Structure of the repo. Now `src/moldrug`
+
 ## [3.4.0] - 2023.03.10
 
 ### Added

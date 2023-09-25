@@ -4,47 +4,22 @@ Installation
 Requirements:
 
     * `Python 3.8+ <https://docs.python.org/3/>`_.
-    * `RDKit <https://www.rdkit.org/docs/>`_ (2020.03+).
+    * `RDKit <https://www.rdkit.org/docs/>`_ (2022.3.5+).
     * `Pandas <https://pandas.pydata.org/>`_.
     * `NumPy <https://numpy.org/>`_.
     * `tqdm <https://tqdm.github.io/>`_.
     * `CReM <https://github.com/DrrDom/crem>`_ (0.2.9+).
     * `Meeko <https://pypi.org/project/meeko/>`_.
-    * `Vina <https://vina.scripps.edu/>`_.
+    * `AutoDock-Vina <https://vina.scripps.edu/>`_.
 
 .. note::
+    `AutoDock-Vina <https://vina.scripps.edu/>`_ is the only non-pip dependency required for ``moldrug``. If you already have Vina installed, you can simply run the command ``pip install moldrug`` directly.
+    However, in cases where Vina is not installed or if you encounter version conflicts, it's advisable to set up an isolated environment, either using `conda <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands>`_ or `python <https://docs.python.org/3/library/venv.html>`_.
+    This ensures a clean and controlled environment for installing and running ``moldrug``.
 
-    If you have RDKit and Vina already installed you could try with ``pip install moldrug`` directly.
-    But if it is not the case or some version conflicts occurred, think about installed in a isolated environment
-    as it will be show in brief.
-
-    MacOS users may face some problems trying to install autodock-vina. If that is so, please visit
-    `Vina Repo <https://github.com/ccsb-scripps/AutoDock-Vina>`_ and check the last release of Vina and download it
-    to you Mac. To proper use the executable you must ground executions permits and probably also allow the execution of 
-    the application in ``Privacy & Security``.
 
 Via pip (standard)
 ------------------
-
-In this case you must have a correct installation
-of RDKit and autodock-vina. If you already have it, skip the creation of the conda environment and the conda dependencies installation:
-
-Create conda environment and install conda dependencies
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-    conda create -n moldrug
-    conda activate moldrug
-
-Then install the dependencies libraries:
-
-.. code-block:: bash
-
-    conda install -y -c conda-forge rdkit">=2022.0" vina
-
-..  In the future we will consider to use the python modules `vina on pypi <https://pypi.org/project/vina/>`_. Finally:
-
 pip install
 ~~~~~~~~~~~
 
@@ -60,10 +35,48 @@ or:
     # To get the version on development (not recommended)
     pip install -U git+https://github.com/ale94mleon/MolDrug.git@main
 
+There are multiple methods to obtain `AutoDock-Vina <https://vina.scripps.edu/>`_. You can use `conda <https://anaconda.org/conda-forge/vina>`_ or download the latest release from the `Vina Repository <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_.
+We highly recommend using the ast release posted on method `Vina Repository <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_, which we will demonstrate here.
+
+
+Getting last Vina
+~~~~~~~~~~~~~~~~~
+
+AutoDock-Vina is an ongoing project, and it is advisable to stay up-to-date by regularly checking for the latest `release <https://github.com/ccsb-scripps/AutoDock-Vina/releases/>`_.
+As of the creation of this documentation, the most recent version is `v1.2.5 <https://github.com/ccsb-scripps/AutoDock-Vina/releases/tag/v1.2.5>`_.
+We will be using this version as a demonstration, but we strongly recommend using the most recent release for optimal performance and features. For detail information, please visit:
+`AutoDock-Vina installation Instruction <https://autodock-vina.readthedocs.io/en/latest/installation.html>`_.
+
+Unix- and Linux-based OS
+^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code-block:: bash
+
+    wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
+    chmod a+x vina_1.2.5_linux_x86_64
+    ./vina_1.2.5_linux_x86_64 -h
+
+MacOS
+^^^^^
+
+.. code-block:: bash
+
+    wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_mac_x86_64
+    chmod a+x vina_1.2.5_mac_x86_64
+    ./vina_1.2.5_mac_x86_64 -h
+
+.. note::
+    MacOs users might need to allow the execution of the application on ``Privacy & Security`` depending on the MacOS version.
+
+Windows
+^^^^^^^
+
+Please, download form `release <https://github.com/ccsb-scripps/AutoDock-Vina/releases/>`_. Conda installation may not work.
+
 Via conda
 ---------
 
-We will create a new environment ``conda``:
+MolDrug is also available through conda. However, the pip installation is the recommended one.
 
 .. code-block:: bash
 
@@ -71,15 +84,14 @@ We will create a new environment ``conda``:
     conda activate moldrug
     conda install -c ale94mleon -c conda-forge moldrug
 
+.. note::
+    MacOS users may face some problems trying to install because of the AutoDock-Vina dependency. If that is so, please follow the pip instructions.
+
 If some dependencies are missing, please installed through pip. Some of them could be:
 
 .. code-block:: bash
 
     pip install meeko crem pyyaml scipy tqdm
-
-.. note::
-
-   In the future it will be deployed inside conda-forge.
 
 
 Work with a docker container
