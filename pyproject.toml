@@ -25,12 +25,13 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: OS Independent",
     "License :: OSI Approved :: Apache Software License",
-    "rogramming Language :: Python :: 3",
-    "rogramming Language :: Python :: 3.8",
-    "rogramming Language :: Python :: 3.9",
-    "rogramming Language :: Python :: 3.10",
-    "opic :: Scientific/Engineering :: Bio-Informatics",
-    "opic :: Scientific/Engineering :: Chemistry",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Chemistry",
 ]
 keywords = [
     "science",
@@ -41,7 +42,7 @@ keywords = [
     "genetic algorithm",
 ]
 
-requires-python = ">= 3.8 , <= 3.10"
+requires-python = ">= 3.8 , < 3.12"
 dependencies = [
     "crem",
     "tqdm",
