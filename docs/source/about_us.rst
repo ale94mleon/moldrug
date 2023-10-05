@@ -9,8 +9,8 @@ This project began during my Ph.D. studies at `Jochen Hub's Computational Biophy
 .. note::
    This project received funding from `Marie Skłodowska-Curie Actions <https://cordis.europa.eu/project/id/860592>`__.
 
-|funding|
+|parts|
 
-..  |funding| image:: _static/funding.png
+..  |parts| image:: _static/parts.png
     :target: https://www.uni-saarland.de/en/home.html
-    :alt: funding
+    :alt: parts
