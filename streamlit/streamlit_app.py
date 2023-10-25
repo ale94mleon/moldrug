@@ -14,7 +14,6 @@ from io import StringIO
 import seaborn as sns
 import matplotlib.pyplot as plt
 import pandas as pd
-import py3Dmol
 from stmol import showmol
 import os
 import pubchempy as pcp
@@ -187,10 +186,10 @@ def plot_dist(individuals:list[utils.Individual], properties:list[str], every_ge
     pops = pops.loc[pops['genID'].isin([gen for gen in range(0, NumGens+every_gen, every_gen)])]
 
     if len(properties) <= 1:
-        sns.violinplot(x = 'genID', y = properties[0], data=pops, palette="Set3", bw=.2, cut=0, linewidth=1, ax=axes)
+        sns.violinplot(hue = 'genID', y = properties[0], data=pops, palette="Set3", bw_adjust=.2, cut=0, linewidth=1, ax=axes, legend=False)
     else:
         for i, prop in enumerate(properties):
-            sns.violinplot(x = 'genID', y = prop, data=pops, palette="Set3", bw=.2, cut=0, linewidth=1, ax=axes[i])
+            sns.violinplot(hue = 'genID', y = prop, data=pops, palette="Set3", bw_adjust=.2, cut=0, linewidth=1, ax=axes[i], legend=False)
 
     return fig, axes
 
@@ -210,14 +209,14 @@ def MolFromPdbqtBlock(pdbqt_string):
     mol = RDKitMolCreate.from_pdbqt_mol(pdbqt_mol)[0]
     return mol
 
-@st.cache_data
+
 def LigPdbqtBlockToProlifMol(ligand_pdbqt_string):
     ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
     ligand = plf.Molecule.from_rdkit(ligand)
     return ligand
 
 @st.cache_data
-def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
+def prolif_plot_2d(ligand_pdbqt_string,protein_pdb_string):
 
     # ProLIF example
     # load topology
@@ -227,21 +226,65 @@ def prolif_plot(ligand_pdbqt_string,protein_pdb_string):
 
     fp = plf.Fingerprint()
     fp.run_from_iterable([ligand], protein)
-    df_fp = fp.to_dataframe(return_atoms=True)
     try:
-        net = LigNetwork.from_ifp(
-            df_fp,
+        prolif_ligplot_html_document = fp.plot_lignetwork(
             ligand,
             # replace with `kind="frame", frame=0` for the other depiction
             kind="aggregate",
             threshold=0.3,
             rotation=270,
-        )
+            height="400px"
+        ).data
 
-        prolif_ligplot_html_document = net.display(height="400px").data
     except ValueError:
         prolif_ligplot_html_document = None
     return prolif_ligplot_html_document
+
+@st.cache_data
+def prolif_plot_3d(ligand_pdbqt_string,protein_pdb_string, spin = False):
+
+    # ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
+    # view = py3Dmol.view()
+    # view.removeAllModels()
+    # view.setViewStyle({'style':'outline','color':'black','width':0.1})
+
+    # view.addModel(protein_pdb_string,format='pdb')
+    # Prot=view.getModel()
+    # Prot.setStyle({'cartoon':{'arrows':True, 'tubes':True, 'style':'oval', 'color':'white'}})
+    # view.addSurface(py3Dmol.VDW,{'opacity':0.6,'color':'white'})
+
+    # view.addModel(Chem.MolToMolBlock(ligand),format='mol2')
+    # ref_m = view.getModel()
+    # ref_m.setStyle({},{'stick':{'colorscheme':'greenCarbon','radius':0.2}})
+    # if spin:
+    #     view.spin(True)
+    # else:
+    #     view.spin(False)
+    # view.zoomTo()
+
+
+    protein = ProtPdbBlockToProlifMol(protein_pdb_string)
+    ligand = LigPdbqtBlockToProlifMol(ligand_pdbqt_string)
+
+    fp = plf.Fingerprint()
+    fp.run_from_iterable([ligand], protein)
+    try:
+        view = fp.plot_3d(
+            ligand_mol= ligand,
+            protein_mol=protein,
+            frame = 0,
+            # replace with `kind="frame", frame=0` for the other depiction
+            display_all=False,
+        )
+        if spin:
+            view.spin(True)
+        else:
+            view.spin(False)
+        showmol(view, height=500,width=800)
+    except ValueError:
+        st.warning('No possible to display')
+    
+
 
 @st.cache_data
 def lig_prot_overview(_pop, protein_pdb_string):
@@ -274,28 +317,6 @@ def lig_prot_overview(_pop, protein_pdb_string):
     # show all pi-stacking interactions
     # df = df.xs(interaction_types[0], level="interaction", axis=1)
     return df
-
-def py3Dmol_plot(ligand_pdbqt_string,protein_pdb_string, spin = False):
-
-    ligand = MolFromPdbqtBlock(ligand_pdbqt_string)
-    view = py3Dmol.view()
-    view.removeAllModels()
-    view.setViewStyle({'style':'outline','color':'black','width':0.1})
-
-    view.addModel(protein_pdb_string,format='pdb')
-    Prot=view.getModel()
-    Prot.setStyle({'cartoon':{'arrows':True, 'tubes':True, 'style':'oval', 'color':'white'}})
-    view.addSurface(py3Dmol.VDW,{'opacity':0.6,'color':'white'})
-
-    view.addModel(Chem.MolToMolBlock(ligand),format='mol2')
-    ref_m = view.getModel()
-    ref_m.setStyle({},{'stick':{'colorscheme':'greenCarbon','radius':0.2}})
-    if spin:
-        view.spin(True)
-    else:
-        view.spin(False)
-    view.zoomTo()
-    showmol(view,height=500,width=800)
 
 
 @st.cache_data
@@ -648,24 +669,24 @@ if pbz2:
 
         # Input widget
         idx = st.sidebar.selectbox('idx', sorted(grid.dataframe['idx']))
-        representation = st.sidebar.selectbox('Representation', ['ProLIF', 'Py3Dmol'])
+        representation = st.sidebar.selectbox('Representation', ['2D','3D'])
         spin = st.sidebar.empty()
-        if representation == 'ProLIF':
-            prolif_ligplot_html_document = prolif_plot(
+        if representation == '2D':
+            prolif_ligplot_html = prolif_plot_2d(
                 ligand_pdbqt_string=pdbqt_dataframe.loc[idx, 'pdbqt'],
                 protein_pdb_string=protein_pdb_string,
             )
             with plif:
                 with tab1:
-                    if prolif_ligplot_html_document:
-                        components.html(prolif_ligplot_html_document,width=None, height=500, scrolling=True)
+                    if prolif_ligplot_html:
+                        components.html(prolif_ligplot_html,width=None, height=500, scrolling=True)
                     else:
                         st.error("It was not possible to genereate the ProLIF image.")
         else:
             spin = spin.checkbox('Spin', value = False)
             with plif:
                 with tab1:
-                    py3Dmol_plot(
+                    prolif_plot_3d(
                         ligand_pdbqt_string=pdbqt_dataframe.loc[idx, 'pdbqt'],
                         protein_pdb_string=protein_pdb_string,
                         spin = spin
