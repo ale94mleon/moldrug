@@ -2,7 +2,7 @@ MolDrug Dashboard
 =================
 |streamlit| |MolDrug| |rdkit| |mols2grid| |ProLIF| |py3Dmol| |stmol| |mdanalysis| |meeko| |numpy| |pandas| |seaborn|
 
-`MolDrug-Dashboard <https://ale94mleon-moldrug-streamlitstreamlit-app-nltunu.streamlit.app/>`__ will help you to get a overview 
+`MolDrug-Dashboard <https://moldrug-dashboard.streamlit.app//>`__ will help you to get a overview 
 of your MolDrug simulation.
 
 

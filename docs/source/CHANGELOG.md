@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.5.0]
+
 ### Fixed
 
 - Refactored changes for for meeko-0.5.0.
@@ -19,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - From `csf` to `toml` package configuration.
-- Structure of the repo. Now `src/moldrug`
+- Structure of the repo. Now `src/moldrug`.
+- Improve [MolDrug-Dashboard](https://moldrug-dashboard.streamlit.app/).
 
 ## [3.4.0] - 2023.03.10
 
@@ -28,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Continuation option to the command line.
 - `moldrug.cli.CommandLineHelper` class to work with the parameters passed through the command line.
 - `checkpoint` option to `moldrug.utils.GA`.
-- [MolDrug-Dashboard](https://ale94mleon-moldrug-streamlitstreamlit-app-nltunu.streamlit.app) add-on. This is not included on the package itself, but could be used online or locally. In the case of locally you must check [Streamlit](https://streamlit.io/), the [requirements.txt](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/requirements.txt) and the [app script](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/streamlit_app.py).
+- [MolDrug-Dashboard](https://moldrug-dashboard.streamlit.app/) add-on. This is not included on the package itself, but could be used online or locally. In the case of locally you must check [Streamlit](https://streamlit.io/), the [requirements.txt](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/requirements.txt) and the [app script](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/streamlit_app.py).
 - `retunr_mol` option to `utils.to_dataframe`
 
 ### Changed
@@ -329,7 +332,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.4.0...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.5.0...HEAD
+[3.5.0]: https://github.com/ale94mleon/MolDrug/compare/3.4.0...3.5.0
 [3.4.0]: https://github.com/ale94mleon/MolDrug/compare/3.3.0...3.4.0
 [3.3.0]: https://github.com/ale94mleon/MolDrug/compare/3.2.5...3.3.0
 [3.2.5]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...3.2.5
