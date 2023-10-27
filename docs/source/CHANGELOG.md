@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- `vina_seed` argument for:
+  - all the cost functions of `moldrug.fitness`,
+  - `moldrug.fitness._vinadock`.
+- `randomseed`:
+  - `moldrug.utils.confgen`,
+  - `moldrug.utils.Individual`,
+  - `moldrug.utils.Local`,
+  - `moldrug.utils.GA`,
+  - `moldrug.constraintconf.constraintconf` as well its CLI with the flag `--seed`.
+
+### Changed
+
+- Use `random.random` instead `numpy.random.rand` function for some small cases.
+- `AllChem.MMFFOptimizeMolecule` is only used internally for `moldrug.utils.confgen` and ``moldrug.constraintconf.gen_aligned_conf` if `radnomseed` is not set and with ` maxIters = 500`.
+
+### Fixed
+
+- Small bug when the population has Individuals with the same cost. Better reproducibility.
+- Refactored changes on tutorials.
+
 ## [3.5.0] - 2023.10.26
 
 ### Fixed

@@ -119,9 +119,11 @@ def test_multi_receptor(maxiter = 1, popsize = 2, njobs = 3, NumbCalls = 1):
             'exhaustiveness': 4,
             'ncores': int(cpu_count() / njobs),
             'num_modes': 1,
+            'vina_seed': 1234,
         },
         save_pop_every_gen = 20,
-        deffnm = os.path.join(tmp_path.name, 'test_multi_receptor')
+        deffnm = os.path.join(tmp_path.name, 'test_multi_receptor'),
+        randomseed = 123,
         )
 
     for _ in range(NumbCalls):
@@ -217,30 +219,30 @@ def test_fitness_module():
 
     fitness.Cost(Individual = copy.deepcopy(
         individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
-        boxcenter = boxes.r_x0161['A']['boxcenter'],boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+        boxcenter = boxes.r_x0161['A']['boxcenter'],boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, vina_seed=1234)
     fitness.CostMultiReceptors(
         Individual = copy.deepcopy(individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
-        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(
         Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
-        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(
         Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
-        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4,wt_cutoff=2)
+        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4,wt_cutoff=2, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(Individual = copy.deepcopy(
         individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = receptor_pdbqt_path,
-        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
+        vina_score_type = vina_score_type,boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4, vina_seed=1234)
 
 
     fitness.CostOnlyVina(
         Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
-        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, vina_seed=1234)
     fitness.CostOnlyVina(
         Individual = copy.deepcopy(individual),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
-        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2)
+        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, wt_cutoff=2, vina_seed=1234)
     fitness.CostOnlyVina(
         Individual = copy.deepcopy(individual_corrupted),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
-        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4)
+        boxcenter = boxes.r_x0161['A']['boxcenter'], boxsize = boxes.r_x0161['A']['boxsize'],exhaustiveness = 4,ncores = 4, vina_seed=1234)
 
     fitness.__get_mol_cost(
         mol = Chem.MolFromMolBlock(constraintref.r_x0161),wd = tmp_path.name,receptor_pdbqt_path = r_x0161_pdbqt_file,
@@ -343,7 +345,8 @@ def test_constraintconf():
         pdb=r_x0161_pdb_file,
         smi = os.path.join(tmp_path.name, 'mol.smi'),
         fix= os.path.join(tmp_path.name, 'fix.sdf'),
-        out = os.path.join(tmp_path.name, 'conf.sdf')
+        out = os.path.join(tmp_path.name, 'conf.sdf'),
+        randomseed=1234,
     )
     # Clean
     utils.tar_errors()
@@ -356,7 +359,7 @@ def test_generate_conformers():
 
     AllChem.EmbedMolecule(ref)
     AllChem.MMFFOptimizeMolecule(ref)
-    generate_conformers(Chem.RemoveHs(mol), Chem.RemoveHs(ref), 50)
+    generate_conformers(Chem.RemoveHs(mol), Chem.RemoveHs(ref), 50, randomseed=1234)
 
     # Clean
     utils.tar_errors()

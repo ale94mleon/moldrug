@@ -172,7 +172,7 @@ def plot_dist(individuals:list[utils.Individual], properties:list[str], every_ge
 
     SawIndividuals = utils.to_dataframe(individuals).drop(['pdbqt'], axis = 1).replace([np.inf, -np.inf], np.nan).dropna()
     SawIndividuals = SawIndividuals[SawIndividuals['kept_gens'].map(len) != 0].reset_index(drop=True)
-    gen_idxs = sorted(SawIndividuals.genID.unique())
+    gen_idxs = sorted(set(item for sublist in SawIndividuals['kept_gens'] for item in sublist))
     NumGens = max(gen_idxs)
 
     # Set pop to the initial population and pops out the first gen
@@ -189,7 +189,7 @@ def plot_dist(individuals:list[utils.Individual], properties:list[str], every_ge
         sns.violinplot(hue = 'genID', y = properties[0], data=pops, palette="Set3", bw_adjust=.2, cut=0, linewidth=1, ax=axes, legend=False)
     else:
         for i, prop in enumerate(properties):
-            sns.violinplot(hue = 'genID', y = prop, data=pops, palette="Set3", bw_adjust=.2, cut=0, linewidth=1, ax=axes[i], legend=False)
+            sns.violinplot(hue = 'genID', x = 'genID', y = prop, data=pops, palette="Set3", bw_adjust=.2, cut=0, linewidth=1, ax=axes[i], legend=False)
 
     return fig, axes
 

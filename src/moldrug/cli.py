@@ -8,6 +8,7 @@ For information of MolDrug:
 from moldrug import utils, constraintconf, __version__
 import yaml, argparse, inspect, os, sys, datetime
 from rdkit import Chem
+from typing import Union
 
 class CommandLineHelper:
     def __init__(self, parser) -> None:
@@ -381,8 +382,23 @@ def __constraintconf_cmd():
         default = 1.5,
         type = float,
     )
+    parser.add_argument(
+        '--seed',
+        help = 'Provide a seed for the random number generator so that the same coordinates can be obtained for a molecule on multiple runs. If None, the RNG will not be seeded, by default None %(default)s',
+        dest = 'seed',
+        default = None,
+        type = Union[int, None],
+    )
     args = parser.parse_args()
-    constraintconf.constraintconf(args.pdb, args.smi, args.fix, args.out, args.max, args.rms, args.bump)
+    constraintconf.constraintconf(
+        pdb = args.pdb,
+        smi = args.smi,
+        fix = args.fix,
+        out = args.out,
+        max_conf = args.max,
+        rms = args.rms,
+        bump = args.bump,
+        randomseed = args.seed)
 
 
 if __name__ == '__main__':

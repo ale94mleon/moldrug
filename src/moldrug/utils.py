@@ -51,7 +51,7 @@ def run(command: str, shell: bool = True, executable: str = '/bin/bash'):
         raise RuntimeError(process.stderr)
     return process
 
-def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False):
+def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False, randomseed:Union[int, None] = None):
     """Create a 3D model from a smiles and return a pdbqt string and, a mol if ``return_mol = True``.
 
     Parameters
@@ -60,6 +60,8 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False):
         A valid RDKit molecule.
     return_mol : bool, optional
         If true the function will also return the ``rdkit.Chem.rdchem.Mol``, by default False
+    randomseed : Union[None, int], optional
+       Provide a seed for the random number generator so that the same coordinates can be obtained for a molecule on multiple runs. If None, the RNG will not be seeded, by default None
 
     Returns
     -------
@@ -67,8 +69,15 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False):
         If ``return_mol = True`` it will return a tuple ``(str[pdbqt], Chem.rdchem.Mol)``, if not only a ``str`` that represents the pdbqt.
     """
     mol = Chem.AddHs(mol)
-    AllChem.EmbedMolecule(mol)
-    AllChem.MMFFOptimizeMolecule(mol)
+    if randomseed is None:
+        randomSeed = -1
+    else:
+        randomSeed = randomseed
+
+    AllChem.EmbedMolecule(mol, randomSeed = randomSeed)
+    # The optimization introduce some sort of non-reproducible results. For that reason is not used when randomseed is set
+    if not randomseed:
+        AllChem.MMFFOptimizeMolecule(mol, maxIters = 500)
     preparator = MoleculePreparation()
     mol_setups = preparator.prepare(mol)
     pdbqt_string = PDBQTWriterLegacy.write_string(mol_setups[0])[0]
@@ -188,7 +197,7 @@ def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, beta: floa
         cumsum = np.cumsum(probs)
         indexes = set()
         while len(indexes) != pick:
-            r = sum(probs)*np.random.rand()
+            r = sum(probs) * random.random()
             indexes.add(np.argwhere(r <= cumsum)[0][0])
         return [mols[index] for index in indexes]
 
@@ -612,7 +621,7 @@ class Individual:
 
 
     """
-    def __init__(self, mol:Chem.rdchem.Mol, idx = 0, pdbqt:str = None, cost:float = np.inf) -> None:
+    def __init__(self, mol:Chem.rdchem.Mol, idx = 0, pdbqt:str = None, cost:float = np.inf, randomseed:Union[int, None] = None) -> None:
         """This is the constructor of the class.
 
         Parameters
@@ -626,12 +635,15 @@ class Individual:
             and the mol attribute will be update with the 3D model, by default None
         cost : float, optional
             This attribute is used to perform operations between Individuals and should be used for the cost functions, by default np.inf
+        randomseed : Union[None, int], optional
+            Provide a seed for the random number generator so that the "same" coordinates can be obtained for the attribute pdbqt on multiple runs. If None, the RNG will not be seeded, by default None
+
         """
         self.mol = mol
 
         if not pdbqt:
             try:
-                self.pdbqt = confgen(self.mol)
+                self.pdbqt = confgen(self.mol, randomseed=randomseed)
             except Exception:
                 self.pdbqt = None
         else:
@@ -871,7 +883,7 @@ def roulette_wheel_selection(p:List[float]):
         The selected index
     """
     c = np.cumsum(p)
-    r = sum(p)*np.random.rand()
+    r = sum(p) * random.random()
     ind = np.argwhere(r <= c)
     return ind[0][0]
 
@@ -902,7 +914,7 @@ class Local:
     """For local search
     """
     def __init__(self, seed_mol:Chem.rdchem.Mol, crem_db_path:str, costfunc:object, grow_crem_kwargs:Dict = None,
-    costfunc_kwargs:Dict = None, AddHs:bool = False) -> None:
+    costfunc_kwargs:Dict = None, AddHs:bool = False, randomseed:Union[None, int] = None) -> None:
         """Creator
 
         Parameters
@@ -919,6 +931,8 @@ class Local:
             The keyword arguments of the selected cost function, by default {}
         AddHs : bool, optional
             If True the explicit hyrgones will be added, by default False
+        randomseed : Union[None, int], optional
+           Set a random seed for reproducibility, by default None
 
         Raises
         ------
@@ -927,6 +941,9 @@ class Local:
         ValueError
             In case of incorrect definition of grow_crem_kwargs and/or costfunc_kwargs. They must be None or a dict instance.
         """
+        self.randomseed = randomseed
+        if self.randomseed  is not None: random.seed(randomseed)
+
         self.__moldrug_version = __version__
 
         if grow_crem_kwargs is None:
@@ -945,7 +962,7 @@ class Local:
         else:
             self._seed_mol = seed_mol
 
-        self.InitIndividual = Individual(self._seed_mol, idx = 0)
+        self.InitIndividual = Individual(self._seed_mol, idx = 0, randomseed = self.randomseed)
         if not self.InitIndividual.pdbqt:
             raise Exception("For some reason, it was not possible to create for the class Individula "\
                 "a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
@@ -981,7 +998,7 @@ class Local:
 
         idx0 = len(self.pop)
         for i, mol in enumerate(new_mols):
-            individual = Individual(mol, idx = idx0 + i)
+            individual = Individual(mol, idx = idx0 + i, randomseed = self.randomseed)
             if individual.pdbqt:
                 self.pop.append(individual)
 
@@ -1052,7 +1069,7 @@ class GA:
     def __init__(self, seed_mol:Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],
     costfunc:object, costfunc_kwargs:Dict, crem_db_path:str, maxiter:int, popsize:int,
     beta:float = 0.001, pc:float = 1, get_similar:bool = False, mutate_crem_kwargs:Dict = None,
-    save_pop_every_gen:int = 0, checkpoint:bool = False, deffnm:str = 'ga', AddHs:bool = False) -> None:
+    save_pop_every_gen:int = 0, checkpoint:bool = False, deffnm:str = 'ga', AddHs:bool = False, randomseed:Union[None, int] = None) -> None:
         """This is the generator
 
         Parameters
@@ -1082,12 +1099,14 @@ class GA:
             Frequency to save the population, by default 0
         checkpoint : bool, optional
             If True the whole class will be saved as cpt with the frequency of save_pop_every_gen.
-            This means that if save_pop_every_gen = 0 and checkpoint = True, no chackpoint will be
+            This means that if save_pop_every_gen = 0 and checkpoint = True, no checkpoint will be
             output, by default False
         deffnm : str, optional
             Default name for all generated files, by default 'ga'
         AddHs : bool, optional
            If True the explicit hydrogens will be added, by default False
+        randomseed : Union[None, int], optional
+           Set a random seed for reproducibility, by default None
         Raises
         ------
         TypeError
@@ -1095,6 +1114,9 @@ class GA:
         ValueError
             In case of incorrect definition of mutate_crem_kwargs. It must be None or a dict instance.
         """
+        self.randomseed = randomseed
+        if self.randomseed  is not None: random.seed(randomseed)
+
         self.__moldrug_version__ = __version__
         if mutate_crem_kwargs is None:
             mutate_crem_kwargs = dict()
@@ -1153,7 +1175,7 @@ class GA:
         #     _ = [atom.SetIntProp('label_MolDrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
 
         # Create the first Individual
-        self.InitIndividual = Individual(self._seed_mol[0], idx = 0)
+        self.InitIndividual = Individual(self._seed_mol[0], idx = 0, randomseed = self.randomseed)
         self.pop = []
 
     def __call__(self, njobs:int = 1):
@@ -1214,22 +1236,22 @@ class GA:
 
             # Adding the inputs to the initial population
             for i, mol in enumerate(self._seed_mol):
-                individual = Individual(mol, idx = i)
+                individual = Individual(mol, idx = i, randomseed = self.randomseed)
                 if individual.pdbqt:
                     self.pop.append(individual)
 
             # Completing the population with the generated structures
             for i, mol in enumerate(GenInitStructs):
                 if self.AddHs:
-                    individual = Individual(Chem.AddHs(mol), idx = i + len(self._seed_mol))
+                    individual = Individual(Chem.AddHs(mol), idx = i + len(self._seed_mol), randomseed = self.randomseed)
                 else:
-                    individual = Individual(mol, idx = i + len(self._seed_mol))
+                    individual = Individual(mol, idx = i + len(self._seed_mol), randomseed = self.randomseed)
                 if individual.pdbqt:
                     self.pop.append(individual)
 
             # Make sure that the population do not have more than popsize members and it is without repeated elements.
-            # That could happens if seed_mol has more molecules that popsize
-            self.pop = list(set(self.pop))[:self.popsize]
+            # That could happens if seed_mol has more molecules than popsize
+            self.pop = sorted(set(self.pop), key=lambda x:x.idx)[:self.popsize]
 
             # Calculating cost of each individual
             # Creating the arguments
@@ -1270,8 +1292,10 @@ class GA:
                 'generated':len(self.pop[:])
             }
 
+            # Get the same order population in case cost is the same. Sorted by idx and then by cost
+            self.pop = sorted(sorted(self.pop, key=lambda x:x.idx))
             # Print some information of the initial population
-            print(f"Initial Population: Best Individual: {min(self.pop)}")
+            print(f"Initial Population: Best Individual: {self.pop[0]}")
             print(f"Accepted rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
             # Updating the info of the first individual (parent) to print at the end how well performed the method (cost function)
             # Because How the population was initialized and because we are using pool.imap (ordered). The parent is the first Individual of self.pop.
@@ -1361,7 +1385,7 @@ class GA:
 
             # Merge, Sort and Select
             self.pop += popc
-            self.pop = sorted(self.pop)
+            self.pop = sorted(sorted(self.pop, key=lambda x:x.idx))
             self.pop = self.pop[:self.popsize]
 
             # Update the kept_gens attribute
@@ -1457,7 +1481,7 @@ class GA:
             mol = individual.mol
         if self.AddHs:
             mol = Chem.AddHs(mol)
-        return Individual(mol)
+        return Individual(mol, randomseed = self.randomseed)
 
     def pickle(self, title:str, compress = False):
         """Method to pickle the whole GA class

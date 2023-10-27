@@ -7,7 +7,7 @@ from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
 import os
 import numpy as np
-from typing import Dict, List
+from typing import Dict, List, Union
 # from warnings import import warn
 from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate, PDBQTWriterLegacy
 
@@ -167,6 +167,7 @@ def _vinadock(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
     vina_executable:str = 'vina',
+    vina_seed:Union[int, None] = None,
     receptor_pdbqt_path:str = None,
     boxcenter:List[float] = None,
     boxsize:List[float] = None,
@@ -195,6 +196,8 @@ def _vinadock(
     vina_executable : str, optional
         This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
         which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
+    vina_seed : Union[int, None], optional
+        Explicit random seed used by vina or the constraint docking routine, by default None
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : List[float], optional
@@ -202,7 +205,7 @@ def _vinadock(
     boxsize : List[float], optional
         A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
-         Parameter of vina that controls the accuracy of the docking searching, by default 8
+        Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : str, optional
         Affinity maps for the autodock4.2 (ad4) or vina scoring function, by default None
     ncores : int, optional
@@ -259,6 +262,9 @@ def _vinadock(
         cmd_vina_str += f" --receptor {os.path.abspath(receptor_pdbqt_path)}"\
             f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
             f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
+    
+    if vina_seed is not None:
+        cmd_vina_str += f" --seed {vina_seed}"
 
     if constraint:
         # Check for the correct type of docking
@@ -274,9 +280,10 @@ def _vinadock(
                 ref_mol = Chem.RemoveHs(constraint_ref),
                 num_conf = constraint_num_conf,
                 #ref_smi=Chem.MolToSmiles(constraint_ref),
-                minimum_conf_rms=constraint_minimum_conf_rms)
+                minimum_conf_rms = constraint_minimum_conf_rms,
+                randomseed = vina_seed,
+                )
         except Exception as e:
-            # TODO I should add this kind of lines on the code. It is quite useful for debug
             if verbose:
                 print(f"constraintconf.generate_conformers fails inside moldrug.fitness._vinadock with {e}")
             vina_score_pdbqt = (np.inf, "NonValidConformer")
@@ -373,7 +380,9 @@ def _vinadock(
             }
             utils.compressed_pickle(f'error/{Individual.idx}_error', error)
             # warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file in error.\n")
-
+            if verbose:
+                for key in error:
+                    print(f"{key}: {error[key]}")
             vina_score_pdbqt = (np.inf, 'VinaFailed')
             return vina_score_pdbqt
 
@@ -387,6 +396,7 @@ def Cost(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
     vina_executable:str = 'vina',
+    vina_seed:Union[int, None] = None,
     receptor_pdbqt_path:str = None,
     boxcenter:List[float] = None,
     boxsize:List[float] = None,
@@ -422,6 +432,8 @@ def Cost(
     vina_executable : str, optional
         This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
         which must have  execution permits (chmod a+x <your binary file>),  by default 'vina'
+    vina_seed : Union[int, None], optional
+        Explicit random seed used by vina, by default None
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : list[float], optional
@@ -531,6 +543,7 @@ def Cost(
         Individual = Individual,
         wd = wd,
         vina_executable = vina_executable,
+        vina_seed = vina_seed,
         receptor_pdbqt_path =  receptor_pdbqt_path,
         boxcenter = boxcenter,
         boxsize = boxsize,
@@ -572,6 +585,7 @@ def CostOnlyVina(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
     vina_executable:str = 'vina',
+    vina_seed:Union[int, None] = None,
     receptor_pdbqt_path:str = None,
     boxcenter:List[float] = None,
     boxsize:List[float] = None,
@@ -599,6 +613,8 @@ def CostOnlyVina(
     vina_executable : str, optional
         This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
         which must have  execution permits (chmod a+x <your binary file>),  by default 'vina'
+    vina_seed : Union[int, None], optional
+        Explicit random seed used by vina, by default None
     receptor_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : list[float], optional
@@ -670,6 +686,7 @@ def CostOnlyVina(
         Individual = Individual,
         wd = wd,
         vina_executable = vina_executable,
+        vina_seed = vina_seed,
         receptor_pdbqt_path =  receptor_pdbqt_path,
         boxcenter = boxcenter,
         boxsize = boxsize,
@@ -691,6 +708,7 @@ def CostMultiReceptors(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
     vina_executable:str = 'vina',
+    vina_seed:Union[int, None] = None,
     receptor_pdbqt_path:List[str] = None,
     vina_score_type:List[str] = None,
     boxcenter:List[List[float]] = None,
@@ -730,6 +748,8 @@ def CostMultiReceptors(
     vina_executable : str, optional
         This is the name of the vina executable, could be a path to the binary object (absolute path is recommended),
         which must have  execution permits (chmod a+x <your binary file>), by default 'vina'
+    vina_seed : Union[int, None], optional
+        Explicit random seed used by vina, by default None
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
     vina_score_type : list[str], optional
@@ -870,6 +890,7 @@ def CostMultiReceptors(
                 Individual = Individual,
                 wd = wd,
                 vina_executable = vina_executable,
+                vina_seed = vina_seed,
                 receptor_pdbqt_path =  receptor_pdbqt_path[i],
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],
@@ -889,6 +910,7 @@ def CostMultiReceptors(
                 Individual = Individual,
                 wd = wd,
                 vina_executable = vina_executable,
+                vina_seed = vina_seed,
                 receptor_pdbqt_path =  receptor_pdbqt_path[i],
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],
@@ -946,6 +968,7 @@ def CostMultiReceptorsOnlyVina(
     Individual:utils.Individual,
     wd:str = '.vina_jobs',
     vina_executable:str = 'vina',
+    vina_seed:Union[int, None] = None,
     receptor_pdbqt_path:List[str] = None,
     vina_score_type:List[str] = None,
     boxcenter:List[List[float]] = None,
@@ -982,6 +1005,8 @@ def CostMultiReceptorsOnlyVina(
     vina_executable : str, optional
         This is the name of the vina executable, could be a path to the binary object (absolute path is recommended), which must have
         execution permits (chmod a+x <your binary file>), by default 'vina'
+    vina_seed : Union[int, None], optional
+        Explicit random seed used by vina, by default None
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
     vina_score_type : list[str], optional
@@ -1108,6 +1133,7 @@ def CostMultiReceptorsOnlyVina(
                 Individual = Individual,
                 wd = wd,
                 vina_executable = vina_executable,
+                vina_seed = vina_seed,
                 receptor_pdbqt_path =  receptor_pdbqt_path[i],
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],
@@ -1127,6 +1153,7 @@ def CostMultiReceptorsOnlyVina(
                 Individual = Individual,
                 wd = wd,
                 vina_executable = vina_executable,
+                vina_seed = vina_seed,
                 receptor_pdbqt_path =  receptor_pdbqt_path[i],
                 boxcenter = boxcenter[i],
                 boxsize = boxsize[i],

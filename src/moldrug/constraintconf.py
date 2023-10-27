@@ -16,7 +16,7 @@ from copy import deepcopy
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdFMCS
 import os
-from typing import  Optional
+from typing import Optional, Union
 # import warnings
 from tqdm import tqdm
 import Bio.PDB as PDB
@@ -73,7 +73,7 @@ def get_mcs(mol_one: Chem.rdchem.Mol, mol_two: Chem.rdchem.Mol) -> str:
         mcs_smi = Chem.MolFragmentToSmiles(mol_one, atomsToUse=valid_atoms)
     return mcs_smi
 
-def gen_aligned_conf(mol: Chem.rdchem.Mol, ref_mol: Chem.rdchem.Mol, ref_smi:str):
+def gen_aligned_conf(mol: Chem.rdchem.Mol, ref_mol: Chem.rdchem.Mol, ref_smi:str, randomseed:Union[int, None] = None) -> Chem.rdchem.Mol:
     """Generate a conformation of mol aligned to ref_mol
 
     Parameters
@@ -84,14 +84,22 @@ def gen_aligned_conf(mol: Chem.rdchem.Mol, ref_mol: Chem.rdchem.Mol, ref_smi:str
         Reference molecule with a conformation
     ref_smi : str
         The SMILES string for which the aligned will take place.
+    randomseed : Union[None, int], optional
+       Provide a seed for the random number generator so that the same coordinates can be obtained for a molecule on multiple runs. If None, the RNG will not be seeded, by default None
 
     Returns
     -------
-    _type_
-        _description_
+    Chem.rdchem.Mol
+        The same molecules with a conformation aligned to ref_mol based on ref_smi
     """
-    AllChem.EmbedMolecule(mol)
-    # AllChem.MMFFOptimizeMolecule(mol)
+    if randomseed is None:
+        randomSeed = -1
+    else:
+        randomSeed = randomseed
+    AllChem.EmbedMolecule(mol, randomSeed = randomSeed)
+    # The optimization introduce some sort of non-reproducible results. For that reason is not used when randomseed is set
+    if not randomseed:
+        AllChem.MMFFOptimizeMolecule(mol, maxIters = 500)
     ref_smi_mol = Chem.MolFromSmiles(ref_smi)
     Chem.rdMolAlign.AlignMol(
         mol,
@@ -105,6 +113,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                         num_conf: int,
                         ref_smi: str = None,
                         minimum_conf_rms: Optional[float] = None,
+                        randomseed:Union[int, None] = None
                         ) -> Chem.rdchem.Mol:
     """
     Generate constrained conformers
@@ -121,6 +130,8 @@ def generate_conformers(mol: Chem.rdchem.Mol,
         part of the molecule to keep fix. If ref_smi is not given, assume to the MCS between mol and ref_mol, by default None
     minimum_conf_rms : Optional[float], optional
         Threshold of rms to consider duplicate structure, by default None
+    randomseed : Union[None, int], optional
+       Provide a seed for the random number generator so that the same coordinates can be obtained for a molecule on multiple runs. If None, the RNG will not be seeded, by default None
 
     Returns
     -------
@@ -160,11 +171,11 @@ def generate_conformers(mol: Chem.rdchem.Mol,
             except Exception as e:
                 if verbose:
                     print(F"AllChem.ConstrainedEmbed fails with: {e}. On the molecules:\n current mol: {Chem.MolToSmiles(temp_mol)}\ncore: {Chem.MolToSmiles(core1)}\nTrying with gen_aligned_conf")
-                temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi)
+                temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi, randomseed = randomseed)
             temp_mol = Chem.RemoveHs(temp_mol)
             conf_idx = outmol.AddConformer(temp_mol.GetConformer(0), assignId=True)
             if minimum_conf_rms is not None:
-                if duplicate_conformers(outmol, conf_idx, rms_limit=minimum_conf_rms):
+                if duplicate_conformers(outmol, conf_idx, rms_limit = minimum_conf_rms):
                     dup_count += 1
                     outmol.RemoveConformer(conf_idx)
         if dup_count:
@@ -219,7 +230,7 @@ class ProteinLigandClashFilter:
                 return True
         return False
 
-def constraintconf(pdb:str, smi:str, fix:str, out:str, max_conf:int = 25, rms:float = 0.01, bump:float = 1.5):
+def constraintconf(pdb:str, smi:str, fix:str, out:str, max_conf:int = 25, rms:float = 0.01, bump:float = 1.5, randomseed:Union[int, None] = None):
     """
     It generates several conformations in the binding pocket with a specified constraint.
 
@@ -239,6 +250,8 @@ def constraintconf(pdb:str, smi:str, fix:str, out:str, max_conf:int = 25, rms:fl
         RMS cutoff, by default 0.01
     bump : float, optional
         Bump cutoff, by default 1.5
+    randomseed : Union[None, int], optional
+       Provide a seed for the random number generator so that the same coordinates can be obtained for a molecule on multiple runs. If None, the RNG will not be seeded, by default None
     """
 
     ref = Chem.MolFromMolFile(fix)
@@ -251,8 +264,9 @@ def constraintconf(pdb:str, smi:str, fix:str, out:str, max_conf:int = 25, rms:fl
         # generate conformers
         out_mol = generate_conformers(mol, ref,
                                       max_conf,
-                                      ref_smi=Chem.MolToSmiles(ref),
-                                      minimum_conf_rms=rms)
+                                      ref_smi = Chem.MolToSmiles(ref),
+                                      minimum_conf_rms = rms,
+                                      randomseed = randomseed)
 
         # remove conformers that clash with the protein
         clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
