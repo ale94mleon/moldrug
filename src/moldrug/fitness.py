@@ -261,7 +261,7 @@ def _vinadock(
         cmd_vina_str += f" --receptor {os.path.abspath(receptor_pdbqt_path)}"\
             f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
             f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
-    
+
     if vina_seed is not None:
         cmd_vina_str += f" --seed {vina_seed}"
 

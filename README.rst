@@ -82,7 +82,7 @@ with the pharmaceutical company `Boehringer Ingelheim <https://www.boehringer-in
     :target: https://codecov.io/gh/ale94mleon/MolDrug
     :alt: codecov
 ..  |codacy| image:: https://app.codacy.com/project/badge/Grade/08a3ac7c13df4339b8a1da0e8d31810e
-    :target: https://www.codacy.com/gh/ale94mleon/MolDrug/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ale94mleon/MolDrug&amp;utm_campaign=Badge_Grade
+    :target: https://app.codacy.com/gh/ale94mleon/MolDrug/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
     :alt: codacy
 ..  |CodeQL| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml/badge.svg
     :target: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml

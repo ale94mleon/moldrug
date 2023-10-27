@@ -46,7 +46,7 @@ class CommandLineHelper:
     def _set_costfunc(self):
         if self.fitness:
             # If the fitness module provided is not in the current directory or if its name is not fitness
-            # Create the module inside MolDrug
+            # Create the module inside in self.outdir or in the current directory
             if self.outdir:
                 if not os.path.exists(self.outdir): os.makedirs(self.outdir)
                 destination_path = os.path.join(self.outdir, 'CustomMolDrugFitness.py')
@@ -59,7 +59,6 @@ class CommandLineHelper:
             if self.outdir: os.chdir(self.outdir)
             sys.path.append('.')
             import CustomMolDrugFitness
-
             costfunc = dict(inspect.getmembers(CustomMolDrugFitness))[self._split_config()[0]['costfunc']]
         else:
             from moldrug import fitness

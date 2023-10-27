@@ -282,8 +282,6 @@ def prolif_plot_3d(ligand_pdbqt_string,protein_pdb_string, spin = False):
         showmol(view, height=500,width=800)
     except ValueError:
         st.warning('No possible to display')
-    
-
 
 @st.cache_data
 def lig_prot_overview(_pop, protein_pdb_string):
