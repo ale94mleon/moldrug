@@ -130,7 +130,6 @@ class CommandLineHelper:
                     "jobs from the yaml file (only the main job is possible)")
             else:
                 # Add default value in case it is not provided for keyword arguments
-                ga_keywords = {}
                 list_of_keywords = [
                     'beta', 'pc', 'get_similar','mutate_crem_kwargs',
                     'save_pop_every_gen', 'checkpoint', 'deffnm',
@@ -327,10 +326,7 @@ def __moldrug_cmd():
             print(f'The job {job} finished!')
 
     # Clean checkpoint on normal end
-    try:
-        os.remove('cpt.pbz2')
-    except Exception:
-        pass
+    if os.path.isfile('cpt.pbz2'): os.remove('cpt.pbz2')
 
 def __constraintconf_cmd():
     """

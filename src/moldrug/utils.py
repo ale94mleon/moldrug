@@ -197,7 +197,7 @@ def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, beta: floa
         cumsum = np.cumsum(probs)
         indexes = set()
         while len(indexes) != pick:
-            r = sum(probs) * random.random()
+            r = sum(probs) * random.random() # noqa
             indexes.add(np.argwhere(r <= cumsum)[0][0])
         return [mols[index] for index in indexes]
 
@@ -414,7 +414,7 @@ def loosen(file: str):
     return data
 
 def compressed_pickle(title: str, data: object):
-    """Compress python object. First cPickle it and then bz2.BZ2File compressed it.
+    """Compress Python object. First cPickle it and then bz2.BZ2File compressed it.
 
     Parameters
     ----------
@@ -883,7 +883,7 @@ def roulette_wheel_selection(p:List[float]):
         The selected index
     """
     c = np.cumsum(p)
-    r = sum(p) * random.random()
+    r = sum(p) * random.random() # noqa
     ind = np.argwhere(r <= c)
     return ind[0][0]
 

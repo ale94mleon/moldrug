@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 from copy import deepcopy
-from shutil import rmtree
 from moldrug import utils, constraintconf, verbose
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors

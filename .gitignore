@@ -25,4 +25,4 @@ public
 
 moldrug.egg-info
 
-moldrug/postpro.py
+src/moldrug/postpro.py

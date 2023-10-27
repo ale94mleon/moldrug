@@ -1,7 +1,6 @@
 import mols2grid
 from rdkit import Chem
 from rdkit import DataStructs
-from prolif.plotting.network import LigNetwork
 import prolif as plf
 import MDAnalysis as mda
 import numpy as np
