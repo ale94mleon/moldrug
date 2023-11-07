@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import moldrug, os, sys, inspect
+import moldrug
+import os
+import sys
+import inspect
 
 
 def home(dataDir=None):

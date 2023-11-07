@@ -10,16 +10,15 @@ from typing import Dict, List, Union
 # from warnings import import warn
 from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate, PDBQTWriterLegacy
 
-def __get_mol_cost(
-    mol:Chem.rdchem.Mol,
-    wd:str = '.vina_jobs',
-    vina_executable:str = 'vina',
-    receptor_pdbqt_path:str = None,
-    boxcenter:List[float] = None,
-    boxsize:List[float] = None,
-    score_only = True,
-    desirability:Dict = None
-    ):
+
+def __get_mol_cost(mol: Chem.rdchem.Mol,
+                   wd: str = '.vina_jobs',
+                   vina_executable: str = 'vina',
+                   receptor_pdbqt_path: str = None,
+                   boxcenter: List[float] = None,
+                   boxsize: List[float] = None,
+                   score_only: bool = True,
+                   desirability: Dict = None):
     """
     This function is for developing. It calculate the cost of a single molecule.
     I use it for testing.
@@ -36,14 +35,17 @@ def __get_mol_cost(
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : List[float], optional
-        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+        A list of three floats with the definition of the center of the box
+        in angstrom for docking (x, y, z), by default None
     boxsize : List[float], optional
-        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+        A list of three floats with the definition of the box size
+        in angstrom of the docking box (x, y, z), by default None
     score_only : bool, optional
         If True only a vina single point evaluation if not vina will perform optimization, by default True
     desirability : Dict, optional
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
-        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
+        Each variable only will accept
+        the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
         by default None which means that it will use
         desirability = {
         'qed':  {'w': 1,'LargerTheBest': {'LowerLimit': 0.1,'Target': 0.75,'r': 1}
@@ -152,37 +154,41 @@ def __get_mol_cost(
             elif key in utils.DerringerSuichDesirability():
                 d = utils.DerringerSuichDesirability()[key](results[variable], **desirability[variable][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} a non implemented key = {key}. "\
-                "Only are possible: 'w' (standing for weight) and any possible "\
-                f"Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable}"
+                                   f"a non implemented key = {key}. Only are possible: 'w' (standing for weight)"
+                                   "and any possible Derringer-Suich desirability function: "
+                                   f"{utils.DerringerSuichDesirability().keys()}")
         base *= d**w
         exponent += w
 
     # We are using a geometric mean. And because we are minimizing we have to return
-    results['desirability'] = 1 - base**(1/exponent)
+    results['desirability'] = 1 - base**(1 / exponent)
     return results
 
+
 def _vinadock(
-    Individual:utils.Individual,
-    wd:str = '.vina_jobs',
-    vina_executable:str = 'vina',
-    vina_seed:Union[int, None] = None,
-    receptor_pdbqt_path:str = None,
-    boxcenter:List[float] = None,
-    boxsize:List[float] = None,
-    exhaustiveness:int = 8,
-    ad4map:str = None,
-    ncores:int = 1,
-    num_modes:int = 1,
-    constraint:bool = False,
-    constraint_type:str = 'score_only', # score_only, local_only
-    constraint_ref:Chem.rdchem.Mol = None,
-    constraint_receptor_pdb_path:str = None,
-    constraint_num_conf:int = 100,
-    constraint_minimum_conf_rms:int = 0.01):
+        Individual: utils.Individual,
+        wd: str = '.vina_jobs',
+        vina_executable: str = 'vina',
+        vina_seed: Union[int, None] = None,
+        receptor_pdbqt_path: str = None,
+        boxcenter: List[float] = None,
+        boxsize: List[float] = None,
+        exhaustiveness: int = 8,
+        ad4map: str = None,
+        ncores: int = 1,
+        num_modes: int = 1,
+        constraint: bool = False,
+        constraint_type: str = 'score_only',  # score_only, local_only
+        constraint_ref: Chem.rdchem.Mol = None,
+        constraint_receptor_pdb_path: str = None,
+        constraint_num_conf: int = 100,
+        constraint_minimum_conf_rms: int = 0.01):
     """
-    This function is intend to be used to perform docking for all the cost functions implemented on :mod:`moldrug.fitness`
-    If ad4map (available from moldrug-3.0.0) is set, the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
+    This function is intend to be used to perform docking
+    for all the cost functions implemented on :mod:`moldrug.fitness`
+    If ad4map (available from moldrug-3.0.0) is set,
+    the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
     must be installed. To see how to use AutoDock4 force fields in the new version of vina, follow
     `this tutorial <https://autodock-vina.readthedocs.io/en/latest/docking_zinc.html>_`
 
@@ -200,9 +206,11 @@ def _vinadock(
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : List[float], optional
-        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+        A list of three floats with the definition of the center of the box
+        in angstrom for docking (x, y, z), by default None
     boxsize : List[float], optional
-        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+        A list of three floats with the definition of the box size
+        in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : str, optional
@@ -236,7 +244,8 @@ def _vinadock(
     Raises
     ------
     Exception
-        Inappropriate constraint_type. must be local_only or score_only. Only will be checked if constraint is set to True.
+        Inappropriate constraint_type. must be local_only or score_only.
+        Only will be checked if constraint is set to True.
     """
 
     constraint_type = constraint_type.lower()
@@ -275,21 +284,22 @@ def _vinadock(
         # Generate constrained conformer
         try:
             out_mol = constraintconf.generate_conformers(
-                mol = Chem.RemoveHs(Individual.mol),
-                ref_mol = Chem.RemoveHs(constraint_ref),
-                num_conf = constraint_num_conf,
-                #ref_smi=Chem.MolToSmiles(constraint_ref),
-                minimum_conf_rms = constraint_minimum_conf_rms,
-                randomseed = vina_seed,
-                )
+                mol=Chem.RemoveHs(Individual.mol),
+                ref_mol=Chem.RemoveHs(constraint_ref),
+                num_conf=constraint_num_conf,
+                # ref_smi=Chem.MolToSmiles(constraint_ref),
+                minimum_conf_rms=constraint_minimum_conf_rms,
+                randomseed=vina_seed)
         except Exception as e:
             if verbose:
                 print(f"constraintconf.generate_conformers fails inside moldrug.fitness._vinadock with {e}")
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
-        # Remove conformers that clash with the protein in case of score_only, for local_only vina will handle the clash.
+        # Remove conformers that clash with the protein in case of score_only,
+        # for local_only vina will handle the clash.
         if constraint_type == 'score_only':
-            clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath = constraint_receptor_pdb_path, distance=1.5)
+            clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath=constraint_receptor_pdb_path,
+                                                                   distance=1.5)
             clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
             _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
@@ -331,7 +341,6 @@ def _vinadock(
                         'boxsize': boxsize,
                     }
                     utils.compressed_pickle(f'error/idx_{Individual.idx}_conf_{conf.GetId()}_error', error)
-                    # warn(f"\nVina failed! Check: idx_{Individual.idx}_conf_{conf.GetId()}_error.pbz2 file in error.\n")
                     vina_score_pdbqt = (np.inf, PDBQTWriterLegacy.write_string(mol_setups[0])[0])
                     return vina_score_pdbqt
 
@@ -358,7 +367,8 @@ def _vinadock(
             vina_score_pdbqt = (np.inf, "NonGenConformer")
     # "Normal" docking
     else:
-        cmd_vina_str += f" --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} --out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')}"
+        cmd_vina_str += f" --ligand {os.path.join(wd, f'{Individual.idx}.pdbqt')} "\
+            f"--out {os.path.join(wd, f'{Individual.idx}_out.pdbqt')}"
         with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as lig_pdbqt:
             lig_pdbqt.write(Individual.pdbqt)
         try:
@@ -391,28 +401,29 @@ def _vinadock(
 
     return vina_score_pdbqt
 
+
 def Cost(
-    Individual:utils.Individual,
-    wd:str = '.vina_jobs',
-    vina_executable:str = 'vina',
-    vina_seed:Union[int, None] = None,
-    receptor_pdbqt_path:str = None,
-    boxcenter:List[float] = None,
-    boxsize:List[float] = None,
-    exhaustiveness:int = 8,
-    ad4map:str = None,
-    ncores:int = 1,
-    num_modes:int = 1,
-    constraint:bool = False,
-    constraint_type:str = 'score_only', # score_only, local_only
-    constraint_ref:Chem.rdchem.Mol = None,
-    constraint_receptor_pdb_path:str = None,
-    constraint_num_conf:int = 100,
-    constraint_minimum_conf_rms:int = 0.01,
-    desirability:Dict = None,
-    ):
+        Individual: utils.Individual,
+        wd: str = '.vina_jobs',
+        vina_executable: str = 'vina',
+        vina_seed: Union[int, None] = None,
+        receptor_pdbqt_path: str = None,
+        boxcenter: List[float] = None,
+        boxsize: List[float] = None,
+        exhaustiveness: int = 8,
+        ad4map: str = None,
+        ncores: int = 1,
+        num_modes: int = 1,
+        constraint: bool = False,
+        constraint_type: str = 'score_only',  # score_only, local_only
+        constraint_ref: Chem.rdchem.Mol = None,
+        constraint_receptor_pdb_path: str = None,
+        constraint_num_conf: int = 100,
+        constraint_minimum_conf_rms: int = 0.01,
+        desirability: Dict = None):
     """
-    This is the main Cost function of the module. It use the concept of desirability functions. The response variables are:
+    This is the main Cost function of the module. It use the concept of desirability functions.
+    The response variables are:
 
     #. `Vina score. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/>`_
     #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
@@ -436,9 +447,11 @@ def Cost(
     receptor_pdbqt_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : list[float], optional
-        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+        A list of three floats with the definition of the center of the box
+        in angstrom for docking (x, y, z), by default None
     boxsize : list[float], optional
-        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+        A list of three floats with the definition of the box size
+        in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : str, optional
@@ -464,7 +477,8 @@ def Cost(
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
-        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
+        Each variable only will accept
+        the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
         by default None which means that it will be used:
         desirability = {
         'qed': {'w': 1,'LargerTheBest': {'LowerLimit': 0.1,'Target': 0.75, 'r': 1}
@@ -539,27 +553,27 @@ def Cost(
 
     # Getting vina_score and update pdbqt
     Individual.vina_score, Individual.pdbqt = _vinadock(
-        Individual = Individual,
-        wd = wd,
-        vina_executable = vina_executable,
-        vina_seed = vina_seed,
-        receptor_pdbqt_path =  receptor_pdbqt_path,
-        boxcenter = boxcenter,
-        boxsize = boxsize,
-        exhaustiveness = exhaustiveness,
-        ad4map = ad4map,
-        ncores = ncores,
-        num_modes = num_modes,
-        constraint = constraint,
-        constraint_type = constraint_type,
-        constraint_ref = constraint_ref,
-        constraint_receptor_pdb_path = constraint_receptor_pdb_path,
-        constraint_num_conf = constraint_num_conf,
-        constraint_minimum_conf_rms = constraint_minimum_conf_rms,
-    )
+        Individual=Individual,
+        wd=wd,
+        vina_executable=vina_executable,
+        vina_seed=vina_seed,
+        receptor_pdbqt_path=receptor_pdbqt_path,
+        boxcenter=boxcenter,
+        boxsize=boxsize,
+        exhaustiveness=exhaustiveness,
+        ad4map=ad4map,
+        ncores=ncores,
+        num_modes=num_modes,
+        constraint=constraint,
+        constraint_type=constraint_type,
+        constraint_ref=constraint_ref,
+        constraint_receptor_pdb_path=constraint_receptor_pdb_path,
+        constraint_num_conf=constraint_num_conf,
+        constraint_minimum_conf_rms=constraint_minimum_conf_rms)
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
-    # Quantitative estimation of drug-likeness (ranges from 0 to 1). We could use just the value perse, but using LargerTheBest we are more permissible.
+    # Quantitative estimation of drug-likeness (ranges from 0 to 1). We could use just the value perse,
+    # but using LargerTheBest we are more permissible.
 
     base = 1
     exponent = 0
@@ -568,38 +582,41 @@ def Cost(
             if key == 'w':
                 w = desirability[variable][key]
             elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](getattr(Individual, variable), **desirability[variable][key])
+                d = utils.DerringerSuichDesirability()[key](
+                    getattr(Individual, variable), **desirability[variable][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "\
-                f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any "\
-                f"possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "
+                                   f"a non implemented key = {key}. Only are possible:"
+                                   "'w' (standing for weight) and any "
+                                   "possible Derringer-Suich desirability "
+                                   f"function: {utils.DerringerSuichDesirability().keys()}")
         base *= d**w
         exponent += w
 
     # We are using a geometric mean. And because we are minimizing we have to return
-    Individual.cost = 1 - base**(1/exponent)
+    Individual.cost = 1 - base**(1 / exponent)
     return Individual
 
+
 def CostOnlyVina(
-    Individual:utils.Individual,
-    wd:str = '.vina_jobs',
-    vina_executable:str = 'vina',
-    vina_seed:Union[int, None] = None,
-    receptor_pdbqt_path:str = None,
-    boxcenter:List[float] = None,
-    boxsize:List[float] = None,
-    exhaustiveness:int = 8,
-    ad4map:str = None,
-    ncores:int = 1,
-    num_modes:int = 1,
-    constraint:bool = False,
-    constraint_type:str = 'score_only', # score_only, local_only
-    constraint_ref:Chem.rdchem.Mol = None,
-    constraint_receptor_pdb_path:str = None,
-    constraint_num_conf:int = 100,
-    constraint_minimum_conf_rms:int = 0.01,
-    wt_cutoff:float = None,
-    ):
+        Individual: utils.Individual,
+        wd: str = '.vina_jobs',
+        vina_executable: str = 'vina',
+        vina_seed: Union[int, None] = None,
+        receptor_pdbqt_path: str = None,
+        boxcenter: List[float] = None,
+        boxsize: List[float] = None,
+        exhaustiveness: int = 8,
+        ad4map: str = None,
+        ncores: int = 1,
+        num_modes: int = 1,
+        constraint: bool = False,
+        constraint_type: str = 'score_only',  # score_only, local_only
+        constraint_ref: Chem.rdchem.Mol = None,
+        constraint_receptor_pdb_path: str = None,
+        constraint_num_conf: int = 100,
+        constraint_minimum_conf_rms: int = 0.01,
+        wt_cutoff: Union[None, float] = None):
     """
     This Cost function performs Docking and return the vina_score as Cost.
 
@@ -617,9 +634,11 @@ def CostOnlyVina(
     receptor_path : str, optional
         Where the receptor pdbqt file is located, by default None
     boxcenter : list[float], optional
-        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+        A list of three floats with the definition of the center of the box
+        in angstrom for docking (x, y, z), by default None
     boxsize : list[float], optional
-        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+        A list of three floats with the definition of the box size
+        in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : str, optional
@@ -643,7 +662,7 @@ def CostOnlyVina(
         Maximum number of conformer to be generated internally by MolDrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
-    wt_cutoff : float, optional
+    wt_cutoff : Union[None, float], optional
         If some number is provided the molecules with a molecular weight higher
         than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
     Returns
@@ -672,7 +691,8 @@ def CostOnlyVina(
             exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score)
     """
-    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add the pdbqt to pdbqts and np.inf to vina_scores
+    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute.
+    # Add the pdbqt to pdbqts and np.inf to vina_scores
     if wt_cutoff:
         if Descriptors.MolWt(Individual.mol) > wt_cutoff:
             Individual.vina_score = np.inf
@@ -682,48 +702,47 @@ def CostOnlyVina(
 
     # Getting vina_score and update pdbqt
     Individual.vina_score, Individual.pdbqt = _vinadock(
-        Individual = Individual,
-        wd = wd,
-        vina_executable = vina_executable,
-        vina_seed = vina_seed,
-        receptor_pdbqt_path =  receptor_pdbqt_path,
-        boxcenter = boxcenter,
-        boxsize = boxsize,
-        exhaustiveness = exhaustiveness,
-        ad4map = ad4map,
-        ncores = ncores,
-        num_modes = num_modes,
-        constraint = constraint,
-        constraint_type = constraint_type,
-        constraint_ref = constraint_ref,
-        constraint_receptor_pdb_path = constraint_receptor_pdb_path,
-        constraint_num_conf = constraint_num_conf,
-        constraint_minimum_conf_rms = constraint_minimum_conf_rms,
-    )
+        Individual=Individual,
+        wd=wd,
+        vina_executable=vina_executable,
+        vina_seed=vina_seed,
+        receptor_pdbqt_path=receptor_pdbqt_path,
+        boxcenter=boxcenter,
+        boxsize=boxsize,
+        exhaustiveness=exhaustiveness,
+        ad4map=ad4map,
+        ncores=ncores,
+        num_modes=num_modes,
+        constraint=constraint,
+        constraint_type=constraint_type,
+        constraint_ref=constraint_ref,
+        constraint_receptor_pdb_path=constraint_receptor_pdb_path,
+        constraint_num_conf=constraint_num_conf,
+        constraint_minimum_conf_rms=constraint_minimum_conf_rms)
     Individual.cost = Individual.vina_score
     return Individual
 
+
 def CostMultiReceptors(
-    Individual:utils.Individual,
-    wd:str = '.vina_jobs',
-    vina_executable:str = 'vina',
-    vina_seed:Union[int, None] = None,
-    receptor_pdbqt_path:List[str] = None,
-    vina_score_type:List[str] = None,
-    boxcenter:List[List[float]] = None,
-    boxsize:List[List[float]] = None,
-    exhaustiveness:int = 8,
-    ad4map:List[str] = None,
-    ncores:int = 1,
-    num_modes:int = 1,
-    constraint:bool = False,
-    constraint_type:str = 'score_only', # score_only, local_only
-    constraint_ref:Chem.rdchem.Mol = None,
-    constraint_receptor_pdb_path:List[str] = None,
-    constraint_num_conf:int = 100,
-    constraint_minimum_conf_rms:int = 0.01,
-    desirability:Dict = None
-    ):
+        Individual: utils.Individual,
+        wd: str = '.vina_jobs',
+        vina_executable: str = 'vina',
+        vina_seed: Union[int, None] = None,
+        receptor_pdbqt_path: List[str] = None,
+        vina_score_type: List[str] = None,
+        boxcenter: List[List[float]] = None,
+        boxsize: List[List[float]] = None,
+        exhaustiveness: int = 8,
+        ad4map: List[str] = None,
+        ncores: int = 1,
+        num_modes: int = 1,
+        constraint: bool = False,
+        constraint_type: str = 'score_only',  # score_only, local_only
+        constraint_ref: Chem.rdchem.Mol = None,
+        constraint_receptor_pdb_path: List[str] = None,
+        constraint_num_conf: int = 100,
+        constraint_minimum_conf_rms: int = 0.01,
+        desirability: Dict = None):
     """
     This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility
     to work with more than one receptor. It also use the concept of desirability and the response variables are:
@@ -732,7 +751,8 @@ def CostMultiReceptors(
     #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
     #. `Synthetic accessibility score.  <https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)>`_
 
-    In this case every vina score (for all the provided receptors) will be used for the construction of the desirability.
+    In this case every vina score (for all the provided receptors)
+    will be used for the construction of the desirability.
 
     If ad4map is set, the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
     must be installed. To see how to use AutoDock4 force fields in the new version of vina, follow
@@ -754,11 +774,14 @@ def CostMultiReceptors(
     vina_score_type : list[str], optional
         This is a list with the keywords 'min' and/or 'max'. E.g.
         If two receptor were provided and for the first one we would like to find a minimum in the vina scoring function
-        and for the other one a maximum (selectivity for the first receptor); we must provided the list: ['min', 'max'], by default None
+        and for the other one a maximum (selectivity for the first receptor);
+        we must provided the list: ['min', 'max'], by default None
     boxcenter : list[list[float]], optional
-        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+        A list of three floats with the definition of the center of the box
+        in angstrom for docking (x, y, z), by default None
     boxsize : list[list[float]], optional
-        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+        A list of three floats with the definition of the box size
+        in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : list[str], optional
@@ -785,7 +808,8 @@ def CostMultiReceptors(
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
         The definition of the desirability to use for each used variable = [qed, sa_score, vina_scores].
-        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
+        Each variable only will accept
+        the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
         In the case of vina_scores there is another layer for the vina_score_type= [min, max],
         by default is None which means that it will use:
         desirability = {
@@ -851,7 +875,7 @@ def CostMultiReceptors(
                 }
             },
             'vina_scores': {
-                'min':{
+                'min': {
                     'w': 1,
                     'SmallerTheBest': {
                         'Target': -12,
@@ -859,7 +883,7 @@ def CostMultiReceptors(
                         'r': 1
                     }
                 },
-                'max':{
+                'max': {
                     'w': 1,
                     'LargerTheBest': {
                         'LowerLimit': -4,
@@ -871,7 +895,7 @@ def CostMultiReceptors(
         }
 
     if not ad4map:
-        ad4map = [None]*len(receptor_pdbqt_path)
+        ad4map = [None] * len(receptor_pdbqt_path)
 
     sascorer = utils.import_sascorer()
     Individual.qed = QED.weights_mean(Individual.mol)
@@ -886,38 +910,36 @@ def CostMultiReceptors(
         # Getting vina_score and update pdbqt
         if constraint:
             vina_score, pdbqt = _vinadock(
-                Individual = Individual,
-                wd = wd,
-                vina_executable = vina_executable,
-                vina_seed = vina_seed,
-                receptor_pdbqt_path =  receptor_pdbqt_path[i],
-                boxcenter = boxcenter[i],
-                boxsize = boxsize[i],
-                exhaustiveness = exhaustiveness,
-                ad4map = ad4map[i],
-                ncores = ncores,
-                num_modes = num_modes,
-                constraint = constraint,
-                constraint_type = constraint_type,
-                constraint_ref = constraint_ref,
-                constraint_receptor_pdb_path = constraint_receptor_pdb_path[i],
-                constraint_num_conf = constraint_num_conf,
-                constraint_minimum_conf_rms = constraint_minimum_conf_rms,
-            )
+                Individual=Individual,
+                wd=wd,
+                vina_executable=vina_executable,
+                vina_seed=vina_seed,
+                receptor_pdbqt_path=receptor_pdbqt_path[i],
+                boxcenter=boxcenter[i],
+                boxsize=boxsize[i],
+                exhaustiveness=exhaustiveness,
+                ad4map=ad4map[i],
+                ncores=ncores,
+                num_modes=num_modes,
+                constraint=constraint,
+                constraint_type=constraint_type,
+                constraint_ref=constraint_ref,
+                constraint_receptor_pdb_path=constraint_receptor_pdb_path[i],
+                constraint_num_conf=constraint_num_conf,
+                constraint_minimum_conf_rms=constraint_minimum_conf_rms)
         else:
             vina_score, pdbqt = _vinadock(
-                Individual = Individual,
-                wd = wd,
-                vina_executable = vina_executable,
-                vina_seed = vina_seed,
-                receptor_pdbqt_path =  receptor_pdbqt_path[i],
-                boxcenter = boxcenter[i],
-                boxsize = boxsize[i],
-                exhaustiveness = exhaustiveness,
-                ad4map = ad4map[i],
-                ncores = ncores,
-                num_modes = num_modes,
-            )
+                Individual=Individual,
+                wd=wd,
+                vina_executable=vina_executable,
+                vina_seed=vina_seed,
+                receptor_pdbqt_path=receptor_pdbqt_path[i],
+                boxcenter=boxcenter[i],
+                boxsize=boxsize[i],
+                exhaustiveness=exhaustiveness,
+                ad4map=ad4map[i],
+                ncores=ncores,
+                num_modes=num_modes)
         Individual.vina_score.append(vina_score)
         pdbqt_list.append(pdbqt)
     # Update the pdbqt attribute
@@ -936,12 +958,14 @@ def CostMultiReceptors(
             if key == 'w':
                 w = desirability_to_work_with[variable][key]
             elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](getattr(Individual, variable), **desirability_to_work_with[variable][key])
+                d = utils.DerringerSuichDesirability()[key](
+                    getattr(Individual, variable), **desirability_to_work_with[variable][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "\
-                    f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "\
-                    f"any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}. "\
-                    "Only in the case of vina_scores [min and max] keys")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "
+                                   f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "
+                                   "any possible Derringer-Suich "
+                                   f"desirability function: {utils.DerringerSuichDesirability().keys()}. "
+                                   "Only in the case of vina_scores [min and max] keys")
         base *= d**w
         exponent += w
 
@@ -953,38 +977,40 @@ def CostMultiReceptors(
             elif key in utils.DerringerSuichDesirability():
                 d = utils.DerringerSuichDesirability()[key](vs, **vina_desirability_section[vst][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = vina_scores[{vst}] "\
-                    f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "\
-                    f"any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}.")
+                raise RuntimeError("Inside the desirability dictionary "
+                                   f"you provided for the variable = vina_scores[{vst}] "
+                                   f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "
+                                   "any possible Derringer-Suich "
+                                   f"desirability function: {utils.DerringerSuichDesirability().keys()}.")
         base *= d**w
         exponent += w
 
     # We are using a geometric mean. And because we are minimizing we have to return
-    Individual.cost = 1 - base**(1/exponent)
+    Individual.cost = 1 - base**(1 / exponent)
     return Individual
 
+
 def CostMultiReceptorsOnlyVina(
-    Individual:utils.Individual,
-    wd:str = '.vina_jobs',
-    vina_executable:str = 'vina',
-    vina_seed:Union[int, None] = None,
-    receptor_pdbqt_path:List[str] = None,
-    vina_score_type:List[str] = None,
-    boxcenter:List[List[float]] = None,
-    boxsize:List[List[float]] = None,
-    exhaustiveness:int = 8,
-    ad4map:List[str] = None,
-    ncores:int = 1,
-    num_modes:int = 1,
-    constraint:bool = False,
-    constraint_type:str = 'score_only', # score_only, local_only
-    constraint_ref:Chem.rdchem.Mol = None,
-    constraint_receptor_pdb_path:List[str] = None,
-    constraint_num_conf:int = 100,
-    constraint_minimum_conf_rms:int = 0.01,
-    desirability:Dict = None,
-    wt_cutoff = None,
-    ):
+        Individual: utils.Individual,
+        wd: str = '.vina_jobs',
+        vina_executable: str = 'vina',
+        vina_seed: Union[int, None] = None,
+        receptor_pdbqt_path: List[str] = None,
+        vina_score_type: List[str] = None,
+        boxcenter: List[List[float]] = None,
+        boxsize: List[List[float]] = None,
+        exhaustiveness: int = 8,
+        ad4map: List[str] = None,
+        ncores: int = 1,
+        num_modes: int = 1,
+        constraint: bool = False,
+        constraint_type: str = 'score_only',  # score_only, local_only
+        constraint_ref: Chem.rdchem.Mol = None,
+        constraint_receptor_pdb_path: List[str] = None,
+        constraint_num_conf: int = 100,
+        constraint_minimum_conf_rms: int = 0.01,
+        desirability: Dict = None,
+        wt_cutoff: Union[None, float] = None):
     """
     This function is similar to :meth:`moldrug.fitness.
     CostOnlyVina` but it will add the possibility to work with more than one receptor.
@@ -1011,11 +1037,14 @@ def CostMultiReceptorsOnlyVina(
     vina_score_type : list[str], optional
         This is a list with the keywords 'min' and/or 'max'. E.g.
         If two receptor were provided and for the first one we would like to find a minimum in the vina scoring function
-        and for the other one a maximum (selectivity for the first receptor); we must provided the list: ['min', 'max'], by default None
+        and for the other one a maximum (selectivity for the first receptor);
+        we must provided the list: ['min', 'max'], by default None
     boxcenter : list[float], optional
-        A list of three floats with the definition of the center of the box in angstrom for docking (x, y, z), by default None
+        A list of three floats with the definition of the center of the box
+        in angstrom for docking (x, y, z), by default None
     boxsize : list[float], optional
-        A list of three floats with the definition of the box size in angstrom of the docking box (x, y, z), by default None
+        A list of three floats with the definition of the box size
+        in angstrom of the docking box (x, y, z), by default None
     exhaustiveness : int, optional
         Parameter of vina that controls the accuracy of the docking searching, by default 8
     ad4map : list[str], optional
@@ -1042,7 +1071,8 @@ def CostMultiReceptorsOnlyVina(
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
         The definition of the desirability when min or max is used.
-        Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
+        Each variable only will accept
+        the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
         by default None, which means that it will be used:
         desirability = {
         'min': {'w': 1,'SmallerTheBest': {'Target': -12,'UpperLimit': -6,'r': 1}
@@ -1050,7 +1080,7 @@ def CostMultiReceptorsOnlyVina(
         'max': {'w': 1,'LargerTheBest': {'LowerLimit': -4,'Target': 0,'r': 1}
         }
         }
-    wt_cutoff : float, optional
+    wt_cutoff : Union[None, float], optional
         If some number is provided,
         the molecules with a molecular weight higher than wt_cutoff
         will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
@@ -1087,7 +1117,7 @@ def CostMultiReceptorsOnlyVina(
     """
     if not desirability:
         desirability = {
-            'min':{
+            'min': {
                 'w': 1,
                 'SmallerTheBest': {
                     'Target': -12,
@@ -1095,7 +1125,7 @@ def CostMultiReceptorsOnlyVina(
                     'r': 1
                 }
             },
-            'max':{
+            'max': {
                 'w': 1,
                 'LargerTheBest': {
                     'LowerLimit': -4,
@@ -1109,9 +1139,10 @@ def CostMultiReceptorsOnlyVina(
     Individual.vina_score = []
 
     if not ad4map:
-        ad4map = [None]*len(receptor_pdbqt_path)
+        ad4map = [None] * len(receptor_pdbqt_path)
 
-    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute. Add "TooHeavy" string to pdbqts and np.inf to vina_scores
+    # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute.
+    # Add "TooHeavy" string to pdbqts and np.inf to vina_scores
     if wt_cutoff:
         if Descriptors.MolWt(Individual.mol) > wt_cutoff:
             for _ in receptor_pdbqt_path:
@@ -1129,38 +1160,36 @@ def CostMultiReceptorsOnlyVina(
         # Getting vina_score and update pdbqt
         if constraint:
             vina_score, pdbqt = _vinadock(
-                Individual = Individual,
-                wd = wd,
-                vina_executable = vina_executable,
-                vina_seed = vina_seed,
-                receptor_pdbqt_path =  receptor_pdbqt_path[i],
-                boxcenter = boxcenter[i],
-                boxsize = boxsize[i],
-                exhaustiveness = exhaustiveness,
-                ad4map = ad4map[i],
-                ncores = ncores,
-                num_modes = num_modes,
-                constraint = constraint,
-                constraint_type = constraint_type,
-                constraint_ref = constraint_ref,
-                constraint_receptor_pdb_path = constraint_receptor_pdb_path[i],
-                constraint_num_conf = constraint_num_conf,
-                constraint_minimum_conf_rms = constraint_minimum_conf_rms,
-            )
+                Individual=Individual,
+                wd=wd,
+                vina_executable=vina_executable,
+                vina_seed=vina_seed,
+                receptor_pdbqt_path=receptor_pdbqt_path[i],
+                boxcenter=boxcenter[i],
+                boxsize=boxsize[i],
+                exhaustiveness=exhaustiveness,
+                ad4map=ad4map[i],
+                ncores=ncores,
+                num_modes=num_modes,
+                constraint=constraint,
+                constraint_type=constraint_type,
+                constraint_ref=constraint_ref,
+                constraint_receptor_pdb_path=constraint_receptor_pdb_path[i],
+                constraint_num_conf=constraint_num_conf,
+                constraint_minimum_conf_rms=constraint_minimum_conf_rms)
         else:
             vina_score, pdbqt = _vinadock(
-                Individual = Individual,
-                wd = wd,
-                vina_executable = vina_executable,
-                vina_seed = vina_seed,
-                receptor_pdbqt_path =  receptor_pdbqt_path[i],
-                boxcenter = boxcenter[i],
-                boxsize = boxsize[i],
-                exhaustiveness = exhaustiveness,
-                ad4map = ad4map[i],
-                ncores = ncores,
-                num_modes = num_modes,
-            )
+                Individual=Individual,
+                wd=wd,
+                vina_executable=vina_executable,
+                vina_seed=vina_seed,
+                receptor_pdbqt_path=receptor_pdbqt_path[i],
+                boxcenter=boxcenter[i],
+                boxsize=boxsize[i],
+                exhaustiveness=exhaustiveness,
+                ad4map=ad4map[i],
+                ncores=ncores,
+                num_modes=num_modes)
         Individual.vina_score.append(vina_score)
         pdbqt_list.append(pdbqt)
     # Update the pdbqt attribute
@@ -1177,15 +1206,17 @@ def CostMultiReceptorsOnlyVina(
             elif key in utils.DerringerSuichDesirability():
                 d = utils.DerringerSuichDesirability()[key](vs, **desirability[vst][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = vina_scores[{vst}] "\
-                f"a non implemented key = {key}. "\
-                "Only are possible: 'w' (standing for weight) "\
-                f"and any possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}.")
+                raise RuntimeError("Inside the desirability dictionary you provided "
+                                   f"for the variable = vina_scores[{vst}] "
+                                   f"a non implemented key = {key}. "
+                                   "Only are possible: 'w' (standing for weight) "
+                                   "and any possible Derringer-Suich "
+                                   f"desirability function: {utils.DerringerSuichDesirability().keys()}.")
         base *= d**w
         exponent += w
 
     # We are using a geometric mean. And because we are minimizing we have to return
-    Individual.cost = 1 - base**(1/exponent)
+    Individual.cost = 1 - base**(1 / exponent)
     return Individual
 
 

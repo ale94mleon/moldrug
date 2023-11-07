@@ -6,9 +6,15 @@ For information of MolDrug:
     Source Code: https://github.com/ale94mleon/moldrug
 """
 from moldrug import utils, constraintconf, __version__
-import yaml, argparse, inspect, os, sys, datetime
+import yaml
+import argparse
+import inspect
+import os
+import sys
+import datetime
 from rdkit import Chem
 from typing import Union
+
 
 class CommandLineHelper:
     def __init__(self, parser) -> None:
@@ -32,10 +38,9 @@ class CommandLineHelper:
         # pbz2 and new_maxiter attributes are generated
         self._set_init_MolDrugClass()
 
-
     def _set_config(self):
         with open(self.yaml_file, 'r') as c:
-            self.configuration =  yaml.safe_load(c)
+            self.configuration = yaml.safe_load(c)
 
     def _split_config(self):
         config = self.configuration.copy()
@@ -48,7 +53,8 @@ class CommandLineHelper:
             # If the fitness module provided is not in the current directory or if its name is not fitness
             # Create the module inside in self.outdir or in the current directory
             if self.outdir:
-                if not os.path.exists(self.outdir): os.makedirs(self.outdir)
+                if not os.path.exists(self.outdir):
+                    os.makedirs(self.outdir)
                 destination_path = os.path.join(self.outdir, 'CustomMolDrugFitness.py')
             else:
                 destination_path = 'CustomMolDrugFitness.py'
@@ -56,7 +62,8 @@ class CommandLineHelper:
                 with open(destination_path, 'w') as destination:
                     destination.write(source.read())
             # Changing to the outdir path if provided
-            if self.outdir: os.chdir(self.outdir)
+            if self.outdir:
+                os.chdir(self.outdir)
             sys.path.append('.')
             import CustomMolDrugFitness
             costfunc = dict(inspect.getmembers(CustomMolDrugFitness))[self._split_config()[0]['costfunc']]
@@ -72,7 +79,8 @@ class CommandLineHelper:
         elif self._TypeOfRun_str == 'local':
             self.TypeOfRun = utils.Local
         else:
-            raise NotImplementedError(f"\"{self._split_config()[0]['type']}\" it is not a possible type. Select from: GA or Local")
+            raise NotImplementedError(f"\"{self._split_config()[0]['type']}\" it is not a possible type. "
+                                      "Select from: GA or Local")
 
     def _translate_config(self):
         MainConfig, FollowConfig = self._split_config()
@@ -100,12 +108,13 @@ class CommandLineHelper:
                     MainConfig['seed_mol'] = [Chem.MolFromSmiles(smi) for smi in MainConfig['seed_mol']]
                     # Filter out invalid molecules
                     MainConfig['seed_mol'] = list(filter(None, MainConfig['seed_mol']))
-            else: # It will be assumed that it is a valid SMILES string
+            else:  # It will be assumed that it is a valid SMILES string
                 MainConfig['seed_mol'] = Chem.MolFromSmiles(MainConfig['seed_mol'])
 
         # Convert if needed constraint_ref
         if 'constraint_ref' in MainConfig['costfunc_kwargs']:
-            MainConfig['costfunc_kwargs']['constraint_ref'] = Chem.MolFromMolFile(MainConfig['costfunc_kwargs']['constraint_ref'])
+            MainConfig['costfunc_kwargs']['constraint_ref'] = Chem.MolFromMolFile(
+                MainConfig['costfunc_kwargs']['constraint_ref'])
 
         InitArgs = MainConfig.copy()
 
@@ -125,19 +134,19 @@ class CommandLineHelper:
         if FollowConfig:
             # Defining the possible mutable arguments with its default values depending on the type of run
             if MainConfig['type'].lower() == 'local':
-                raise ValueError("Type = Local does not accept multiple call from the command line! Remove follow "\
-                    "jobs from the yaml file (only the main job is possible)")
+                raise ValueError("Type = Local does not accept multiple call from the command line! Remove follow "
+                                 "jobs from the yaml file (only the main job is possible)")
             else:
                 # Add default value in case it is not provided for keyword arguments
                 list_of_keywords = [
-                    'beta', 'pc', 'get_similar','mutate_crem_kwargs',
+                    'beta', 'pc', 'get_similar', 'mutate_crem_kwargs',
                     'save_pop_every_gen', 'checkpoint', 'deffnm',
                 ]
-                for param in  inspect.signature(self.TypeOfRun).parameters.values():
+                for param in inspect.signature(self.TypeOfRun).parameters.values():
                     if (param.kind == param.POSITIONAL_OR_KEYWORD and
-                                    param.default is not param.empty and
-                                    param.name in list_of_keywords and
-                                    param.name not in InitArgs):
+                            param.default is not param.empty and
+                            param.name in list_of_keywords and
+                            param.name not in InitArgs):
                         InitArgs[param.name] = param.default
 
                 MutableArgs = {
@@ -159,8 +168,8 @@ class CommandLineHelper:
             for job in FollowConfig:
                 for arg in FollowConfig[job]:
                     if arg not in MutableArgs:
-                        raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". "\
-                            f"For now only the following are accepted: {list(MutableArgs.keys())}")
+                        raise ValueError(f"The job: {job} has a non-valid argument \"{arg}\". "
+                                         f"For now only the following are accepted: {list(MutableArgs.keys())}")
         else:
             MutableArgs = None
 
@@ -170,7 +179,11 @@ class CommandLineHelper:
         self.CallArgs = CallArgs
         self.MutableArgs = MutableArgs
 
-    def _get_continuation_point(self): # this gave me the job and how many generation are needed to complete it.. The further jobs are suppose that must run.
+    def _get_continuation_point(self):
+        """
+        This gave me the job and how many generation are needed to complete it.
+        The further jobs are suppose that must run.
+        """
         if self.continuation:
             if self._TypeOfRun_str != 'ga':
                 raise RuntimeError('Continuation is only valid for GA runs.')
@@ -231,16 +244,17 @@ class CommandLineHelper:
         # Saving data
         if self._TypeOfRun_str == 'local':
             self.MolDrugClass.pickle("local_result", compress=True)
-            utils.make_sdf(self.MolDrugClass.pop, sdf_name = "local_pop")
+            utils.make_sdf(self.MolDrugClass.pop, sdf_name="local_pop")
         else:
             self.MolDrugClass.pickle(f"{self.MolDrugClass.deffnm}_result", compress=True)
-            utils.make_sdf(self.MolDrugClass.pop, sdf_name = f"{self.MolDrugClass.deffnm}_pop")
+            utils.make_sdf(self.MolDrugClass.pop, sdf_name=f"{self.MolDrugClass.deffnm}_pop")
 
     def __repr__(self) -> str:
         string = self.args.__repr__().replace('Namespace', self.__class__.__name__)
         if self.continuation:
             string += f"\nContinuationPoint(pbz2={self.pbz2}, do_iter={self.new_maxiter})"
         return string
+
 
 def __moldrug_cmd():
     """
@@ -263,27 +277,29 @@ def __moldrug_cmd():
         help='The configuration yaml file',
         dest='yaml_file',
         type=str)
-    parser.add_argument('-f', '--fitness',
-                        help="The path to the user-custom fitness module; inside of which the given custom cost function must be implemented. "\
-                            "See the docs for how to do it properly. E.g. my/awesome/fitness_module.py."\
-                            "By default will look in the moldrug.fitness module.",
-                        dest='fitness',
+    parser.add_argument("-f", "--fitness",
+                        help="The path to the user-custom fitness module; inside of which the given custom "
+                        "cost function must be implemented. "
+                        "See the docs for how to do it properly. E.g. my/awesome/fitness_module.py. "
+                        "By default will look in the moldrug.fitness module.",
+                        dest="fitness",
                         nargs=argparse.OPTIONAL,
                         default=None,
                         type=str)
-    parser.add_argument('-o', '--outdir',
-                        help="The path to where all the files should be written. "\
-                            "By default the current working directory will be used (where the command line was invoked).",
-                        dest='outdir',
+    parser.add_argument("-o", "--outdir",
+                        help="The path to where all the files should be written. "
+                        "By default the current working directory will be used (where the command line was invoked).",
+                        dest="outdir",
                         nargs=argparse.OPTIONAL,
                         default=None,
                         type=str)
-    parser.add_argument('-c', '--continue',
-                        help='To continue the simulation. The MolDrug command must be the same and all the output MolDrug files must be located '\
-                            'in the working directory. This option is only compatible with moldrug.utils.GA; otherwise, a RuntimeError will be'\
-                            'raised.',
-                        action = "store_true",
-                        dest = 'continuation')
+    parser.add_argument("-c", "--continue",
+                        help="To continue the simulation. The MolDrug command must be the same "
+                        "and all the output MolDrug files must be located "
+                        "in the working directory. This option is only compatible "
+                        "with moldrug.utils.GA; otherwise, a RuntimeError will be raised.",
+                        action="store_true",
+                        dest="continuation")
     parser.add_argument(
         '-v', '--version',
         action='version',
@@ -293,10 +309,8 @@ def __moldrug_cmd():
 
     print(
         f"Started at {datetime.datetime.now().strftime('%c')}\n"
-        f"You are using moldrug: {__version__}.\n\n"\
-        f"{UserArgs}\n\n"\
-        # "The main job is being executed.\n\n"\
-        )
+        f"You are using moldrug: {__version__}.\n\n"
+        f"{UserArgs}\n\n")
 
     # Call the class
     UserArgs.run_MolDrugClass()
@@ -325,7 +339,9 @@ def __moldrug_cmd():
             print(f'The job {job} finished!')
 
     # Clean checkpoint on normal end
-    if os.path.isfile('cpt.pbz2'): os.remove('cpt.pbz2')
+    if os.path.isfile('cpt.pbz2'):
+        os.remove('cpt.pbz2')
+
 
 def __constraintconf_cmd():
     """
@@ -333,67 +349,69 @@ def __constraintconf_cmd():
     """
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
-        '--pdb',
-        help = 'Protein pdb file',
-        dest = 'pdb',
-        type = str,
+        "--pdb",
+        help="Protein pdb file",
+        dest="pdb",
+        type=str,
     )
     parser.add_argument(
-        '--smi',
-        help='Input SMILES file name',
-        dest = 'smi',
-        type = str,
+        "--smi",
+        help="Input SMILES file name",
+        dest="smi",
+        type=str,
     )
     parser.add_argument(
-        '--fix',
-        help = 'File with fixed piece of the molecule',
-        dest = 'fix',
-        type = str,
+        "--fix",
+        help="File with fixed piece of the molecule",
+        dest="fix",
+        type=str,
     )
     parser.add_argument(
-        '--out',
-        help = 'Output file name',
-        dest = 'out',
-        type = str,
+        "--out",
+        help="Output file name",
+        dest="out",
+        type=str,
     )
     parser.add_argument(
-        '--max',
-        help = 'Maximum number of conformers to generate, by default %(default)s',
-        dest = 'max',
-        default = 25,
-        type = int,
+        "--max",
+        help="Maximum number of conformers to generate, by default %(default)s",
+        dest="max",
+        default=25,
+        type=int,
     )
     parser.add_argument(
-        '--rms',
-        help = 'RMS cutoff, by default %(default)s',
-        dest = 'rms',
-        default = 0.01,
-        type = float,
+        "--rms",
+        help="RMS cutoff, by default %(default)s",
+        dest="rms",
+        default=0.01,
+        type=float,
     )
     parser.add_argument(
-        '--bump',
-        help = 'Bump cutoff, by default %(default)s',
-        dest = 'bump',
-        default = 1.5,
-        type = float,
+        "--bump",
+        help="Bump cutoff, by default %(default)s",
+        dest="bump",
+        default=1.5,
+        type=float,
     )
     parser.add_argument(
-        '--seed',
-        help = 'Provide a seed for the random number generator so that the same coordinates can be obtained for a molecule on multiple runs. If None, the RNG will not be seeded, by default None %(default)s',
-        dest = 'seed',
-        default = None,
-        type = Union[int, None],
+        "--seed",
+        help="Provide a seed for the random number generator so that "
+        "the same coordinates can be obtained for a molecule on multiple runs. "
+        "If None, the RNG will not be seeded, by default None %(default)s",
+        dest="seed",
+        default=None,
+        type=Union[int, None],
     )
     args = parser.parse_args()
     constraintconf.constraintconf(
-        pdb = args.pdb,
-        smi = args.smi,
-        fix = args.fix,
-        out = args.out,
-        max_conf = args.max,
-        rms = args.rms,
-        bump = args.bump,
-        randomseed = args.seed)
+        pdb=args.pdb,
+        smi=args.smi,
+        fix=args.fix,
+        out=args.out,
+        max_conf=args.max,
+        rms=args.rms,
+        bump=args.bump,
+        randomseed=args.seed)
 
 
 if __name__ == '__main__':

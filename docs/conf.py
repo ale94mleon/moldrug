@@ -12,10 +12,11 @@
 #
 import os
 import sys
+from datetime import datetime
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('./source/'))
 sys.path.insert(0, os.path.abspath('./notebooks/'))
-from datetime import datetime
+
 
 # -- Project information -----------------------------------------------------
 
@@ -113,7 +114,7 @@ html_logo = "source/_static/logo.png"
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = [] #['_static']
+html_static_path = []  # ['_static']
 
 intersphinx_mapping = {'Python': ('https://docs.python.org/3/', None),
                        'NumPy': ('https://numpy.org/doc/stable/', None),
