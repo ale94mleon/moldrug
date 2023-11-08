@@ -402,6 +402,7 @@ def get_similarity(smiles1: str, smiles2: str) -> float:
     return similarity
 
 
+@st.cache_data
 def get_compound_vendors(cid: int) -> tuple:
     """Gte the vendors of the molecule with CID in PubChem
 
@@ -428,6 +429,7 @@ def get_compound_vendors(cid: int) -> tuple:
         return None, 0
 
 
+@st.cache_data
 def get_pubchem_data(smiles: str, Threshold: int = 95) -> dict:
     """Get the data from PubChem
 
@@ -524,7 +526,7 @@ def get_pubchem_dataframe(df: pd.DataFrame) -> pd.DataFrame:
         new_row = get_pubchem_data(smiles=row['smiles'])
         new_row['idx'] = row['idx']
         data.append(new_row)
-    return pd.DataFrame(data)[['idx', 'cid', 'similarity', 'smiles', 'num_vendors', 'vendors_link']]#, 'chemazone_price']]
+    return pd.DataFrame(data)[['idx', 'cid', 'similarity', 'smiles', 'num_vendors', 'vendors_link']]  # , 'chemazone_price']]
 
     # data = []
     # with concurrent.futures.ThreadPoolExecutor() as executor:
