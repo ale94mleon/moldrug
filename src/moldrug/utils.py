@@ -639,7 +639,22 @@ class Individual:
     The cost attribute is used for arithmetic operations.
     It also admit copy and deepcopy operations.
     Known issue, in case that we would like to use a numpy array of individuals.
-    It is needed to change the ditype of the generated arrays
+    It is needed to change the dtype of the generated arrays
+
+    Attributes
+    ----------
+    mol:  Chem.rdchem.Mol
+        The molecule object
+    idx: Union[int, str]
+        The identifier
+    pdbqt: str
+        A pdbqt string representation of the molecule, used for docking with Vina. It is generated
+        during the initialization of the class
+    smiles: str (property)
+        The SMILES representation of the mol attribute without explicit hydrogens,
+        this attribute (property) is immutable.
+    cost: float
+        This attribute is used to interact with the fitness functions of :mod:`moldrug.fitness`
 
     Example
     -------
@@ -664,8 +679,6 @@ class Individual:
         print(array_2)
         # Show copy
         print(copy(i3), deepcopy(i3))
-
-
     """
     def __init__(self, mol: Chem.rdchem.Mol, idx: Union[int, str] = 0, pdbqt: str = None,
                  cost: float = np.inf, randomseed: Union[int, None] = None) -> None:
@@ -686,7 +699,6 @@ class Individual:
         randomseed : Union[None, int], optional
             Provide a seed for the random number generator so that the "same" coordinates can be obtained
             for the attribute pdbqt on multiple runs. If None, the RNG will not be seeded, by default None
-
         """
         self.mol = mol
 
@@ -980,7 +992,27 @@ def to_dataframe(individuals: List[Individual], return_mol: bool = False) -> pd.
 
 
 class Local:
-    """For local search
+    """This class is used to genereate close solutions to the seed molecule.
+    It use :meth:`crem.crem.grow_mol`.
+
+    Attributes
+    ----------
+    randomseed : Union[None, int]
+        The random seed to use with random module.
+    __moldrug_version__ : str
+        The molDrug version.
+    costfunc : object
+        The cost function set by the user.
+    crem_db_path : str
+        Path to the CReM data base.
+    costfunc_kwargs : dict
+        The keyword arguments of the costfunc.
+    grow_crem_kwargs : dict
+        The keyword arguments to pass to :meth:`crem.crem.grow_mol`.
+    AddHs : bool
+        In case explicit hydrogens should be added.
+    pop : list[:meth:`moldrug.utils.Individuals`]
+        The final population sorted by cost.
     """
     def __init__(self, seed_mol: Chem.rdchem.Mol, crem_db_path: str, costfunc: object, grow_crem_kwargs: Dict = None,
                  costfunc_kwargs: Dict = None, AddHs: bool = False, randomseed: Union[None, int] = None) -> None:
@@ -1133,14 +1165,71 @@ class Local:
 #######################
 
 class GA:
-    """An implementation of genetic algorithm to search in the chemical space.
+    """An implementation of a genetic algorithm to search in the chemical space.
+
+    Attributes
+    ----------
+    randomseed : Union[None, int]
+        The random seed to use with random module.
+    __moldrug_version__ : str
+        The molDrug version.
+    costfunc : object
+        The cost function set by the user.
+    crem_db_path : str
+        Path to the CReM data base.
+    maxiter : int
+        Maximum number of iteratinos to perform.
+    popsize : int
+        Population size.
+    beta : float
+        Selection pressure.
+    costfunc_kwargs : dict
+        The keyword arguments of the costfunc.
+    costfunc_ncores : int
+        The number of cores to use for costfunc.
+    nc : int
+        Number of childs of offsprints ``= round(pc * popsize)``
+    get_similar : bool
+        Bias the search upon similar molecules. If True :meth:`modrug.utils.get_similar_mols` is used after the
+        mutation with CReM instead random choice.
+    mutate_crem_kwargs : dict
+        The keyword arguments to pass to :meth:`crem.crem.mutate_mol`.
+    save_pop_every_gen : int
+        Frequency to save the pickle file o fthe population during the optimazation.
+    checkpoint : bool
+        Safe chekpoint file, this help to restart a simualation.
+    deffnm : str
+        Prefix for the genereated files.
+    NumCalls : int
+        How many times the ``__call__`` method has been called.
+    NumGens : int
+        he number of generations performed by the class. Subsequent ``__call__``
+        executions update this number acordennly.
+    SawIndividuals : set[:meth:`moldrug.utils.Individuals`]
+        All the Individulas saw during the optimizations.
+    acceptance : dict
+        A dictionary with key the Generation id and as value another dictionary
+        with keys ``accepeted`` and ``generated`` with the number of accepted and genereated
+        individuals on the generation respectively.
+    AddHs : bool
+        In case explicit hydrogens should be added.
+    _seed_mol : list[Chem.rdchem.Mol]
+        The list of seed molecules.
+    InitIndividual : :meth:`moldrug.utils.Individuals`
+        The initial individual based on _seed_mol.
+    pop : list[:meth:`moldrug.utils.Individuals`]
+        The final population sorted by cost.
+    best_cost : list[float]
+        The list of best cost for each generations.
+    avg_cost : list[float]
+        The list of average cost for each generations.
     """
     def __init__(self, seed_mol: Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],
                  costfunc: object, costfunc_kwargs: Dict, crem_db_path: str, maxiter: int, popsize: int,
                  beta: float = 0.001, pc: float = 1, get_similar: bool = False, mutate_crem_kwargs: Dict = None,
                  save_pop_every_gen: int = 0, checkpoint: bool = False, deffnm: str = 'ga',
                  AddHs: bool = False, randomseed: Union[None, int] = None) -> None:
-        """This is the generator
+        """Constructor
 
         Parameters
         ----------
@@ -1152,7 +1241,7 @@ class GA:
         costfunc_kwargs : Dict
             The keyword arguments of the selected cost function
         crem_db_path : str
-            The pathway to the CReM data base.
+            Path to the CReM data base.
         maxiter : int
             Maximum number of iteration (or generation).
         popsize : int
@@ -1172,7 +1261,7 @@ class GA:
             This means that if save_pop_every_gen = 0 and checkpoint = True, no checkpoint will be
             output, by default False
         deffnm : str, optional
-            Default name for all generated files, by default 'ga'
+            Default prefix name for all generated files, by default 'ga'
         AddHs : bool, optional
            If True the explicit hydrogens will be added, by default False
         randomseed : Union[None, int], optional
@@ -1183,6 +1272,8 @@ class GA:
             In case that seed_mol is a wrong input.
         ValueError
             In case of incorrect definition of mutate_crem_kwargs. It must be None or a dict instance.
+        ValueError
+            In case of crem_db_path deos not exist.
         """
         self.randomseed = randomseed
         if self.randomseed is not None:
@@ -1195,7 +1286,10 @@ class GA:
             raise ValueError(f'mutate_crem_kwargs must be None or a dict instance. {mutate_crem_kwargs} was provided')
 
         self.costfunc = costfunc
-        self.crem_db_path = crem_db_path
+        if os.path.exists(c):
+            self.crem_db_path = crem_db_path
+        else:
+            raise FileNotFoundError(f"{crem_db_path = } does not exists or is not accesible")
 
         self.maxiter = maxiter
         self.popsize = popsize
