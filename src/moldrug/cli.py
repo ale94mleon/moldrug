@@ -23,7 +23,11 @@ class CommandLineHelper:
         self.fitness = self.args.fitness
         self.outdir = self.args.outdir
         self.continuation = self.args.continuation
+        self.verbose = self.args.verbose
         self._set_attributes()
+
+        if self.verbose:
+            os.environ['MOLDRUG_VERBOSE'] = 'True'
 
     def _set_attributes(self):
         # Get and set configuration
@@ -304,7 +308,14 @@ def __moldrug_cmd():
         '-v', '--version',
         action='version',
         version=f"moldrug: {__version__}")
-
+    parser.add_argument(
+        '-V', '--verbose',
+        nargs="?",
+        dest='verbose',
+        const=True,
+        default=False,
+        type=bool
+    )
     UserArgs = CommandLineHelper(parser)
 
     print(
