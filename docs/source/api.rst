@@ -4,8 +4,8 @@ Summary
 Input data
 ----------
 
-Currently, **MolDrug** only accepts valid RDKit molecules and valid pdbqt files that
-will be processed by Vina.
+Currently, **MolDrug** only accepts valid RDKit molecules and a valid pdbqt file that
+will be processed in case AutoDock-Vina is used.
 
 The idea
 --------

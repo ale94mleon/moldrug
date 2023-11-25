@@ -1225,8 +1225,8 @@ class GA:
         The list of average cost for each generations.
     """
     def __init__(self, seed_mol: Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],
-                 costfunc: object, costfunc_kwargs: Dict, crem_db_path: str, maxiter: int, popsize: int,
-                 beta: float = 0.001, pc: float = 1, get_similar: bool = False, mutate_crem_kwargs: Dict = None,
+                 costfunc: object, costfunc_kwargs: Dict, crem_db_path: str, maxiter: int = 10, popsize: int = 20,
+                 beta: float = 0.001, pc: float = 1, get_similar: bool = False, mutate_crem_kwargs: Union[None, Dict] = None,
                  save_pop_every_gen: int = 0, checkpoint: bool = False, deffnm: str = 'ga',
                  AddHs: bool = False, randomseed: Union[None, int] = None) -> None:
         """Constructor
@@ -1242,17 +1242,17 @@ class GA:
             The keyword arguments of the selected cost function
         crem_db_path : str
             Path to the CReM data base.
-        maxiter : int
-            Maximum number of iteration (or generation).
-        popsize : int
-            Population size.
+        maxiter : int, optional
+            Maximum number of iteration (or generation), by default 10.
+        popsize : int, optional
+            Population size, by default 20.
         beta : float, optional
             Selection pressure, by default 0.001
         pc : float, optional
             Proportion of children, by default 1
         get_similar : bool, optional
             If True the searching will be bias to similar molecules, by default False
-        mutate_crem_kwargs : Dict, optional
+        mutate_crem_kwargs : Union[None, Dict], optional
             Parameters for mutate_mol of CReM, by default {}
         save_pop_every_gen : int, optional
             Frequency to save the population, by default 0
