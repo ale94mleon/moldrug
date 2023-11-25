@@ -57,7 +57,7 @@ AutoDock-Vina dependency and related software
 ---------------------------------------------
 
 .. note::
-    `AutoDock-Vina <https://vina.scripps.edu/>`_ is the only non-pip dependency required for ``moldrug``. This section is useful in case you would like to use the build-in cost functions of MolDrug from :mod: `moldrug.fitness`
+    `AutoDock-Vina <https://vina.scripps.edu/>`_ is the only non-pip dependency required for ``moldrug``. This section is useful in case you would like to use the build-in cost functions of MolDrug from :mod:`moldrug.fitness`
 
 AutoDock-Vina is an ongoing project, and it is advisable to stay up-to-date by regularly checking for the latest `release <https://github.com/ccsb-scripps/AutoDock-Vina/releases/>`_.
 As of the creation of this documentation, the most recent version is `v1.2.5 <https://github.com/ccsb-scripps/AutoDock-Vina/releases/tag/v1.2.5>`_.
