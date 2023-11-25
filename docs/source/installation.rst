@@ -12,12 +12,6 @@ Requirements:
     * `Meeko <https://pypi.org/project/meeko/>`_.
     * `AutoDock-Vina <https://vina.scripps.edu/>`_.
 
-.. note::
-    `AutoDock-Vina <https://vina.scripps.edu/>`_ is the only non-pip dependency required for ``moldrug``. If you already have Vina installed, you can simply run the command ``pip install moldrug`` directly.
-    However, in cases where Vina is not installed or if you encounter version conflicts, it's advisable to set up an isolated environment, either using `conda <https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#creating-an-environment-with-commands>`_ or `python <https://docs.python.org/3/library/venv.html>`_.
-    This ensures a clean and controlled environment for installing and running ``moldrug``.
-
-
 Via pip (standard)
 ------------------
 pip install
@@ -38,46 +32,8 @@ or:
 There are multiple methods to obtain `AutoDock-Vina <https://vina.scripps.edu/>`_. You can use `conda <https://anaconda.org/conda-forge/vina>`_ or download the latest release from the `Vina Repository <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_.
 We highly recommend using the last release posted on `Vina Repository <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_.
 
-.. note::
-
-
-
-Getting last AutoDock-Vina
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-AutoDock-Vina is an ongoing project, and it is advisable to stay up-to-date by regularly checking for the latest `release <https://github.com/ccsb-scripps/AutoDock-Vina/releases/>`_.
-As of the creation of this documentation, the most recent version is `v1.2.5 <https://github.com/ccsb-scripps/AutoDock-Vina/releases/tag/v1.2.5>`_.
-We will be using this version as a demonstration, but we strongly recommend using the most recent release for optimal performance and features. For detail information, please visit:
-`AutoDock-Vina installation Instruction <https://autodock-vina.readthedocs.io/en/latest/installation.html>`_.
-
-Unix- and Linux-based OS
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. code-block:: bash
-
-    wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
-    chmod a+x vina_1.2.5_linux_x86_64
-    ./vina_1.2.5_linux_x86_64 -h
-
-MacOS
-^^^^^
-
-.. code-block:: bash
-
-    wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_mac_x86_64
-    chmod a+x vina_1.2.5_mac_x86_64
-    ./vina_1.2.5_mac_x86_64 -h
-
-.. note::
-    MacOs users might need to allow the execution of the application on ``Privacy & Security`` depending on the MacOS version.
-
-Windows
-^^^^^^^
-
-Please, download from `release <https://github.com/ccsb-scripps/AutoDock-Vina/releases/>`_. Conda installation may not work.
-
 Via conda
-^^^^^^^^^
+---------
 
 MolDrug is also available through conda. However, the pip installation is the recommended one.
 
@@ -96,10 +52,48 @@ If some dependencies are missing, please install them through pip. Some of them 
 
     pip install meeko crem pyyaml scipy tqdm
 
+
+AutoDock-Vina dependency and related software
+---------------------------------------------
+
+.. note::
+    `AutoDock-Vina <https://vina.scripps.edu/>`_ is the only non-pip dependency required for ``moldrug``. This section is useful in case you would like to use the build-in cost functions of MolDrug from :mod: `moldrug.fitness`
+
+AutoDock-Vina is an ongoing project, and it is advisable to stay up-to-date by regularly checking for the latest `release <https://github.com/ccsb-scripps/AutoDock-Vina/releases/>`_.
+As of the creation of this documentation, the most recent version is `v1.2.5 <https://github.com/ccsb-scripps/AutoDock-Vina/releases/tag/v1.2.5>`_.
+We will be using this version as a demonstration, but we strongly recommend using the most recent release for optimal performance and features. For detailed information, please visit:
+`AutoDock-Vina installation Instruction <https://autodock-vina.readthedocs.io/en/latest/installation.html>`_.
+
+Unix- and Linux-based OS
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: bash
+
+    wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
+    chmod a+x vina_1.2.5_linux_x86_64
+    ./vina_1.2.5_linux_x86_64 -h
+
+MacOS
+~~~~~
+
+.. code-block:: bash
+
+    wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_mac_x86_64
+    chmod a+x vina_1.2.5_mac_x86_64
+    ./vina_1.2.5_mac_x86_64 -h
+
+.. note::
+    MacOs users might need to allow the execution of the application on ``Privacy & Security`` depending on the MacOS version.
+
+Windows
+~~~~~~~
+
+Please, download from `release <https://github.com/ccsb-scripps/AutoDock-Vina/releases/>`_. Conda installation may not work.
+
 Converting pdb to pdbqt
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-This step can be archived through `OpenBabel <https://github.com/openbabel/openbabel>`__ or through `ADFR <https://ccsb.scripps.edu/adfr/downloads/>`_. We recommend ADFR. Depending on the platform you should be able to access the program `prepare_receptor``. In my case, it lays on `/Users/klimt/ADFRsuite-1.0/bin/prepare_receptor`. Then you can convert your pdb with:
+This step can be achieved through `OpenBabel <https://github.com/openbabel/openbabel>`__ or `ADFR <https://ccsb.scripps.edu/adfr/downloads/>`_. We recommend ADFR. Depending on the platform, you should be able to access the program `prepare_receptor` in different ways. In my case, it lies on `/Users/klimt/ADFRsuite-1.0/bin/prepare_receptor`. Then you can convert your ``pdb`` with:
 
 .. code-block:: bash
 
@@ -110,7 +104,7 @@ Check `here <https://ccsb.scripps.edu/adfr/how-to-create-a-pdbqt-for-my-receptor
 Getting box information
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-To perform the docking you must provide ``boxcenter`` and ``boxsize`` to the cost functions defined in :mod:`moldrug.fitness` For that two PyMol plugins are useful: `GetBox <https://github.com/MengwuXiao/GetBox-PyMOL-Plugin/blob/master/GetBox%20Plugin.py>`_ and/or `autodock <https://github.com/ADplugin/ADplugin/blob/master/autodock.py>`_. Details of their installation and use are not discussed here, please visit their corresponding repositories for more information.
+To perform the docking you must provide ``boxcenter`` (``center`` for AutoDock-Vina) and ``boxsize`` (``size`` for AutoDock-Vina) to the cost functions defined in :mod:`moldrug.fitness`. For that, two PyMol plugins are useful: `GetBox <https://github.com/MengwuXiao/GetBox-PyMOL-Plugin/blob/master/GetBox%20Plugin.py>`_ and/or `autodock <https://github.com/ADplugin/ADplugin/blob/master/autodock.py>`_. Details of their installation and use are not discussed here, please visit their corresponding repositories for more information.
 
 Work with a docker container
 ----------------------------
