@@ -68,4 +68,5 @@ jobs:
       run: |
         pytest --cov moldrug
     - name: Upload coverage reports to Codecov with GitHub Action
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
       uses: codecov/codecov-action@v3
