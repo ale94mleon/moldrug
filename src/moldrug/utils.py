@@ -1286,7 +1286,7 @@ class GA:
             raise ValueError(f'mutate_crem_kwargs must be None or a dict instance. {mutate_crem_kwargs} was provided')
 
         self.costfunc = costfunc
-        if os.path.exists(c):
+        if os.path.exists(crem_db_path):
             self.crem_db_path = crem_db_path
         else:
             raise FileNotFoundError(f"{crem_db_path = } does not exists or is not accesible")
@@ -1453,7 +1453,9 @@ class GA:
             }
 
             # Get the same order population in case cost is the same. Sorted by idx and then by cost
-            self.pop = sorted(sorted(self.pop, key=lambda x: x.idx))
+            if self.randomseed:
+                self.pop = sorted(self.pop, key=lambda x: x.idx)
+            self.pop = sorted(self.pop)
             # Print some information of the initial population
             print(f"Initial Population: Best Individual: {self.pop[0]}")
             print(f"Accepted rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
@@ -1545,7 +1547,9 @@ class GA:
 
             # Merge, Sort and Select
             self.pop += popc
-            self.pop = sorted(sorted(self.pop, key=lambda x: x.idx))
+            if self.randomseed:
+                self.pop = sorted(self.pop, key=lambda x: x.idx)
+            self.pop = sorted(self.pop)
             self.pop = self.pop[:self.popsize]
 
             # Update the kept_gens attribute
