@@ -93,7 +93,7 @@ Please, download from `release <https://github.com/ccsb-scripps/AutoDock-Vina/re
 Converting pdb to pdbqt
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-This step can be achieved through `OpenBabel <https://github.com/openbabel/openbabel>`__ or `ADFR <https://ccsb.scripps.edu/adfr/downloads/>`_. We recommend ADFR. Depending on the platform, you should be able to access the program `prepare_receptor` in different ways. In my case, it lies on `/Users/klimt/ADFRsuite-1.0/bin/prepare_receptor`. Then you can convert your ``pdb`` with:
+This step can be achieved through `OpenBabel <https://github.com/openbabel/openbabel>`__ or `ADFR <https://ccsb.scripps.edu/adfr/downloads/>`_. We recommend ADFR. Depending on the platform, you should be able to access the program ``prepare_receptor`` in different ways. In my case, it lies on ``/Users/klimt/ADFRsuite-1.0/bin/prepare_receptor``. Then you can convert your ``pdb`` with:
 
 .. code-block:: bash
 
