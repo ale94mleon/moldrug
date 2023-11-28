@@ -18,11 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `moldrug.utils.Local`,
   - `moldrug.utils.GA`,
   - `moldrug.constraintconf.constraintconf` as well its CLI with the flag `--seed`.
+- `-V` and `--verbose` flag in the CLI of moldrug.
 
 ### Changed
 
 - Use `random.random` instead `numpy.random.rand` function for some small cases.
-- `AllChem.MMFFOptimizeMolecule` is only used internally for `moldrug.utils.confgen` and ``moldrug.constraintconf.gen_aligned_conf` if `radnomseed` is not set and with ` maxIters = 500`.
+- `AllChem.MMFFOptimizeMolecule` is only used internally for `moldrug.utils.confgen` and `moldrug.constraintconf.gen_aligned_conf` if `randomseed` is not set and with `maxIters = 500`.
 
 ### Fixed
 
