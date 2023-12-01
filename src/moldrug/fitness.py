@@ -374,11 +374,11 @@ def _vinadock(
         try:
             utils.run(cmd_vina_str)
         except Exception as e:
-            if os.path.isfile(receptor_pdbqt_path):
-                with open(receptor_pdbqt_path, 'r') as f:
-                    receptor_str = f.read()
-            else:
-                receptor_str = None
+            receptor_str = None
+            if receptor_pdbqt_path:
+                if os.path.isfile(receptor_pdbqt_path):
+                    with open(receptor_pdbqt_path, 'r') as f:
+                        receptor_str = f.read()
 
             error = {
                 'Exception': e,

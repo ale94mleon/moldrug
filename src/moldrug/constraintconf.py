@@ -183,7 +183,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                 AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
             except Exception as e:
                 if verbose:
-                    print(f"AllChem.ConstrainedEmbed fails with: {e}. "
+                    print(f"AllChem.ConstrainedEmbed fails with: {e}. \n"
                           f"On the molecules:\n current mol: {Chem.MolToSmiles(temp_mol)}\n"
                           f"core: {Chem.MolToSmiles(core1)}\nTrying with gen_aligned_conf")
                 temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi, randomseed=randomseed)

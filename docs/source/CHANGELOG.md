@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Small bug when the population has Individuals with the same cost. Better reproducibility.
 - Refactored changes on tutorials.
+- handled properly in case `receptor_pdbqt_path = None`
 
 ## [3.5.0] - 2023.10.26
 
