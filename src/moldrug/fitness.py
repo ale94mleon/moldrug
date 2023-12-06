@@ -987,7 +987,7 @@ def CostMultiReceptors(
                 d = utils.DerringerSuichDesirability()[key](vina_score_to_use, **vina_desirability_section['ensemble'][key])
             else:
                 raise RuntimeError("Inside the desirability dictionary "
-                                   f"you provided for the variable = vina_scores[{vst}] "
+                                   f"you provided for the variable = vina_scores['ensemble'] "
                                    f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "
                                    "any possible Derringer-Suich "
                                    f"desirability function: SmallerTheBest and LargerTheBest.")
