@@ -49,6 +49,7 @@ dependencies = [
     "numpy",
     "pandas",
     "pyyaml",
+    "dill",
     "meeko>=0.4.0",
     "six",
     "bio",

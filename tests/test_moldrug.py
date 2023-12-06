@@ -17,7 +17,6 @@ from moldrug import fitness, home, utils
 from moldrug.data import (boxes, constraintref, ligands, receptor_pdb,
                           receptor_pdbqt)
 
-
 # This is in case vina is not found. You can change the vina executable here
 vina_executable = os.path.abspath('vina')
 
@@ -27,10 +26,13 @@ if not os.path.isfile(vina_executable):
 
 # Creating a temporal directory
 tmp_path = tempfile.TemporaryDirectory()
+wd = tmp_path.name
+os.chdir(wd)
+
 # Creating receptors files
-r_x0161_pdbqt_file = os.path.join(tmp_path.name, 'r_x0161.pdbqt')
-r_x0161_pdb_file = os.path.join(tmp_path.name, 'r_x0161.pdb')
-r_6lu7_pdbqt_file = os.path.join(tmp_path.name, 'r_6lu7.pdbqt')
+r_x0161_pdbqt_file = 'r_x0161.pdbqt'
+r_x0161_pdb_file = 'r_x0161.pdb'
+r_6lu7_pdbqt_file = 'r_6lu7.pdbqt'
 with open(r_x0161_pdbqt_file, 'w') as r:
     r.write(receptor_pdbqt.r_x0161)
 with open(r_x0161_pdb_file, 'w') as r:
@@ -41,8 +43,8 @@ with open(r_6lu7_pdbqt_file, 'w') as r:
 # Getting the crem data base
 url = "http://www.qsar4u.com/files/cremdb/replacements02_sc2.db.gz"
 r = requests.get(url, allow_redirects=True)
-crem_dbgz_path = os.path.join(tmp_path.name, 'crem.db.gz')
-crem_db_path = os.path.join(tmp_path.name, 'crem.db')
+crem_dbgz_path = 'crem.db.gz'
+crem_db_path = 'crem.db'
 open(crem_dbgz_path, 'wb').write(r.content)
 with gzip.open(crem_dbgz_path, 'rb') as f_in:
     with open(crem_db_path, 'wb') as f_out:
@@ -96,20 +98,16 @@ def test_single_receptor_command_line():
             "deffnm": "02_allow_grow"
         }
     }
-    cwd = os.getcwd()
-    with open(os.path.join(tmp_path.name, "test_single_receptor.yml"), 'w') as c:
+    with open("test_single_receptor.yml", 'w') as c:
         yaml.dump(Config, c)
-    os.chdir(tmp_path.name)
     p = utils.run('moldrug test_single_receptor.yml')
     print(p.stdout)
     # Run a second time but with a seed population
     Config['01_grow']['seed_mol'] = ['02_allow_grow_pop.pbz2', '02_allow_grow_pop.pbz2']
-    with open(os.path.join(tmp_path.name, "test_single_receptor_init_pop.yml"), 'w') as c:
+    with open("test_single_receptor_init_pop.yml", 'w') as c:
         yaml.dump(Config, c)
     p = utils.run('moldrug test_single_receptor_init_pop.yml')
     print(p.stdout)
-
-    os.chdir(cwd)
 
 
 def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
@@ -142,7 +140,7 @@ def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
             'vina_seed': 1234,
         },
         save_pop_every_gen=20,
-        deffnm=os.path.join(tmp_path.name, 'test_multi_receptor'),
+        deffnm='test_multi_receptor',
         randomseed=123)
 
     for _ in range(NumbCalls):
@@ -150,19 +148,16 @@ def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
 
     for o in out.pop:
         print(o.smiles, o.cost)
-    out.pickle(os.path.join(tmp_path.name, f"result_test_multi_receptor_NumGens_{out.NumGens}_PopSize_{popsize}"), compress=False)
+    out.pickle(f"result_test_multi_receptor_NumGens_{out.NumGens}_PopSize_{popsize}", compress=False)
     print(out.to_dataframe())
 
-    with open(os.path.join(tmp_path.name, 'vina_out.pdbqt'), 'w') as p:
+    with open('vina_out.pdbqt', 'w') as p:
         p.write(out.pop[0].pdbqt[0])
 
-    vina_out = utils.VINA_OUT(os.path.join(tmp_path.name, 'vina_out.pdbqt'))
+    vina_out = utils.VINA_OUT('vina_out.pdbqt')
     vina_out.chunks[0].get_atoms()
-    vina_out.chunks[0].write(os.path.join(tmp_path.name, 'chunk.pdbqt'))
-    cwd = os.getcwd()
-    os.chdir(tmp_path.name)
+    vina_out.chunks[0].write('chunk.pdbqt')
     vina_out.chunks[0].write()
-    os.chdir(cwd)
 
 
 def test_local_command_line():
@@ -190,20 +185,16 @@ def test_local_command_line():
             }
         }
     }
-    cwd = os.getcwd()
-    os.chdir(tmp_path.name)
     with open("local_config.yml", 'w') as c:
         yaml.dump(Config, c)
 
-    utils.run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')} --outdir results")
+    utils.run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')}")
     print(os.listdir())
     # This problems with the modules are not so convenient
-    os.chdir('results')
     sys.path.append('.')
     result = utils.decompress_pickle('local_result.pbz2')
     result.pickle('local_non_compress', compress=False)
     print(result.to_dataframe())
-    os.chdir(cwd)
 
 
 # @pytest.mark.filterwarnings("ignore:\nVina failed")
@@ -218,7 +209,7 @@ def test_fitness_module():
 
     fitness.Cost(
         Individual=copy.deepcopy(individual),
-        wd=tmp_path.name,
+        wd=wd,
         vina_executable=vina_executable,
         receptor_pdbqt_path=r_x0161_pdbqt_file,
         boxcenter=boxes.r_x0161['A']['boxcenter'],
@@ -227,7 +218,7 @@ def test_fitness_module():
         ncores=4)
     fitness.Cost(
         Individual=copy.deepcopy(individual),
-        wd=tmp_path.name,
+        wd=wd,
         vina_executable=vina_executable,
         receptor_pdbqt_path=r_x0161_pdbqt_file,
         boxcenter=boxes.r_x0161['A']['boxcenter'],
@@ -240,33 +231,33 @@ def test_fitness_module():
         constraint_receptor_pdb_path=r_x0161_pdb_file)
 
     fitness.Cost(Individual=copy.deepcopy(
-        individual_corrupted), wd=tmp_path.name, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
+        individual_corrupted), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
         boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'], exhaustiveness=4, ncores=4, vina_seed=1234)
     fitness.CostMultiReceptors(
-        Individual=copy.deepcopy(individual_corrupted), wd=tmp_path.name, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
+        Individual=copy.deepcopy(individual_corrupted), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
         vina_score_type=vina_score_type, boxcenter=boxcenter, boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(
-        Individual=copy.deepcopy(individual), wd=tmp_path.name, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
+        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
         vina_score_type=vina_score_type, boxcenter=boxcenter, boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(
-        Individual=copy.deepcopy(individual), wd=tmp_path.name, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
+        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
         vina_score_type=vina_score_type, boxcenter=boxcenter, boxsize=boxsize, exhaustiveness=4, ncores=4, wt_cutoff=2, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(Individual=copy.deepcopy(
-        individual_corrupted), wd=tmp_path.name, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
+        individual_corrupted), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
         vina_score_type=vina_score_type, boxcenter=boxcenter, boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
 
     fitness.CostOnlyVina(
-        Individual=copy.deepcopy(individual), wd=tmp_path.name, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
+        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
         boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'], exhaustiveness=4, ncores=4, vina_seed=1234)
     fitness.CostOnlyVina(
-        Individual=copy.deepcopy(individual), wd=tmp_path.name, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
+        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
         boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'], exhaustiveness=4, ncores=4, wt_cutoff=2, vina_seed=1234)
     fitness.CostOnlyVina(
-        Individual=copy.deepcopy(individual_corrupted), wd=tmp_path.name, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
+        Individual=copy.deepcopy(individual_corrupted), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
         boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'], exhaustiveness=4, ncores=4, vina_seed=1234)
 
     fitness.__get_mol_cost(
-        mol=Chem.MolFromMolBlock(constraintref.r_x0161), wd=tmp_path.name, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
+        mol=Chem.MolFromMolBlock(constraintref.r_x0161), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
         boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'],)
 
     # Clean
@@ -323,16 +314,16 @@ def test_miscellanea():
     for i in range(0, 50):
         obj0.append(utils.NominalTheBest(Value=i, LowerLimit=10, Target=20, UpperLimit=30))
 
-    utils.full_pickle(os.path.join(tmp_path.name, 'test_desirability'), obj0)
-    utils.compressed_pickle(os.path.join(tmp_path.name, 'test_desirability'), obj0)
-    obj1 = utils.loosen(os.path.join(tmp_path.name, 'test_desirability.pkl'))
-    obj2 = utils.decompress_pickle(os.path.join(tmp_path.name, 'test_desirability.pbz2'))
+    utils.full_pickle('test_desirability', obj0)
+    utils.compressed_pickle('test_desirability', obj0)
+    obj1 = utils.loosen('test_desirability.pkl')
+    obj2 = utils.decompress_pickle('test_desirability.pbz2')
 
     assert obj0 == obj1
     assert obj0 == obj2
 
 # def test_local():
-#     os.chdir(tmp_path.name)
+#     os.chdir(wd)
 #     local = utils.Local(
 #         seed_mol = Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161)),
 #         crem_db_path = crem_db_path,
@@ -354,25 +345,25 @@ def test_miscellanea():
 #     )
 #     local(njobs=1,pick=1)
 
-#     utils.make_sdf(local.pop, sdf_name = os.path.join(tmp_path.name,"local_pop"))
-#     print(os.listdir(tmp_path.name))
+#     utils.make_sdf(local.pop, sdf_name = os.path.join(wd,"local_pop"))
+#     print(os.listdir(wd))
 
 #     print(local.to_dataframe())
 
 
 def test_constraintconf():
     from moldrug.constraintconf import constraintconf
-    with Chem.SDWriter(os.path.join(tmp_path.name, 'fix.sdf')) as w:
+    with Chem.SDWriter('fix.sdf') as w:
         mol = Chem.MolFromMolBlock(constraintref.r_x0161)
         w.write(mol)
-    with open(os.path.join(tmp_path.name, 'mol.smi'), 'w') as f:
+    with open('mol.smi', 'w') as f:
         f.write(ligands.r_x0161)
 
     constraintconf(
         pdb=r_x0161_pdb_file,
-        smi=os.path.join(tmp_path.name, 'mol.smi'),
-        fix=os.path.join(tmp_path.name, 'fix.sdf'),
-        out=os.path.join(tmp_path.name, 'conf.sdf'),
+        smi='mol.smi',
+        fix='fix.sdf',
+        out='conf.sdf',
         randomseed=1234,
     )
     # Clean

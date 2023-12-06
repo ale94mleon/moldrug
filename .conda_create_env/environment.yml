@@ -12,6 +12,8 @@ dependencies:
   - nbsphinx
   - sphinx==5.3.0
   - conda-build
+  # This is needed to make easy the documentation build.
+  - vina
   - pip:
     - numpy
     - tqdm

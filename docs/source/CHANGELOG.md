@@ -19,17 +19,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `moldrug.utils.GA`,
   - `moldrug.constraintconf.constraintconf` as well its CLI with the flag `--seed`.
 - `-V` and `--verbose` flag in the CLI of moldrug.
+- `moldrug.utils.softmax` function.
+- `moldrug.utils.deep_update` function.
+- `moldrug.`utils.__get_default_desirability` to store the default desirability values.
+- `vina_score_type = 'ensemble'`, this is used by CostMultiReceptors* functions. It is meant to be used to account for flexibility in the receptor. This is equivalent to performing ensemble docking.
+
+### Removed
+
+- `scipy` dependency.
+- `outdir` flag in `moldrug` CLI.
 
 ### Changed
 
 - Use `random.random` instead `numpy.random.rand` function for some small cases.
 - `AllChem.MMFFOptimizeMolecule` is only used internally for `moldrug.utils.confgen` and `moldrug.constraintconf.gen_aligned_conf` if `randomseed` is not set and with `maxIters = 500`.
+- `pickle` module is replaced by `dill`. It is better to handle user custom fitness functions.
+- Is not needed to input the whole desirability definition if only is intended to change one part of the default desirability used internally by the cost functions of `moldrug.fitness`. For example, if you would like to change the `Target` value of `vina_score` from its default value.
+
+  Before:
+
+  ```python
+  ga = GA(
+    ...
+    costfunc = moldrug.fitness.Cost
+    costfunc_kwargs = {
+      ...
+      "desirability": {
+        "qed": {
+            "w": 1,
+            "LargerTheBest": {
+              "LowerLimit": 0.1,
+              "Target": 0.75,
+              "r": 1
+            }
+        },
+        "sa_score": {
+            "w": 1,
+            "SmallerTheBest": {
+              "Target": 3,
+              "UpperLimit": 7,
+              "r": 1
+            }
+        },
+        "vina_score": {
+            "w": 1,
+            "SmallerTheBest": {
+              "Target": -12,
+              "UpperLimit": -6,
+              "r": 1
+            }
+        }
+      },
+      ...
+    }
+    ...
+  )
+  ```
+
+  Now:
+
+  ```python
+  ga = GA(
+    ...
+    costfunc = moldrug.fitness.Cost
+    costfunc_kwargs = {
+      ...
+      "desirability": {
+        "vina_score": {
+            "SmallerTheBest": {
+              "Target": -12,
+            }
+        }
+      },
+      ...
+    }
+    ...
+  )
+  ```
+
+  The same from the CLI.
 
 ### Fixed
 
 - Small bug when the population has Individuals with the same cost. Better reproducibility.
 - Refactored changes on tutorials.
-- handled properly in case `receptor_pdbqt_path = None`
+- Handled properly in case `receptor_pdbqt_path = None`
+- Convert `self.crem_db_path` to absolute path in `moldrug.utils.Local` and `moldrug.utils.GA`.
 
 ## [3.5.0] - 2023.10.26
 

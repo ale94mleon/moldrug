@@ -44,7 +44,7 @@ MolDrug is also available through conda. However, the pip installation is the re
     conda install -c ale94mleon -c conda-forge moldrug
 
 .. note::
-    MacOS users may face some problems trying to install because of the AutoDock-Vina dependency. If that is so, please follow the pip instructions.
+    MacOS users may face some problems trying to install because of the AutoDock-Vina dependency. If that is the case, just download the executable as it is explained next.
 
 If some dependencies are missing, please install them through pip. Some of them could be:
 
@@ -71,7 +71,7 @@ Unix- and Linux-based OS
 
     wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_linux_x86_64
     chmod a+x vina_1.2.5_linux_x86_64
-    ./vina_1.2.5_linux_x86_64 -h
+    ./vina_1.2.5_linux_x86_64 --help
 
 MacOS
 ~~~~~
@@ -80,7 +80,8 @@ MacOS
 
     wget https://github.com/ccsb-scripps/AutoDock-Vina/releases/download/v1.2.5/vina_1.2.5_mac_x86_64
     chmod a+x vina_1.2.5_mac_x86_64
-    ./vina_1.2.5_mac_x86_64 -h
+    ./vina_1.2.5_mac_x86_64 --help
+
 
 .. note::
     MacOs users might need to allow the execution of the application on ``Privacy & Security`` depending on the MacOS version.
