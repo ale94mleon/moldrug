@@ -26,7 +26,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- `scipy` dependency.
 - `outdir` flag in `moldrug` CLI.
 
 ### Changed
