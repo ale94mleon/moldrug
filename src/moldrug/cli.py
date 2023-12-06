@@ -21,7 +21,6 @@ class CommandLineHelper:
         self.args = parser.parse_args()
         self.yaml_file = self.args.yaml_file
         self.fitness = self.args.fitness
-        self.outdir = self.args.outdir
         self.continuation = self.args.continuation
         self.verbose = self.args.verbose
         self._set_attributes()
@@ -55,19 +54,9 @@ class CommandLineHelper:
     def _set_costfunc(self):
         if self.fitness:
             # If the fitness module provided is not in the current directory or if its name is not fitness
-            # Create the module inside in self.outdir or in the current directory
-            if self.outdir:
-                if not os.path.exists(self.outdir):
-                    os.makedirs(self.outdir)
-                destination_path = os.path.join(self.outdir, 'CustomMolDrugFitness.py')
-            else:
-                destination_path = 'CustomMolDrugFitness.py'
             with open(self.fitness, 'r') as source:
-                with open(destination_path, 'w') as destination:
+                with open('CustomMolDrugFitness.py', 'w') as destination:
                     destination.write(source.read())
-            # Changing to the outdir path if provided
-            if self.outdir:
-                os.chdir(self.outdir)
             sys.path.append('.')
             import CustomMolDrugFitness
             costfunc = dict(inspect.getmembers(CustomMolDrugFitness))[self._split_config()[0]['costfunc']]
@@ -287,13 +276,6 @@ def __moldrug_cmd():
                         "See the docs for how to do it properly. E.g. my/awesome/fitness_module.py. "
                         "By default will look in the moldrug.fitness module.",
                         dest="fitness",
-                        nargs=argparse.OPTIONAL,
-                        default=None,
-                        type=str)
-    parser.add_argument("-o", "--outdir",
-                        help="The path to where all the files should be written. "
-                        "By default the current working directory will be used (where the command line was invoked).",
-                        dest="outdir",
                         nargs=argparse.OPTIONAL,
                         default=None,
                         type=str)
