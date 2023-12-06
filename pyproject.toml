@@ -50,7 +50,6 @@ dependencies = [
     "pandas",
     "pyyaml",
     "meeko>=0.4.0",
-    "scipy",
     "six",
     "bio",
     "rdkit>=2022.3.5"
@@ -68,7 +67,7 @@ dirty = "{base_version}"
 distance-dirty = "{base_version}"
 
 [tool.versioningit.vcs]
-method = "git" 
+method = "git"
 match = ["*"]
 default-tag = "0.0.0"
 
