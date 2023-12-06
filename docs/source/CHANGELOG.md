@@ -32,7 +32,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use `random.random` instead `numpy.random.rand` function for some small cases.
 - `AllChem.MMFFOptimizeMolecule` is only used internally for `moldrug.utils.confgen` and `moldrug.constraintconf.gen_aligned_conf` if `randomseed` is not set and with `maxIters = 500`.
-- `pickle` module is replaced by `dill`. It is better to handle user custom fitness functions.
+- `pickle` module is replaced by `dill`. It is better to handle users' custom fitness functions.
+- Data now is retrieved with `moldrug``.data.get_data` function.
 - Is not needed to input the whole desirability definition if only is intended to change one part of the default desirability used internally by the cost functions of `moldrug.fitness`. For example, if you would like to change the `Target` value of `vina_score` from its default value.
 
   Before:
@@ -101,8 +102,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Small bug when the population has Individuals with the same cost. Better reproducibility.
-- Refactored changes on tutorials.
-- Handled properly in case `receptor_pdbqt_path = None`
+- Refactored changes.
+- Handled properly in case `receptor_pdbqt_path = None`.
 - Convert `self.crem_db_path` to absolute path in `moldrug.utils.Local` and `moldrug.utils.GA`.
 
 ## [3.5.0] - 2023.10.26

@@ -14,8 +14,7 @@ import yaml
 from rdkit import Chem
 
 from moldrug import fitness, home, utils
-from moldrug.data import (boxes, constraintref, ligands, receptor_pdb,
-                          receptor_pdbqt)
+from moldrug.data import get_data
 
 # This is in case vina is not found. You can change the vina executable here
 vina_executable = os.path.abspath('vina')
@@ -30,15 +29,10 @@ wd = tmp_path.name
 os.chdir(wd)
 
 # Creating receptors files
-r_x0161_pdbqt_file = 'r_x0161.pdbqt'
-r_x0161_pdb_file = 'r_x0161.pdb'
-r_6lu7_pdbqt_file = 'r_6lu7.pdbqt'
-with open(r_x0161_pdbqt_file, 'w') as r:
-    r.write(receptor_pdbqt.r_x0161)
-with open(r_x0161_pdb_file, 'w') as r:
-    r.write(receptor_pdb.r_x0161)
-with open(r_6lu7_pdbqt_file, 'w') as r:
-    r.write(receptor_pdbqt.r_6lu7)
+TEST_DATA = {
+    'x0161': get_data('x0161'),
+    '6lu7': get_data('6lu7')
+}
 
 # Getting the crem data base
 url = "http://www.qsar4u.com/files/cremdb/replacements02_sc2.db.gz"
@@ -56,14 +50,14 @@ def test_single_receptor_command_line():
         "01_grow": {
             "type": "GA",
             "njobs": 3,
-            "seed_mol": ligands.r_x0161,
+            "seed_mol": TEST_DATA['x0161']['smiles'],
             "AddHs": True,
             "costfunc": "Cost",
             "costfunc_kwargs": {
                 "vina_executable": vina_executable,
-                "receptor_pdbqt_path": r_x0161_pdbqt_file,
-                "boxcenter": boxes.r_x0161["A"]['boxcenter'],
-                "boxsize": boxes.r_x0161["A"]['boxsize'],
+                "receptor_pdbqt_path": TEST_DATA['x0161']['protein']['pdbqt'],
+                "boxcenter": TEST_DATA['x0161']['box']['boxcenter'],
+                "boxsize": TEST_DATA['x0161']['box']['boxsize'],
                 "exhaustiveness": 4,
                 "ncores": 4,
                 "num_modes": 1
@@ -112,7 +106,7 @@ def test_single_receptor_command_line():
 
 def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
     out = utils.GA(
-        seed_mol=[Chem.MolFromSmiles(ligands.r_x0161), Chem.MolFromSmiles(ligands.r_x0161)],
+        seed_mol=[Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']), Chem.MolFromSmiles(TEST_DATA['x0161']['smiles'])],
         AddHs=True,
         maxiter=maxiter,
         popsize=popsize,
@@ -129,9 +123,9 @@ def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
         },
         costfunc=fitness.CostMultiReceptors,
         costfunc_kwargs={
-            'receptor_pdbqt_path': [r_x0161_pdbqt_file, r_6lu7_pdbqt_file],
-            'boxcenter': [boxes.r_x0161["A"]['boxcenter'], boxes.r_6lu7["A"]['boxcenter']],
-            'boxsize': [boxes.r_x0161["A"]['boxsize'], boxes.r_6lu7["A"]['boxsize']],
+            'receptor_pdbqt_path': [TEST_DATA['x0161']['protein']['pdbqt'], TEST_DATA['6lu7']['protein']['pdbqt']],
+            'boxcenter': [TEST_DATA['x0161']['box']['boxcenter'], TEST_DATA['6lu7']['box']['boxcenter']],
+            'boxsize': [TEST_DATA['x0161']['box']['boxsize'], TEST_DATA['6lu7']['box']['boxsize']],
             'vina_score_type': ['min', 'max'],
             'exhaustiveness': 4,
             'vina_executable': vina_executable,
@@ -167,13 +161,13 @@ def test_local_command_line():
             "njobs": 1,
             "pick": 1,
             "AddHs": True,
-            "seed_mol": Chem.MolToSmiles(Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161))),
+            "seed_mol": Chem.MolToSmiles(Chem.AddHs(Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']))),
             "costfunc": "CostOnlyVina",
             "costfunc_kwargs": {
                 "vina_executable": vina_executable,
-                "receptor_pdbqt_path": r_x0161_pdbqt_file,
-                "boxcenter": boxes.r_x0161["A"]['boxcenter'],
-                "boxsize": boxes.r_x0161["A"]['boxsize'],
+                "receptor_pdbqt_path": TEST_DATA['x0161']['protein']['pdbqt'],
+                "boxcenter": TEST_DATA['x0161']['box']['boxcenter'],
+                "boxsize": TEST_DATA['x0161']['box']['boxsize'],
                 "exhaustiveness": 4,
                 "num_modes": 1
             },
@@ -199,66 +193,79 @@ def test_local_command_line():
 
 # @pytest.mark.filterwarnings("ignore:\nVina failed")
 def test_fitness_module():
-    individual = utils.Individual(Chem.MolFromSmiles(ligands.r_x0161))
+    individual = utils.Individual(Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']))
     individual_corrupted = copy.deepcopy(individual)
     individual_corrupted.pdbqt = 'This is a corrupted pdbqt'
-    receptor_pdbqt_path = [r_x0161_pdbqt_file, r_6lu7_pdbqt_file]
-    boxcenter = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
-    boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
+    receptor_pdbqt_path = [TEST_DATA['x0161']['protein']['pdbqt'], TEST_DATA['6lu7']['protein']['pdbqt']]
+    boxcenter = [TEST_DATA['x0161']['box']['boxcenter'], TEST_DATA['6lu7']['box']['boxcenter']]
+    boxsize = [TEST_DATA['x0161']['box']['boxsize'], TEST_DATA['6lu7']['box']['boxsize']]
     vina_score_type = ['min', 'max']
 
     fitness.Cost(
         Individual=copy.deepcopy(individual),
         wd=wd,
         vina_executable=vina_executable,
-        receptor_pdbqt_path=r_x0161_pdbqt_file,
-        boxcenter=boxes.r_x0161['A']['boxcenter'],
-        boxsize=boxes.r_x0161['A']['boxsize'],
+        receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'],
+        boxcenter=TEST_DATA['x0161']['box']['boxcenter'],
+        boxsize=TEST_DATA['x0161']['box']['boxsize'],
         exhaustiveness=4,
         ncores=4)
     fitness.Cost(
         Individual=copy.deepcopy(individual),
         wd=wd,
         vina_executable=vina_executable,
-        receptor_pdbqt_path=r_x0161_pdbqt_file,
-        boxcenter=boxes.r_x0161['A']['boxcenter'],
-        boxsize=boxes.r_x0161['A']['boxsize'],
+        receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'],
+        boxcenter=TEST_DATA['x0161']['box']['boxcenter'],
+        boxsize=TEST_DATA['x0161']['box']['boxsize'],
         exhaustiveness=4,
         ncores=4,
         constraint=True,
         constraint_type='local_only',
-        constraint_ref=Chem.MolFromMolBlock(constraintref.r_x0161),
-        constraint_receptor_pdb_path=r_x0161_pdb_file)
+        constraint_ref=Chem.MolFromMolFile(TEST_DATA['x0161']['ligand_3D']),
+        constraint_receptor_pdb_path=TEST_DATA['x0161']['protein']['pdb'])
 
-    fitness.Cost(Individual=copy.deepcopy(
-        individual_corrupted), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
-        boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'], exhaustiveness=4, ncores=4, vina_seed=1234)
+    fitness.Cost(Individual=copy.deepcopy(individual_corrupted), wd=wd,
+                 receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'],
+                 vina_executable=vina_executable,
+                 boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
+                 exhaustiveness=4, ncores=4, vina_seed=1234)
     fitness.CostMultiReceptors(
-        Individual=copy.deepcopy(individual_corrupted), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
-        vina_score_type=vina_score_type, boxcenter=boxcenter, boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
+        Individual=copy.deepcopy(individual_corrupted), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path,
+        vina_executable=vina_executable, vina_score_type=vina_score_type, boxcenter=boxcenter,
+        boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(
-        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
-        vina_score_type=vina_score_type, boxcenter=boxcenter, boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
+        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path,
+        vina_executable=vina_executable, vina_score_type=vina_score_type, boxcenter=boxcenter,
+        boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(
-        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
-        vina_score_type=vina_score_type, boxcenter=boxcenter, boxsize=boxsize, exhaustiveness=4, ncores=4, wt_cutoff=2, vina_seed=1234)
+        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path,
+        vina_executable=vina_executable, vina_score_type=vina_score_type, boxcenter=boxcenter,
+        boxsize=boxsize, exhaustiveness=4, ncores=4, wt_cutoff=2, vina_seed=1234)
     fitness.CostMultiReceptorsOnlyVina(Individual=copy.deepcopy(
-        individual_corrupted), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path, vina_executable=vina_executable,
-        vina_score_type=vina_score_type, boxcenter=boxcenter, boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
+        individual_corrupted), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path,
+        vina_executable=vina_executable, vina_score_type=vina_score_type, boxcenter=boxcenter,
+        boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
 
     fitness.CostOnlyVina(
-        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
-        boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'], exhaustiveness=4, ncores=4, vina_seed=1234)
+        Individual=copy.deepcopy(individual), wd=wd,
+        receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'], vina_executable=vina_executable,
+        boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
+        exhaustiveness=4, ncores=4, vina_seed=1234)
     fitness.CostOnlyVina(
-        Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
-        boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'], exhaustiveness=4, ncores=4, wt_cutoff=2, vina_seed=1234)
+        Individual=copy.deepcopy(individual), wd=wd,
+        receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'], vina_executable=vina_executable,
+        boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
+        exhaustiveness=4, ncores=4, wt_cutoff=2, vina_seed=1234)
     fitness.CostOnlyVina(
-        Individual=copy.deepcopy(individual_corrupted), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
-        boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'], exhaustiveness=4, ncores=4, vina_seed=1234)
+        Individual=copy.deepcopy(individual_corrupted), wd=wd,
+        receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'], vina_executable=vina_executable,
+        boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
+        exhaustiveness=4, ncores=4, vina_seed=1234)
 
     fitness.__get_mol_cost(
-        mol=Chem.MolFromMolBlock(constraintref.r_x0161), wd=wd, receptor_pdbqt_path=r_x0161_pdbqt_file, vina_executable=vina_executable,
-        boxcenter=boxes.r_x0161['A']['boxcenter'], boxsize=boxes.r_x0161['A']['boxsize'],)
+        mol=Chem.MolFromMolFile(TEST_DATA['x0161']['ligand_3D']), wd=wd,
+        receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'], vina_executable=vina_executable,
+        boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],)
 
     # Clean
     utils.tar_errors()
@@ -322,45 +329,17 @@ def test_miscellanea():
     assert obj0 == obj1
     assert obj0 == obj2
 
-# def test_local():
-#     os.chdir(wd)
-#     local = utils.Local(
-#         seed_mol = Chem.AddHs(Chem.MolFromSmiles(ligands.r_x0161)),
-#         crem_db_path = crem_db_path,
-#         costfunc=fitness.CostOnlyVina,
-#         costfunc_kwargs = {
-#             "vina_executable": "vina",
-#             "receptor_pdbqt_path": r_x0161_pdbqt_file,
-#             "boxcenter": boxes.r_x0161["A"]['boxcenter'],
-#             "boxsize": boxes.r_x0161["A"]['boxsize'],
-#             "exhaustiveness": 4,
-#             "num_modes": 1
-#         },
-#         grow_crem_kwargs = {
-#             "radius": 3,
-#             "min_atoms": 1,
-#             "max_atoms": 3
-#         },
-#         AddHs=True,
-#     )
-#     local(njobs=1,pick=1)
-
-#     utils.make_sdf(local.pop, sdf_name = os.path.join(wd,"local_pop"))
-#     print(os.listdir(wd))
-
-#     print(local.to_dataframe())
-
 
 def test_constraintconf():
     from moldrug.constraintconf import constraintconf
     with Chem.SDWriter('fix.sdf') as w:
-        mol = Chem.MolFromMolBlock(constraintref.r_x0161)
+        mol = Chem.MolFromMolFile(TEST_DATA['x0161']['ligand_3D'])
         w.write(mol)
     with open('mol.smi', 'w') as f:
-        f.write(ligands.r_x0161)
+        f.write(TEST_DATA['x0161']['smiles'])
 
     constraintconf(
-        pdb=r_x0161_pdb_file,
+        pdb=TEST_DATA['x0161']['protein']['pdb'],
         smi='mol.smi',
         fix='fix.sdf',
         out='conf.sdf',

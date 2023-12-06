@@ -82,6 +82,18 @@ include-package-data = true
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+moldrug = [
+    "LICENSE",
+    "README.rst",
+    "data/*/*.yml",
+    "data/*/*.mol",
+    "data/*/*.smi",
+    "data/*/*.pdb",
+    "data/*/*.pdbqt",
+
+]
+
 
 [project.scripts]
 moldrug = "moldrug.cli:__moldrug_cmd"
