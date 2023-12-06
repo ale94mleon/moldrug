@@ -1,17 +1,10 @@
 Data
 ====
-This is sub-packege for testing. It has ``ligands``, ``receptors``, ``boxes`` and ``config_yaml``.
-There are two sytems: r_x0161 and r_6lu7.  The corresponded atributes could be acces
-like this: 
+This is a sub-package for testing. It has the function ``get_data`` to retrieve the data.
 
 .. ipython:: python
 
-    from moldrug.data import ligands
-    print(ligands.r_x0161)
-    print(ligands.r_6lu7)
-
-.. ipython:: python
-
-    from moldrug.data import boxes
-    print(boxes.r_x0161)
-    print(boxes.r_6lu7)
+    from moldrug.data import get_data
+    import json
+    print(json.dumps(get_data('x0161'), indent = 3))
+    print(json.dumps(get_data('6lu7'), indent = 3))

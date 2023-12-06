@@ -553,18 +553,15 @@ def Cost(
         from moldrug import utils, fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptor_pdbqt
+        from moldrug.data import get_data
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        data_x0161 = get_data('x0161')
+        ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
         I = utils.Individual(ligand_mol)
-        receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
-        with open(receptor_path, 'w') as r: r.write(receptor_pdbqt.r_x0161)
-        box = boxes.r_x0161['A']
+        box = data_x0161['box']
         # Using the default desirability
-        NewI = fitness.Cost(
-            Individual = I,wd = tmp_path.name,
-            receptor_pdbqt_path = receptor_path,boxcenter = box['boxcenter'],
-            boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
+        NewI = fitness.Cost(Individual=I, wd=tmp_path.name, receptor_pdbqt_path=data_x0161['protein']['pdbqt'], \
+            boxcenter=box['boxcenter'], boxsize=box['boxsize'], exhaustiveness=4, ncores=4)
         print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
     """
     if desirability is None:
@@ -710,17 +707,14 @@ def CostOnlyVina(
         from moldrug import utils, fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptor_pdbqt
+        from moldrug.data import get_data
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        data_x0161 = get_data('x0161')
+        ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
         I = utils.Individual(ligand_mol)
-        receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
-        with open(receptor_path, 'w') as r: r.write(receptor_pdbqt.r_x0161)
-        box = boxes.r_x0161['A']
-        NewI = fitness.CostOnlyVina(
-            Individual = I,wd = tmp_path.name,receptor_pdbqt_path = receptor_path,
-            boxcenter = box['boxcenter'],boxsize = box['boxsize'],
-            exhaustiveness = 4,ncores = 4)
+        box = data_x0161['box']
+        NewI = fitness.CostOnlyVina(Individual=I, wd=tmp_path.name, receptor_pdbqt_path=data_x0161['protein']['pdbqt'],\
+            boxcenter=box['boxcenter'], boxsize=box['boxsize'], exhaustiveness=4,ncores=4)
         print(NewI.cost, NewI.vina_score)
     """
     # If the molecule is heavy, don't perform docking and assign infinite to the cost attribute.
@@ -869,15 +863,15 @@ def CostMultiReceptors(
         from moldrug import utils, fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptor_pdbqt
+        from moldrug.data import get_data
+        data_x0161 = get_data('x0161')
+        data_6lu7 = get_data('6lu7')
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
         I = utils.Individual(ligand_mol)
-        receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
-        with open(receptor_paths[0], 'w') as r: r.write(receptor_pdbqt.r_x0161)
-        with open(receptor_paths[1], 'w') as r: r.write(receptor_pdbqt.r_6lu7)
-        boxcenter = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
-        boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
+        receptor_paths = [data_x0161['protein']['pdbqt'], data_6lu7['protein']['pdbqt']]
+        boxcenter = [data_x0161['box']['boxcenter'], data_6lu7['box']['boxcenter']]
+        boxsize = [data_x0161['box']['boxsize'], data_6lu7['box']['boxsize']]
         vina_score_type = ['min', 'max']
         # Using the default desirability
         NewI = fitness.CostMultiReceptors(
@@ -1141,15 +1135,15 @@ def CostMultiReceptorsOnlyVina(
         from moldrug import utils, fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptor_pdbqt
+        from moldrug.data import get_data
+        data_x0161 = get_data('x0161')
+        data_6lu7 = get_data('6lu7')
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
         I = utils.Individual(ligand_mol)
-        receptor_paths = [os.path.join(tmp_path.name,'receptor1.pdbqt'),os.path.join(tmp_path.name,'receptor2.pdbqt')]
-        with open(receptor_paths[0], 'w') as r: r.write(receptor_pdbqt.r_x0161)
-        with open(receptor_paths[1], 'w') as r: r.write(receptor_pdbqt.r_6lu7)
-        boxcenter = [boxes.r_x0161['A']['boxcenter'], boxes.r_6lu7['A']['boxcenter']]
-        boxsize = [boxes.r_x0161['A']['boxsize'], boxes.r_6lu7['A']['boxsize']]
+        receptor_paths = [data_x0161['protein']['pdbqt'], data_6lu7['protein']['pdbqt']]
+        boxcenter = [data_x0161['box']['boxcenter'], data_6lu7['box']['boxcenter']]
+        boxsize = [data_x0161['box']['boxsize'], data_6lu7['box']['boxsize']]
         vina_score_type = ['min', 'max']
         # Using the default desirability
         NewI = fitness.CostMultiReceptorsOnlyVina(
