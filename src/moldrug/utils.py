@@ -5,7 +5,6 @@ import collections.abc
 import datetime
 import multiprocessing as mp
 import os
-import pickle
 import random
 import shutil
 import subprocess
@@ -16,7 +15,7 @@ from inspect import signature
 from typing import Dict, Iterable, List, Union
 from warnings import warn
 
-import _pickle as cPickle
+import dill as pickle
 import numpy as np
 import pandas as pd
 import tqdm
@@ -467,7 +466,7 @@ def compressed_pickle(title: str, data: object):
         Any serializable python object
     """
     with bz2.BZ2File(f'{title}.pbz2', 'w') as f:
-        cPickle.dump(data, f)
+        pickle.dump(data, f)
 
 
 def decompress_pickle(file: str):
@@ -484,7 +483,7 @@ def decompress_pickle(file: str):
         The python object.
     """
     data = bz2.BZ2File(file, 'rb')
-    data = cPickle.load(data)
+    data = pickle.load(data)
     return data
 
 
@@ -1061,7 +1060,8 @@ class Local:
         The final population sorted by cost.
     """
     def __init__(self, seed_mol: Chem.rdchem.Mol, crem_db_path: str, costfunc: object, grow_crem_kwargs: Dict = None,
-                 costfunc_kwargs: Dict = None, AddHs: bool = False, randomseed: Union[None, int] = None) -> None:
+                 costfunc_kwargs: Dict = None, AddHs: bool = False, randomseed: Union[None, int] = None,
+                 deffnm: str = 'local') -> None:
         """Creator
 
         Parameters
@@ -1073,9 +1073,9 @@ class Local:
         costfunc : object
             The cost function to work with (any from :mod:`moldrug.fitness` or a valid user defined).
         grow_crem_kwargs : Dict, optional
-            The keywords of the grow_mol function of CReM, by default {}
+            The keywords of the grow_mol function of CReM, by default None
         costfunc_kwargs : Dict, optional
-            The keyword arguments of the selected cost function, by default {}
+            The keyword arguments of the selected cost function, by default None
         AddHs : bool, optional
             If True the explicit hyrgones will be added, by default False
         randomseed : Union[None, int], optional
@@ -1114,7 +1114,11 @@ class Local:
         if not self.InitIndividual.pdbqt:
             raise Exception("For some reason, it was not possible to create for the class Individula "
                             "a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
-        self.crem_db_path = crem_db_path
+        if os.path.exists(crem_db_path):
+            self.crem_db_path = os.path.abspath(crem_db_path)
+        else:
+            raise FileNotFoundError(f"{crem_db_path = } does not exists or is not accesible")
+
         self.grow_crem_kwargs = grow_crem_kwargs
         self.costfunc = costfunc
         self.costfunc_kwargs = costfunc_kwargs
@@ -1333,7 +1337,7 @@ class GA:
 
         self.costfunc = costfunc
         if os.path.exists(crem_db_path):
-            self.crem_db_path = crem_db_path
+            self.crem_db_path = os.path.abspath(crem_db_path)
         else:
             raise FileNotFoundError(f"{crem_db_path = } does not exists or is not accesible")
 
