@@ -1,30 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from rdkit import Chem
-from rdkit.Chem import AllChem, DataStructs, Lipinski, Descriptors, rdFMCS
-from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate, PDBQTWriterLegacy
-from crem.crem import mutate_mol, grow_mol
-from moldrug import __version__
+import bz2
+import collections.abc
+import datetime
+import multiprocessing as mp
+import os
+import pickle
+import random
+import shutil
+import subprocess
+import tempfile
+import time
 from copy import deepcopy
 from inspect import signature
-import multiprocessing as mp
-import tempfile
-import subprocess
-import random
-import time
-import datetime
-import shutil
-import os
-import tqdm
-import bz2
-import pickle
+from typing import Dict, Iterable, List, Union
+from warnings import warn
+
 import _pickle as cPickle
 import numpy as np
 import pandas as pd
-from warnings import warn
-from typing import List, Dict, Iterable, Union
-from scipy.special import softmax
-from rdkit import RDLogger
+import tqdm
+from crem.crem import grow_mol, mutate_mol
+from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
+                   RDKitMolCreate)
+from rdkit import Chem, RDLogger
+from rdkit.Chem import AllChem, DataStructs, Descriptors, Lipinski, rdFMCS
+
+from moldrug import __version__
+
 RDLogger.DisableLog('rdApp.*')
 # # in order to pickle the isotope properties of the molecule
 # Chem.SetDefaultPickleProperties(Chem.PropertyPickleOptions.AllProps)
@@ -514,14 +517,57 @@ def import_sascorer():
         The sascorer module ready to use.
     """
     # In order to import sascorer from RDConfig.RDContribDir
-    from rdkit.Chem import RDConfig
     import importlib.util as importlib_util
+
+    from rdkit.Chem import RDConfig
     spec = importlib_util.spec_from_file_location(
         'sascorer', os.path.join(RDConfig.RDContribDir, 'SA_Score', 'sascorer.py'))
     sascorer = importlib_util.module_from_spec(spec)
     spec.loader.exec_module(sascorer)
     return sascorer
 
+
+def deep_update(target_dict: dict, update_dict: dict) -> dict:
+    """Recursively update a dictionary with the key-value pairs from another dictionary.
+    Inpired on https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
+
+    Parameters
+    ----------
+    target_dict : dict
+        The dictionary to be updated
+    update_dict : dict
+        The dictionary providing the updates
+
+    Example
+    -------
+    .. ipython:: python
+
+        from moldrug.utils import deep_update
+        target = {'a': 1, 'b': {'c': 2, 'd': 3}}
+        updates = {'b': {'c': 4, 'e': 5}, 'f': 6}
+        result = deep_update(target, updates)
+        print(result)
+        # Output: {'a': 1, 'b': {'c': 4, 'd': 3, 'e': 5}, 'f': 6}
+
+    Returns
+    -------
+    dict
+        The updated dictionary
+    """
+    for key, value in update_dict.items():
+        if isinstance(value, collections.abc.Mapping):
+            # Recursive update for nested dictionaries
+            target_dict[key] = deep_update(target_dict.get(key, {}), value)
+        else:
+            # Update the value if it's not a dictionary
+            target_dict[key] = value
+    return target_dict
+
+
+def softmax(x, axis=None):
+    x_max = np.amax(x, axis=axis, keepdims=True)
+    exp_x_shifted = np.exp(x - x_max)
+    return exp_x_shifted / np.sum(exp_x_shifted, axis=axis, keepdims=True)
 ###########################################################################
 #   Classes to work with Vina
 ###########################################################################

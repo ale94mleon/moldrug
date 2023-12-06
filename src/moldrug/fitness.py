@@ -1,15 +1,91 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import os
 from copy import deepcopy
-from moldrug import utils, constraintconf, verbose
+from typing import Dict, List, Union
+
+import numpy as np
+# from warnings import import warn
+from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
+                   RDKitMolCreate)
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
-import os
-import numpy as np
-from typing import Dict, List, Union
-# from warnings import import warn
-from meeko import MoleculePreparation, PDBQTMolecule, RDKitMolCreate, PDBQTWriterLegacy
 
+from moldrug import constraintconf, utils, verbose
+
+
+def __get_default_desirability(multireceptor: bool = False) -> dict:
+    """Storage default desirability functions values to work with the
+    cost functions defined in :mod:`moldrug.fitness`
+
+    Parameters
+    ----------
+    multireceptor : bool, optional
+        True:  :meth:`CostMultiReceptors` and :meth:`CostMultiReceptorsOnlyVina`
+        False: :meth:`Cost`, by default False
+
+    Returns
+    -------
+    dict
+        The default desirability
+    """
+
+    desirability = {
+        'qed': {
+            'w': 1,
+            'LargerTheBest': {
+                'LowerLimit': 0.1,
+                'Target': 0.75,
+                'r': 1
+            }
+        },
+        'sa_score': {
+            'w': 1,
+            'SmallerTheBest': {
+                'Target': 3,
+                'UpperLimit': 7,
+                'r': 1
+            }
+        },
+    }
+    if multireceptor:
+        # Usewd for multireceptor cost functions
+        desirability['vina_scores'] = {
+            'ensemble': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
+            },
+            'min': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': -12,
+                    'UpperLimit': -6,
+                    'r': 1
+                }
+            },
+            'max': {
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': -4,
+                    'Target': 0,
+                    'r': 1
+                }
+            }
+        }
+    else:
+        desirability['vina_score'] = {
+            'w': 1,
+            'SmallerTheBest': {
+                'Target': -12,
+                'UpperLimit': -6,
+                'r': 1
+            }
+        }
+    return desirability
 
 def __get_mol_cost(mol: Chem.rdchem.Mol,
                    wd: str = '.vina_jobs',
@@ -43,18 +119,16 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
     score_only : bool, optional
         If True only a vina single point evaluation if not vina will perform optimization, by default True
     desirability : Dict, optional
-        The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
+        Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
         Each variable only will accept
         the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
-        by default None which means that it will use
-        desirability = {
-        'qed':  {'w': 1,'LargerTheBest': {'LowerLimit': 0.1,'Target': 0.75,'r': 1}
-        },
-        'sa_score': {'w': 1,'SmallerTheBest': {'Target': 3,'UpperLimit': 7,'r': 1}
-        },
-        'vina_score': {'w': 1,'SmallerTheBest': {'Target': -12,'UpperLimit': -6,'r': 1}
-        }
-        }
+        by default None which means that it will use:
+
+        .. ipython:: python
+
+            from moldrug.fitness import __get_default_desirability
+            import json
+            json.dumps(__get_default_desirability(multireceptor=False), indent = 4)
     Returns
     -------
     dict
@@ -66,33 +140,13 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
         Inconsistences on user definition of the desirability function parameters.
     """
 
-    if not desirability:
-        desirability = {
-            'qed': {
-                'w': 1,
-                'LargerTheBest': {
-                    'LowerLimit': 0.1,
-                    'Target': 0.75,
-                    'r': 1
-                }
-            },
-            'sa_score': {
-                'w': 1,
-                'SmallerTheBest': {
-                    'Target': 3,
-                    'UpperLimit': 7,
-                    'r': 1
-                }
-            },
-            'vina_score': {
-                'w': 1,
-                'SmallerTheBest': {
-                    'Target': -12,
-                    'UpperLimit': -6,
-                    'r': 1
-                }
-            }
-        }
+    if desirability is None:
+        desirability = __get_default_desirability(multireceptor=False)
+    else:
+        desirability = utils.deep_update(
+            target_dict=__get_default_desirability(multireceptor=False),
+            update_dict=desirability
+        )
 
     if not os.path.exists(wd):
         os.makedirs(wd)
@@ -476,18 +530,16 @@ def Cost(
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
-        The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
+        Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
         Each variable only will accept
         the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
-        by default None which means that it will be used:
-        desirability = {
-        'qed': {'w': 1,'LargerTheBest': {'LowerLimit': 0.1,'Target': 0.75, 'r': 1}
-        },
-        'sa_score': {'w': 1,'SmallerTheBest': {'Target': 3,'UpperLimit': 7,'r': 1}
-        },
-        'vina_score': {'w': 1,'SmallerTheBest': {'Target': -12,'UpperLimit': -6,'r': 1}
-        }
-        }
+        by default None which means that it will use:
+
+        .. ipython:: python
+
+            from moldrug.fitness import __get_default_desirability
+            import json
+            print(json.dumps(__get_default_desirability(multireceptor=False), indent = 4))
     Returns
     -------
     utils.Individual
@@ -515,33 +567,13 @@ def Cost(
             boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
     """
-    if not desirability:
-        desirability = {
-            'qed': {
-                'w': 1,
-                'LargerTheBest': {
-                    'LowerLimit': 0.1,
-                    'Target': 0.75,
-                    'r': 1
-                }
-            },
-            'sa_score': {
-                'w': 1,
-                'SmallerTheBest': {
-                    'Target': 3,
-                    'UpperLimit': 7,
-                    'r': 1
-                }
-            },
-            'vina_score': {
-                'w': 1,
-                'SmallerTheBest': {
-                    'Target': -12,
-                    'UpperLimit': -6,
-                    'r': 1
-                }
-            }
-        }
+    if desirability is None:
+        desirability = __get_default_desirability(multireceptor=False)
+    else:
+        desirability = utils.deep_update(
+            target_dict=__get_default_desirability(multireceptor=False),
+            update_dict=desirability
+        )
 
     sascorer = utils.import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
@@ -729,7 +761,7 @@ def CostMultiReceptors(
         vina_executable: str = 'vina',
         vina_seed: Union[int, None] = None,
         receptor_pdbqt_path: List[str] = None,
-        vina_score_type: List[str] = None,
+        vina_score_type: Union[None, str, List[str]] = None,
         boxcenter: List[List[float]] = None,
         boxsize: List[List[float]] = None,
         exhaustiveness: int = 8,
@@ -771,11 +803,15 @@ def CostMultiReceptors(
         Explicit random seed used by vina, by default None
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
-    vina_score_type : list[str], optional
-        This is a list with the keywords 'min' and/or 'max'. E.g.
+    vina_score_type : Union[None, str, List[str]], optional
+        This is a list with the keywords 'min' and/or 'max' or 'ensemble. E.g.
         If two receptor were provided and for the first one we would like to find a minimum in the vina scoring function
         and for the other one a maximum (selectivity for the first receptor);
-        we must provided the list: ['min', 'max'], by default None
+        we must provided the list: ['min', 'max'].
+        In the other hand, if we have several conformations of the same receptor (flexible receptor)
+        we could use 'ensemble'. In this case the vina value used for the optimization
+        will be the lowest (if SmallerTheBest is selected) or highest (LargerTheBest)
+        of the vina scores from all conformations, by default None
     boxcenter : list[list[float]], optional
         A list of three floats with the definition of the center of the box
         in angstrom for docking (x, y, z), by default None
@@ -807,23 +843,17 @@ def CostMultiReceptors(
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
-        The definition of the desirability to use for each used variable = [qed, sa_score, vina_scores].
+        Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
         Each variable only will accept
         the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
-        In the case of vina_scores there is another layer for the vina_score_type= [min, max],
+        In the case of vina_scores there is another layer for the vina_score_type = [min, max],
         by default is None which means that it will use:
-        desirability = {
-        'qed': {
-        'w': 1,'LargerTheBest': {'LowerLimit': 0.1,'Target': 0.75,'r': 1}
-        },
-        'sa_score': {
-        'w': 1,'SmallerTheBest': {'Target': 3,'UpperLimit': 7,'r': 1}
-        },
-        'vina_scores': {
-        'min':{'w': 1,'SmallerTheBest': {'Target': -12,'UpperLimit': -6,'r': 1}},
-        'max':{'w': 1,'LargerTheBest': {'LowerLimit': -4,'Target': 0,'r': 1}}
-        }
-        }
+
+        .. ipython:: python
+
+            from moldrug.fitness import __get_default_desirability
+            import json
+            print(json.dumps(__get_default_desirability(multireceptor=True), indent = 4))
 
     Returns
     -------
@@ -856,43 +886,13 @@ def CostMultiReceptors(
             vina_score_type = vina_score_type, boxcenter = boxcenter,boxsize = boxsize,exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
     """
-    if not desirability:
-        desirability = {
-            'qed': {
-                'w': 1,
-                'LargerTheBest': {
-                    'LowerLimit': 0.1,
-                    'Target': 0.75,
-                    'r': 1
-                }
-            },
-            'sa_score': {
-                'w': 1,
-                'SmallerTheBest': {
-                    'Target': 3,
-                    'UpperLimit': 7,
-                    'r': 1
-                }
-            },
-            'vina_scores': {
-                'min': {
-                    'w': 1,
-                    'SmallerTheBest': {
-                        'Target': -12,
-                        'UpperLimit': -6,
-                        'r': 1
-                    }
-                },
-                'max': {
-                    'w': 1,
-                    'LargerTheBest': {
-                        'LowerLimit': -4,
-                        'Target': 0,
-                        'r': 1
-                    }
-                }
-            }
-        }
+    if desirability is None:
+        desirability = __get_default_desirability(multireceptor=True)
+    else:
+        desirability = utils.deep_update(
+            target_dict=__get_default_desirability(multireceptor=True),
+            update_dict=desirability
+        )
 
     if not ad4map:
         ad4map = [None] * len(receptor_pdbqt_path)
@@ -969,21 +969,46 @@ def CostMultiReceptors(
         base *= d**w
         exponent += w
 
-    # Run only for vina_scores
-    for vs, vst in zip(Individual.vina_score, vina_score_type):
-        for key in vina_desirability_section[vst]:
+    # Check how to build the desirability
+    if vina_score_type == 'ensemble':
+        # In this case the user is looking for a minimum (potent binder)
+        if 'SmallerTheBest' in vina_desirability_section['ensemble']:
+            vina_score_to_use = min(Individual.vina_score)
+        elif 'LargerTheBest' in vina_desirability_section['ensemble']:
+            vina_score_to_use = max(Individual.vina_score)
+        else:
+            raise RuntimeError(f"For {vina_score_type=} only Derringer-Suich desirability functions:"
+                               "SmallerTheBest and LargerTheBest are possible")
+
+        for key in vina_desirability_section['ensemble']:
             if key == 'w':
-                w = vina_desirability_section[vst][key]
+                w = vina_desirability_section['ensemble'][key]
             elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](vs, **vina_desirability_section[vst][key])
+                d = utils.DerringerSuichDesirability()[key](vina_score_to_use, **vina_desirability_section['ensemble'][key])
             else:
                 raise RuntimeError("Inside the desirability dictionary "
                                    f"you provided for the variable = vina_scores[{vst}] "
                                    f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "
                                    "any possible Derringer-Suich "
-                                   f"desirability function: {utils.DerringerSuichDesirability().keys()}.")
+                                   f"desirability function: SmallerTheBest and LargerTheBest.")
         base *= d**w
         exponent += w
+    else:
+        # Run only for vina_scores
+        for vs, vst in zip(Individual.vina_score, vina_score_type):
+            for key in vina_desirability_section[vst]:
+                if key == 'w':
+                    w = vina_desirability_section[vst][key]
+                elif key in utils.DerringerSuichDesirability():
+                    d = utils.DerringerSuichDesirability()[key](vs, **vina_desirability_section[vst][key])
+                else:
+                    raise RuntimeError("Inside the desirability dictionary "
+                                       f"you provided for the variable = vina_scores[{vst}] "
+                                       f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "
+                                       "any possible Derringer-Suich "
+                                       f"desirability function: {utils.DerringerSuichDesirability().keys()}.")
+            base *= d**w
+            exponent += w
 
     # We are using a geometric mean. And because we are minimizing we have to return
     Individual.cost = 1 - base**(1 / exponent)
@@ -996,7 +1021,7 @@ def CostMultiReceptorsOnlyVina(
         vina_executable: str = 'vina',
         vina_seed: Union[int, None] = None,
         receptor_pdbqt_path: List[str] = None,
-        vina_score_type: List[str] = None,
+        vina_score_type: Union[None, str, List[str]] = None,
         boxcenter: List[List[float]] = None,
         boxsize: List[List[float]] = None,
         exhaustiveness: int = 8,
@@ -1034,11 +1059,15 @@ def CostMultiReceptorsOnlyVina(
         Explicit random seed used by vina, by default None
     receptor_pdbqt_path : list[str], optional
         A list of location of the receptors pdbqt files, by default None
-    vina_score_type : list[str], optional
-        This is a list with the keywords 'min' and/or 'max'. E.g.
+    vina_score_type : Union[None, str, List[str]], optional
+        This is a list with the keywords 'min' and/or 'max' or 'ensemble. E.g.
         If two receptor were provided and for the first one we would like to find a minimum in the vina scoring function
         and for the other one a maximum (selectivity for the first receptor);
-        we must provided the list: ['min', 'max'], by default None
+        we must provided the list: ['min', 'max'].
+        In the other hand, if we have several conformations of the same receptor (flexible receptor)
+        we could use 'ensemble'. In this case the vina value used for the optimization
+        will be the lowest (if SmallerTheBest is selected) or highest (LargerTheBest)
+        of the vina scores from all conformations, by default None
     boxcenter : list[float], optional
         A list of three floats with the definition of the center of the box
         in angstrom for docking (x, y, z), by default None
@@ -1070,16 +1099,30 @@ def CostMultiReceptorsOnlyVina(
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
-        The definition of the desirability when min or max is used.
+        Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
         Each variable only will accept
         the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
-        by default None, which means that it will be used:
-        desirability = {
-        'min': {'w': 1,'SmallerTheBest': {'Target': -12,'UpperLimit': -6,'r': 1}
-        },
-        'max': {'w': 1,'LargerTheBest': {'LowerLimit': -4,'Target': 0,'r': 1}
-        }
-        }
+        In the case of vina_scores there is another layer for the vina_score_type = [min, max],
+        by default is None which means that it will use:
+
+        .. ipython:: python
+
+            from moldrug.fitness import __get_default_desirability
+            import json
+            print(json.dumps(__get_default_desirability(multireceptor=True)['vina_scores'], indent = 4))
+
+        If `vina_score_type = ensemble`, the only parameter that it will be used is the name of the desirability
+        in order to look for a minimum (SmallerTheBest) or a maximum (LargerTheBest). The following desaribility
+        is enough in case minimum is desired:
+
+        .. ipython:: python
+
+            desirability = {
+                'ensemble': 'SmallerTheBest'  # (LargerTheBest if a maximum is desired)
+                }
+            print(json.dumps(desirability, indent = 4))
+
+
     wt_cutoff : Union[None, float], optional
         If some number is provided,
         the molecules with a molecular weight higher than wt_cutoff
@@ -1115,25 +1158,13 @@ def CostMultiReceptorsOnlyVina(
             exhaustiveness = 4,ncores = 4)
         print(NewI.cost, NewI.vina_score)
     """
-    if not desirability:
-        desirability = {
-            'min': {
-                'w': 1,
-                'SmallerTheBest': {
-                    'Target': -12,
-                    'UpperLimit': -6,
-                    'r': 1
-                }
-            },
-            'max': {
-                'w': 1,
-                'LargerTheBest': {
-                    'LowerLimit': -4,
-                    'Target': 0,
-                    'r': 1
-                }
-            }
-        }
+    if desirability is None:
+        desirability = __get_default_desirability(multireceptor=True)['vina_scores']
+    else:
+        desirability = utils.deep_update(
+            target_dict=__get_default_desirability(multireceptor=True)['vina_scores'],
+            update_dict=desirability
+        )
 
     pdbqt_list = []
     Individual.vina_score = []
@@ -1195,28 +1226,39 @@ def CostMultiReceptorsOnlyVina(
     # Update the pdbqt attribute
     Individual.pdbqt = pdbqt_list
 
-    # Initialize base and exponent
-    base = 1
-    exponent = 0
-    # Run for vina_scores
-    for vs, vst in zip(Individual.vina_score, vina_score_type):
-        for key in desirability[vst]:
-            if key == 'w':
-                w = desirability[vst][key]
-            elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](vs, **desirability[vst][key])
-            else:
-                raise RuntimeError("Inside the desirability dictionary you provided "
-                                   f"for the variable = vina_scores[{vst}] "
-                                   f"a non implemented key = {key}. "
-                                   "Only are possible: 'w' (standing for weight) "
-                                   "and any possible Derringer-Suich "
-                                   f"desirability function: {utils.DerringerSuichDesirability().keys()}.")
-        base *= d**w
-        exponent += w
+    if vina_score_type == 'ensemble':
+        # In this case the user is looking for a minimum (potent binder)
+        if 'SmallerTheBest' in desirability['ensemble']:
+            vina_score_to_use = min(Individual.vina_score)
+        elif 'LargerTheBest' in desirability['ensemble']:
+            vina_score_to_use = max(Individual.vina_score)
+        else:
+            raise RuntimeError(f"For {vina_score_type=} only Derringer-Suich desirability functions:"
+                               "SmallerTheBest and LargerTheBest are possible")
+        Individual.cost = vina_score_to_use
+    else:
+        # Initialize base and exponent
+        base = 1
+        exponent = 0
+        # Run for vina_scores
+        for vs, vst in zip(Individual.vina_score, vina_score_type):
+            for key in desirability[vst]:
+                if key == 'w':
+                    w = desirability[vst][key]
+                elif key in utils.DerringerSuichDesirability():
+                    d = utils.DerringerSuichDesirability()[key](vs, **desirability[vst][key])
+                else:
+                    raise RuntimeError("Inside the desirability dictionary you provided "
+                                       f"for the variable = vina_scores[{vst}] "
+                                       f"a non implemented key = {key}. "
+                                       "Only are possible: 'w' (standing for weight) "
+                                       "and any possible Derringer-Suich "
+                                       f"desirability function: {utils.DerringerSuichDesirability().keys()}.")
+            base *= d**w
+            exponent += w
 
-    # We are using a geometric mean. And because we are minimizing we have to return
-    Individual.cost = 1 - base**(1 / exponent)
+        # We are using a geometric mean. And because we are minimizing we have to return
+        Individual.cost = 1 - base**(1 / exponent)
     return Individual
 
 
