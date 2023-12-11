@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.6.1] - 2023.12.11
+
+### Fix
+
+- LICENCE on PyPi.
+
+### Add
+
+- Extra metadata to the package.
+
 ## [3.6.0] - 2023.12.07
 
 ### Added
@@ -432,7 +442,8 @@ Print the starting date when MolDrug is called from the command line.
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.6.0...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.6.1...HEAD
+[3.6.1]: https://github.com/ale94mleon/MolDrug/compare/3.6.0...3.6.1
 [3.6.0]: https://github.com/ale94mleon/MolDrug/compare/3.5.0...3.6.0
 [3.5.0]: https://github.com/ale94mleon/MolDrug/compare/3.4.0...3.5.0
 [3.4.0]: https://github.com/ale94mleon/MolDrug/compare/3.3.0...3.4.0
