@@ -1297,7 +1297,8 @@ class GA:
         popsize : int, optional
             Population size, by default 20.
         beta : float, optional
-            Selection pressure, by default 0.001
+            Selection pressure. Higher values means that the best individual
+            are going to be sumitted for mutations more frquently, by default 0.001.
         pc : float, optional
             Proportion of children, by default 1
         get_similar : bool, optional

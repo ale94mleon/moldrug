@@ -49,7 +49,7 @@ There are currently four implemented:
 #. :meth:`moldrug.fitness.Cost` (standard). It uses all the response variables.
 #. :meth:`moldrug.fitness.CostOnlyVina`. Only use the information of the Vina score.
 #. :meth:`moldrug.fitness.CostMultiReceptors`. It uses all the response variables.
-#. :meth:`moldrug.fitness.CostOnlyVinaMultiReceptors`. Only use the information of the Vina scores
+#. :meth:`moldrug.fitness.CostMultiReceptorsOnlyVina`. Only use the information of the Vina scores
 
 
 .. code-block:: python
@@ -86,6 +86,6 @@ Multi Receptor
 Could be that our receptor presents high flexibility or that we are interested in generating specific
 small molecules. In this case could be convenient to add more than one receptor to the cost function.
 In :mod:`moldrug.fitness` module the cost functions
-:meth:`moldrug.fitness.CostMultiReceptors` and :meth:`moldrug.fitness.CostOnlyVinaMultiReceptors`
+:meth:`moldrug.fitness.CostMultiReceptors` and :meth:`moldrug.fitness.CostMultiReceptorsOnlyVina`
 try to reach this goal. For the case of flexibility, we could perform docking in an ensemble
 of protein structures and just keep the lower scoring rather than include all of them in the final desirability function.
