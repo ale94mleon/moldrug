@@ -107,8 +107,8 @@ with the pharmaceutical company `Boehringer Ingelheim <https://www.boehringer-in
 ..  |crem| image:: https://img.shields.io/static/v1?label=Powered%20by&message=CReM&color=9438ff&style=flat
     :target: https://crem.readthedocs.io/en/latest/
     :alt: crem
-..  |license| image:: https://badgen.net/pypi/license/moldrug/
-    :target: https://pypi.python.org/pypi/moldrug/
+..  |license| image:: https://img.shields.io/badge/License-Apache_2.0-blue.svg
+    :target: https://github.com/ale94mleon/moldrug/?tab=Apache-2.0-1-ov-file#readme
     :alt: license
 ..  |downloads| image:: https://static.pepy.tech/personalized-badge/moldrug?period=total&units=international_system&left_color=grey&right_color=brightgreen&left_text=Downloads
     :target: https://pepy.tech/project/moldrug

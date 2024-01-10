@@ -1080,6 +1080,8 @@ class Local:
             If True the explicit hyrgones will be added, by default False
         randomseed : Union[None, int], optional
            Set a random seed for reproducibility, by default None
+        deffnm : str
+            Just a place holder for compatibility with the CLI.
 
         Raises
         ------
@@ -1353,6 +1355,9 @@ class GA:
 
         self.nc = round(pc * popsize)
         self.get_similar = get_similar
+        # Internally update with default values, TODO, maybe I should remove this
+        # and the user should handled CReM parameters byt itself.
+        # I think that this will avoid confusion.
         self.mutate_crem_kwargs = {
             'radius': 3,
             'min_size': 1,

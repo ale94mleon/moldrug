@@ -9,9 +9,13 @@ and the class ProteinLigandClashFilter:
     https://github.com/JoshuaMeyers/Snippets/blob/master/200405_constrained_conformers.ipynb
     and that code was adapted from Tim Dudgeon
     https://github.com/InformaticsMatters/pipelines/blob/master/src/python/pipelines/rdkit/constrained_conf_gen.py
-    All I've done is change the command line wrapper, modify how to remove conformers
-    that clash with the protein, add documentation and
-    handle some possible run time exceptions.
+    All I've done is:
+    * Change command line
+    * Fix get_mcs function for cases rdkit.Chem.rdFMCS.FindMCS fails.
+    * Add the function gen_aligned_conf to fix possible failures of generate_conformers
+    * Change how to remove conformers that clash with the protein
+    * Add documentation
+    * Fix handling of some possible exceptions.
 """
 from copy import deepcopy
 from rdkit import Chem
