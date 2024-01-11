@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Added
+
+- The `moldrug.constraintconf.clashes_present` function.
+
+### Changed
+
+- Filtering of conformation that clashes with the protein is no longer with `bio.PDB ` object. Now the coordinates are retrieved from the RDKit molecule object and the distance is calculated with NumPy.
+
+### Removed
+
+- `bio` dependency for constraint conformer generation.
+
 ## [3.6.1] - 2023.12.11
 
 ### Fix
@@ -134,6 +146,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - From `csf` to `toml` package configuration.
 - Structure of the repo. Now `src/moldrug`.
 - Improve [MolDrug-Dashboard](https://moldrug-dashboard.streamlit.app/).
+
+### Removed
+
+- Support for conda package. Some dependencies had not ben installed properly. Fix in the future.
 
 ## [3.4.0] - 2023.03.10
 

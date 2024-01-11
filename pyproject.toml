@@ -54,7 +54,6 @@ dependencies = [
     "dill",
     "meeko>=0.4.0",
     "six",
-    "bio",
     "rdkit>=2022.3.5",
     "scipy",  # a meeko dependency
 ]

@@ -12,21 +12,24 @@ and the class ProteinLigandClashFilter:
     All I've done is:
     * Change command line
     * Fix get_mcs function for cases rdkit.Chem.rdFMCS.FindMCS fails.
-    * Add the function gen_aligned_conf to fix possible failures of generate_conformers
-    * Change how to remove conformers that clash with the protein
-    * Add documentation
+    * Add the function gen_aligned_conf to fix possible failures of generate_conformers.
+    * Change how to remove conformers that clash with the protein. Now it is not needed the bio library.
+    * Remove bio dependency, the clashes filter is implemented in clashes_present
+    * Add documentation.
     * Fix handling of some possible exceptions.
 """
+import os
 from copy import deepcopy
+from typing import Optional, Union
+
+import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdFMCS
-import os
-from typing import Optional, Union
 # import warnings
 from tqdm import tqdm
-import Bio.PDB as PDB
-from moldrug.utils import compressed_pickle
+
 from moldrug import verbose
+from moldrug.utils import compressed_pickle
 
 
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
@@ -206,6 +209,39 @@ def generate_conformers(mol: Chem.rdchem.Mol,
         return mol
 
 
+def clashes_present(coords1: np.ndarray, coords2: np.ndarray, clash_distance_threshold: float = 1.5) -> bool:
+    """A function to determine if two set of coordinates n X 3 and m X 3 present clashes based on
+    a threshold. In other words if there are any point from the two set of coordinates at a distances less
+    or equal than clash_distance_threshold.
+
+    Parameters
+    ----------
+    coords1 : np.ndarray
+        First array of coordinates
+    coords2 : np.ndarray
+        Second array of coordinates
+    clash_distance_threshold : float, optional
+        its default value of 1.5 Angstrom is usually for molecules where the hydrogens are not included, by default 1.5
+
+    Returns
+    -------
+    bool
+        False if there is not clash and True otherwise
+    """
+    coords1_np = np.array(coords1)
+    coords2_np = np.array(coords2)
+    print(coords1_np)
+
+    # Calculate distances using NumPy broadcasting
+    distances = np.linalg.norm(coords1_np[:, np.newaxis, :] - coords2_np, axis=2)
+
+    # Check for clashes
+    if np.any(distances <= clash_distance_threshold):
+        return True
+    else:
+        return False
+
+
 class ProteinLigandClashFilter:
     """
     Class used to eliminate clash between a ligand and a protein.
@@ -221,10 +257,8 @@ class ProteinLigandClashFilter:
         distance : float, optional
             Threshold of distance to consider a clash, by default 1.5
         """
-        parser = PDB.PDBParser(QUIET=True, PERMISSIVE=True)
-        s = parser.get_structure('protein', protein_pdbpath)
-        self.kd = PDB.NeighborSearch(list(s.get_atoms()))
-        self.radius = distance
+        self.protein_coord = Chem.MolFromPDBFile(protein_pdbpath).GetConformer().GetPositions()
+        self.distance = distance
 
     def __call__(self, conf: Chem.rdchem.Conformer) -> bool:
         """
@@ -241,8 +275,8 @@ class ProteinLigandClashFilter:
             True if there clash, False otherwise.
         """
         for coord in conf.GetPositions():
-            res = self.kd.search(coord, radius=self.radius)
-            if len(res):
+            res = clashes_present(self.protein_coord, coord, clash_distance_threshold=self.distance)
+            if res:
                 return True
         return False
 
