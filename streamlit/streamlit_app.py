@@ -43,7 +43,7 @@ with st.expander('**About the App**'):
                 "of [Saarland University](https://www.uni-saarland.de/en/home.html) in collaboration "
                 "with the pharmaceutical company [Boehringer Ingelheim](https://www.boehringer-ingelheim.com/de/).")
 
-tab1, tab2, tab3 = st.tabs(["Molecules", "Running info", "Compound Vendors"])
+tab1, tab2, tab3 = st.tabs(["Molecules", "Running info", "Novelty Checker"])
 
 
 @st.cache_data
@@ -620,7 +620,8 @@ if __name__ == "__main__":
                 st.info('Nothing to show')
 
         with tab3:
-            st.info('🧪This feautre is still experimental. Sometimes the query just fail 🫤')
+            st.info('🔬 Please note that this feature is currently in the experimental phase. '
+                    'Occasionally, queries may encounter issues and fail to generate the expected results. 🚧')
             PubChemCheck = st.checkbox("Explore PubChem")
             download_button = st.empty()
             if PubChemCheck:
@@ -713,4 +714,4 @@ if __name__ == "__main__":
                     st.info('Nothing to show. The input is not a MoDrug GA.')
 
     else:
-        st.sidebar.info('☝️ Upload a MolDrug pbz2 file.')
+        st.sidebar.info("☝️ Upload MolDrug's pbz2 file.")
