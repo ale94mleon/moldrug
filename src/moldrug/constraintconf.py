@@ -230,7 +230,6 @@ def clashes_present(coords1: np.ndarray, coords2: np.ndarray, clash_distance_thr
     """
     coords1_np = np.array(coords1)
     coords2_np = np.array(coords2)
-    print(coords1_np)
 
     # Calculate distances using NumPy broadcasting
     distances = np.linalg.norm(coords1_np[:, np.newaxis, :] - coords2_np, axis=2)
