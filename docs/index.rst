@@ -21,6 +21,7 @@ Welcome to moldrug's documentation!
    :numbered:
 
    source/note_on_crem
+   source/note_on_rdkit
 
    notebooks/quickstart
    notebooks/how_to

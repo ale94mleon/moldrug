@@ -7,13 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.7.0] - 2024.01.14
+
+## Fixed
+
+- Calculate SA_score with the molecule without explicit hydrogens. Based on: [https://github.com/rdkit/rdkit/discussions/7047](https://github.com/rdkit/rdkit/discussions/7047)
+
 ### Added
 
 - The `moldrug.constraintconf.clashes_present` function.
+- Attribute `_mol_no_hs` to `moldrug.utils.Inidividual` (the molecule without explicit hydrogens)
 
 ### Changed
 
-- Filtering of conformation that clashes with the protein is no longer with `bio.PDB ` object. Now the coordinates are retrieved from the RDKit molecule object and the distance is calculated with NumPy.
+- Filtering of conformation that clashes with the protein is no longer with `bio.PDB` object. Now the coordinates are retrieved from the RDKit molecule object and the distance is calculated with NumPy.
+- The `smiles` property of the `moldrug.utils.Inidividual` is obtained from `_mol_no_hs` and not from `mol`
 
 ### Removed
 
@@ -458,7 +466,8 @@ Print the starting date when MolDrug is called from the command line.
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.6.1...HEAD
+[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.7.0...HEAD
+[3.7.0]: https://github.com/ale94mleon/MolDrug/compare/3.6.1...3.7.0
 [3.6.1]: https://github.com/ale94mleon/MolDrug/compare/3.6.0...3.6.1
 [3.6.0]: https://github.com/ale94mleon/MolDrug/compare/3.5.0...3.6.0
 [3.5.0]: https://github.com/ale94mleon/MolDrug/compare/3.4.0...3.5.0

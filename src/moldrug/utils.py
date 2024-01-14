@@ -1267,7 +1267,7 @@ class GA:
         with keys ``accepeted`` and ``generated`` with the number of accepted and genereated
         individuals on the generation respectively.
     AddHs : bool
-        In case explicit hydrogens should be added.
+        In case explicit hydrogens should be added for all genreated molecules.
     _seed_mol : list[Chem.rdchem.Mol]
         The list of seed molecules.
     InitIndividual : :meth:`moldrug.utils.Individuals`
