@@ -690,6 +690,8 @@ class Individual:
     ----------
     mol:  Chem.rdchem.Mol
         The molecule object
+    _mol_no_hs: Chem.rdchem.Mol
+        The molecule object without explicit hydrogens.
     idx: Union[int, str]
         The identifier
     pdbqt: str
@@ -746,6 +748,7 @@ class Individual:
             for the attribute pdbqt on multiple runs. If None, the RNG will not be seeded, by default None
         """
         self.mol = mol
+        self._mol_no_hs = Chem.RemoveHs(self.mol)
 
         if not pdbqt:
             try:
@@ -760,7 +763,7 @@ class Individual:
 
     @property
     def smiles(self):
-        return Chem.MolToSmiles(Chem.RemoveHs(self.mol))
+        return Chem.MolToSmiles(self._mol_no_hs)
 
     def __repr__(self):
         return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {self.smiles}, cost = {self.cost})"

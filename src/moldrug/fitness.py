@@ -87,13 +87,14 @@ def __get_default_desirability(multireceptor: bool = False) -> dict:
         }
     return desirability
 
+
 def __get_mol_cost(mol: Chem.rdchem.Mol,
                    wd: str = '.vina_jobs',
                    vina_executable: str = 'vina',
                    receptor_pdbqt_path: str = None,
                    boxcenter: List[float] = None,
                    boxsize: List[float] = None,
-                   score_only: bool = True,
+                   docking_type: str = 'score_only',
                    desirability: Dict = None):
     """
     This function is for developing. It calculate the cost of a single molecule.
@@ -116,8 +117,8 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
     boxsize : List[float], optional
         A list of three floats with the definition of the box size
         in angstrom of the docking box (x, y, z), by default None
-    score_only : bool, optional
-        If True only a vina single point evaluation if not vina will perform optimization, by default True
+    docking_type : str, optional
+        any valid string: score_only, local_only, free, by default True
     desirability : Dict, optional
         Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
         Each variable only will accept
@@ -148,6 +149,8 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
             update_dict=desirability
         )
 
+    mol_no_hs = Chem.RemoveHs(mol)
+
     if not os.path.exists(wd):
         os.makedirs(wd)
     # Initializing result dict
@@ -157,10 +160,10 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
     # multicriteria optimization,Optimization of Several Response Variables
 
     # Getting estimate of drug-likness
-    results['qed'] = QED.weights_mean(mol)
+    results['qed'] = QED.weights_mean(mol_no_hs)
 
     # Getting synthetic accessibility score
-    results['sa_score'] = sascorer.calculateScore(mol)
+    results['sa_score'] = sascorer.calculateScore(mol_no_hs)
 
     # Getting vina_score and update pdbqt
     # Making the ligand pdbqt
@@ -178,12 +181,16 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
         f" --center_x {boxcenter[0]} --center_y {boxcenter[1]} --center_z {boxcenter[2]}"\
         f" --size_x {boxsize[0]} --size_y {boxsize[1]} --size_z {boxsize[2]}"\
         f" --ligand {os.path.join(wd, 'ligand.pdbqt')}"
-    if score_only:
+    if docking_type == 'score_only':
         cmd_vina_str += " --score_only"
-    else:
+    elif docking_type == 'local_only':
+        cmd_vina_str += f" --local_only --out {os.path.join(wd, 'ligand_out.pdbqt')}"
+    elif docking_type == 'free':
         cmd_vina_str += f" --out {os.path.join(wd, 'ligand_out.pdbqt')}"
+    else:
+        raise ValueError(f"docking_type must be one of: score_only, local_only or free. {docking_type} was given.")
     cmd_vina_result = utils.run(cmd_vina_str)
-    if score_only:
+    if docking_type in ['score_only', 'local_only']:
         for line in cmd_vina_result.stdout.split('\n'):
             # Check over different vina versions
             if line.startswith('Affinity'):
@@ -575,10 +582,10 @@ def Cost(
     sascorer = utils.import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
-    Individual.qed = QED.weights_mean(Individual.mol)
+    Individual.qed = QED.weights_mean(Individual._mol_no_hs)
 
     # Getting synthetic accessibility score
-    Individual.sa_score = sascorer.calculateScore(Individual.mol)
+    Individual.sa_score = sascorer.calculateScore(Individual._mol_no_hs)
 
     # Getting vina_score and update pdbqt
     Individual.vina_score, Individual.pdbqt = _vinadock(
@@ -892,10 +899,10 @@ def CostMultiReceptors(
         ad4map = [None] * len(receptor_pdbqt_path)
 
     sascorer = utils.import_sascorer()
-    Individual.qed = QED.weights_mean(Individual.mol)
+    Individual.qed = QED.weights_mean(Individual._mol_no_hs)
 
     # Getting synthetic accessibility score
-    Individual.sa_score = sascorer.calculateScore(Individual.mol)
+    Individual.sa_score = sascorer.calculateScore(Individual._mol_no_hs)
 
     # Getting Vina score
     pdbqt_list = []
