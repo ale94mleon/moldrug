@@ -11,17 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Calculate SA_score with the molecule without explicit hydrogens. Based on: [https://github.com/rdkit/rdkit/discussions/7047](https://github.com/rdkit/rdkit/discussions/7047)
+- Calculate SA_score with the molecule without explicit hydrogens for all built-in fitness functions. Based on: [https://github.com/rdkit/rdkit/discussions/7047](https://github.com/rdkit/rdkit/discussions/7047)
 
 ### Added
 
 - The `moldrug.constraintconf.clashes_present` function.
-- Attribute `_mol_no_hs` to `moldrug.utils.Inidividual` (the molecule without explicit hydrogens)
 
 ### Changed
 
-- Filtering of conformation that clashes with the protein is no longer with `bio.PDB` object. Now the coordinates are retrieved from the RDKit molecule object and the distance is calculated with NumPy.
-- The `smiles` property of the `moldrug.utils.Inidividual` is obtained from `_mol_no_hs` and not from `mol`
+- `bio.PDB` object is no longer used for filtering of conformations that clash with the protein. Now the coordinates are retrieved from the RDKit molecule object and the distance is calculated with NumPy.
 
 ### Removed
 

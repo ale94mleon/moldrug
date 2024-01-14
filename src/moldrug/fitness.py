@@ -149,8 +149,6 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
             update_dict=desirability
         )
 
-    mol_no_hs = Chem.RemoveHs(mol)
-
     if not os.path.exists(wd):
         os.makedirs(wd)
     # Initializing result dict
@@ -160,10 +158,10 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
     # multicriteria optimization,Optimization of Several Response Variables
 
     # Getting estimate of drug-likness
-    results['qed'] = QED.weights_mean(mol_no_hs)
+    results['qed'] = QED.weights_mean(Chem.RemoveHs(mol))
 
     # Getting synthetic accessibility score
-    results['sa_score'] = sascorer.calculateScore(mol_no_hs)
+    results['sa_score'] = sascorer.calculateScore(Chem.RemoveHs(mol))
 
     # Getting vina_score and update pdbqt
     # Making the ligand pdbqt
@@ -582,10 +580,10 @@ def Cost(
     sascorer = utils.import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
-    Individual.qed = QED.weights_mean(Individual._mol_no_hs)
+    Individual.qed = QED.weights_mean(Chem.RemoveHs(Individual.mol))
 
     # Getting synthetic accessibility score
-    Individual.sa_score = sascorer.calculateScore(Individual._mol_no_hs)
+    Individual.sa_score = sascorer.calculateScore(Chem.RemoveHs(Individual.mol))
 
     # Getting vina_score and update pdbqt
     Individual.vina_score, Individual.pdbqt = _vinadock(
@@ -899,10 +897,10 @@ def CostMultiReceptors(
         ad4map = [None] * len(receptor_pdbqt_path)
 
     sascorer = utils.import_sascorer()
-    Individual.qed = QED.weights_mean(Individual._mol_no_hs)
+    Individual.qed = QED.weights_mean(Chem.RemoveHs(Individual.mol))
 
     # Getting synthetic accessibility score
-    Individual.sa_score = sascorer.calculateScore(Individual._mol_no_hs)
+    Individual.sa_score = sascorer.calculateScore(Chem.RemoveHs(Individual.mol))
 
     # Getting Vina score
     pdbqt_list = []
