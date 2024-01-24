@@ -158,6 +158,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
         mol with with generated conformers. In case some Exception ocurred,
         it returns mol without conformers and write in the
         current directory generate_conformers_error.log with the nature of the Exception.
+        The molecule does not have explicit hydrogens.
     """
     # Creating the error directory if needed
     if not os.path.isdir('error'):
@@ -194,6 +195,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                           f"On the molecules:\n current mol: {Chem.MolToSmiles(temp_mol)}\n"
                           f"core: {Chem.MolToSmiles(core1)}\nTrying with gen_aligned_conf")
                 temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi, randomseed=randomseed)
+            # Remove the explicit Hs
             temp_mol = Chem.RemoveHs(temp_mol)
             conf_idx = outmol.AddConformer(temp_mol.GetConformer(0), assignId=True)
             if minimum_conf_rms is not None:
