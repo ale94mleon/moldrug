@@ -1275,6 +1275,7 @@ class GA:
         The list of best cost for each generations.
     avg_cost : list[float]
         The list of average cost for each generations.
+    TODO: Timing the simulation, add tracking variable for the timing of the evaluation and genereation of moleucles. Print at the end of each call
     """
     def __init__(self, seed_mol: Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],
                  costfunc: object, costfunc_kwargs: Dict, crem_db_path: str, maxiter: int = 10, popsize: int = 20,
@@ -1563,7 +1564,7 @@ class GA:
 
                 # Save offspring population
                 # I will save only those offsprings that were not seen and that have a correct pdbqt file
-                if children not in self.SawIndividuals and children.pdbqt:
+                if children not in self.SawIndividuals and children not in popc and children.pdbqt:
                     children.genID = self.NumGens
                     children.kept_gens = set()
                     popc.append(children)
