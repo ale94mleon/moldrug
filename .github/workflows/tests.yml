@@ -25,7 +25,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -33,16 +32,6 @@ jobs:
         os: [ubuntu-latest, macOS-latest] #windows-latest (vina is not available for windows in conda-forge),m think about use bioconda autodock-vina
         python-version: [3.8, 3.9, '3.10', 3.11]
     steps:
-    # - uses: actions/checkout@v3
-    # - name: Setup conda
-    #   uses: s-weigand/setup-conda@v1
-    #   with:
-    #     update-conda: true
-    #     python-version: ${{ matrix.python-version }}
-    #     conda-channels: anaconda, conda-forge
-    # - name: Install dependencies from conda
-    #   run: |
-    #     conda install -y -c conda-forge vina
     - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -66,7 +55,10 @@ jobs:
         echo after "Lint with flake8" My python version is actually: $(python --version).
     - name: Test with pytest
       run: |
-        pytest --cov moldrug
-    - name: Upload coverage reports to Codecov with GitHub Action
+        pytest tests --cov moldrug --cov-report xml
+    - name: Run codacy-coverage-reporter
+      uses: codacy/codacy-coverage-reporter-action@v1
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
-      uses: codecov/codecov-action@v3
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        coverage-reports: coverage.xml

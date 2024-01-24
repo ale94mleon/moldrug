@@ -8,6 +8,7 @@ jupyter_execute
 error
 *.costfunc_MolDrug*
 .coverage*
+coverage.xml
 interesting_struct.txt
 nohup.out
 my_cost.py
