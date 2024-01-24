@@ -11,7 +11,7 @@ MolDrug
     * - **Tutorials**
       - |binder|
     * - **CI/CD**
-      - |tests| |codacy| |CodeQL|
+      - |tests| |codacy-grade| |codacy-codecove| |CodeQL|
     * - **Build**
       - |pypi-version| |conda|
     * - **Source Code**
@@ -78,9 +78,12 @@ with the pharmaceutical company `Boehringer Ingelheim <https://www.boehringer-in
 ..  |tests| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/tests.yml/badge.svg
     :target: https://github.com/ale94mleon/MolDrug/actions/workflows/tests.yml
     :alt: tests
-..  |codacy| image:: https://app.codacy.com/project/badge/Grade/08a3ac7c13df4339b8a1da0e8d31810e
+..  |codacy-codecove| image:: https://app.codacy.com/project/badge/Coverage/08a3ac7c13df4339b8a1da0e8d31810e
+    :target: https://app.codacy.com/gh/ale94mleon/MolDrug/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage
+    :alt: codacy-codecove
+..  |codacy-grade| image:: https://app.codacy.com/project/badge/Grade/08a3ac7c13df4339b8a1da0e8d31810e
     :target: https://app.codacy.com/gh/ale94mleon/MolDrug/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
-    :alt: codacy
+    :alt: codacy-grade
 ..  |CodeQL| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml/badge.svg
     :target: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml
     :alt: CodeQL
