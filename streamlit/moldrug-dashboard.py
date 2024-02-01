@@ -555,7 +555,7 @@ if __name__ == "__main__":
     pbz2 = st.sidebar.file_uploader('**MolDrug pbz2**', accept_multiple_files=False)
 
     if pbz2:
-
+        # TODO, make gen a selectable user parameter
         gen, moldrug_result, pdbqt_dataframe, dataframe, is_GA = load_pbz2(pbz2)
         st.sidebar.write(f"**Loaded generation = {gen}**")
         try:
@@ -623,6 +623,7 @@ if __name__ == "__main__":
             st.info('🔬 Please note that this feature is currently in the experimental phase. '
                     'Occasionally, queries may encounter issues and fail to generate the expected results. 🚧')
             PubChemCheck = st.checkbox("Explore PubChem")
+            # TODO Use https://github.com/whitead/molbloom as well
             download_button = st.empty()
             if PubChemCheck:
                 dataframe = dataframe.copy()
