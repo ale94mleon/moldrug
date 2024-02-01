@@ -147,6 +147,10 @@
      id="layer2"
      style="display:inline"
      transform="translate(-11.112565,-6.8792087)">
+    <path
+       style="fill:#ffffff;stroke-width:9.3;stroke-linecap:round;stroke-linejoin:round"
+       id="path1"
+       d="M 75.791026,62.371656 A 18.516619,18.516619 0 0 1 50.352501,68.573987 18.516619,18.516619 0 0 1 44.144869,43.136755 18.516619,18.516619 0 0 1 69.580806,36.923822 18.516619,18.516619 0 0 1 75.79904,62.358463 L 59.969952,52.750908 Z" />
     <g
        id="g18">
       <text
@@ -164,15 +168,15 @@
    id="tspan1">D</tspan>rug</tspan></text>
       <text
          xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.2222px;font-family:'.SF Soft Numeric';-inkscape-font-specification:'.SF Soft Numeric, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:inline;fill:#646464;fill-opacity:1;stroke:none;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.2222px;font-family:'.SF Soft Numeric';-inkscape-font-specification:'.SF Soft Numeric, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;display:none;fill:#646464;fill-opacity:1;stroke:none;stroke-width:0.499999;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
          x="551.08295"
          y="117.64671"
          id="text3"
          transform="translate(215.89999,-5.5562484)"><tspan
            id="tspan3"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:28.2222px;font-family:'.SF Soft Numeric';-inkscape-font-specification:'.SF Soft Numeric, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#646464;fill-opacity:1;stroke-width:0.5"
-           x="551.08295"
-           y="117.64671">TM</tspan></text>
+           x="0"
+           y="0">TM</tspan></text>
       <g
          id="g12"
          transform="matrix(-1,0,0,1,482.14759,-194.70712)"
