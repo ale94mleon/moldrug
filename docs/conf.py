@@ -13,6 +13,7 @@
 import os
 import sys
 from datetime import datetime
+
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('./source/'))
 sys.path.insert(0, os.path.abspath('./notebooks/'))
@@ -109,7 +110,7 @@ html_theme_options = {
         }
     ],
 }
-html_logo = "source/_static/logo.png"
+html_logo = "source/_static/MolDrug-logo.svg"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

@@ -30,4 +30,4 @@ moldrug.egg-info
 src/moldrug/postpro.py
 vina
 
-moldrug-dashboard-test.py
+streamlit/test/moldrug-dashboard.py

@@ -29,8 +29,7 @@ MolDrug
 Description
 -----------
 
-**MolDrug** (from Molecule to Drug) is a Python package for drug-oriented optimization in the chemical space.
-It uses a Genetic Algorithm (GA) as a search engine in the chemical space and
+**MolDrug** (from Molecule to Drug) is a Python package for drug-oriented optimization in the chemical space. It uses a Genetic Algorithm (GA) as a search engine in the chemical space and
 `CReM <https://github.com/DrrDom/crem>`__ library as chemical structure generator.
 
 
@@ -66,7 +65,7 @@ This project received funding from `Marie Skłodowska-Curie Actions <https://cor
 with the pharmaceutical company `Boehringer Ingelheim <https://www.boehringer-ingelheim.com/de/>`__.
 
 
-..  |logo|  image:: https://github.com/ale94mleon/MolDrug/blob/main/docs/source/_static/logo.png?raw=true
+..  |logo|  image:: https://github.com/ale94mleon/MolDrug/blob/main/docs/source/_static/MolDrug-logo-full.svg?raw=true
     :target: https://github.com/ale94mleon/moldrug/
     :alt: logo
 ..  |docs|  image:: https://readthedocs.org/projects/moldrug/badge/?version=latest
