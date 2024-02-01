@@ -7,9 +7,32 @@
    viewBox="0 0 181.98734 192.83344"
    version="1.1"
    id="svg1"
+   sodipodi:docname="MolDrug-logo.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="0.82616808"
+     inkscape:cx="534.39489"
+     inkscape:cy="734.71732"
+     inkscape:window-width="1312"
+     inkscape:window-height="449"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg1" />
   <defs
      id="defs1">
     <linearGradient
@@ -71,20 +94,6 @@
        x2="471.03503"
        y2="298.00305" />
   </defs>
-  <g
-     id="g10"
-     style="display:inline"
-     transform="translate(-11.112565,-6.8792087)">
-    <g
-       id="g9"
-       style="display:inline">
-      <path
-         style="font-size:8.81944px;font-family:'.SF Soft Numeric';-inkscape-font-specification:'.SF Soft Numeric, Normal';fill:#646464;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round"
-         d="m 159.28869,194.05837 h -2.29099 v 5.65426 h -0.85266 v -5.65426 h -2.29099 v -0.75792 h 5.43464 z m 0.79237,5.65426 h 0.34451 q 0.0689,0 0.10765,-0.0215 0.0388,-0.0215 0.0603,-0.0603 0.0215,-0.0388 0.0215,-0.10766 v -4.61212 h 0.35312 l -0.83974,-1.24023 2.43309,5.8825 q 0.0258,0.0646 0.0517,0.099 0.0301,0.0301 0.0732,0.0474 0.0431,0.0129 0.11196,0.0129 h 0.31006 q 0.0689,0 0.11197,-0.0129 0.0431,-0.0172 0.0689,-0.0474 0.0301,-0.0345 0.056,-0.099 l 2.4331,-5.8825 -0.83974,1.24023 h 0.35312 v 4.61212 q 0,0.0689 0.0215,0.11197 0.0215,0.0387 0.0603,0.0603 0.0388,0.0172 0.10766,0.0172 h 0.34451 q 0.0689,0 0.10766,-0.0215 0.0388,-0.0215 0.0603,-0.0603 0.0215,-0.0388 0.0215,-0.10766 v -5.83513 q 0,-0.0689 -0.0215,-0.10766 -0.0215,-0.0431 -0.0603,-0.0603 -0.0388,-0.0215 -0.10766,-0.0215 h -0.53399 q -0.0689,0 -0.11196,0.0172 -0.0431,0.0129 -0.0732,0.0474 -0.0258,0.0301 -0.0517,0.0947 l -2.08859,5.07721 h -0.0258 l -2.08858,-5.07721 q -0.0258,-0.0646 -0.056,-0.0947 -0.0301,-0.0344 -0.0732,-0.0474 -0.0388,-0.0172 -0.10766,-0.0172 h -0.53399 q -0.0689,0 -0.11197,0.0215 -0.0388,0.0215 -0.0603,0.0603 -0.0172,0.0388 -0.0172,0.10766 v 5.83513 q 0,0.0689 0.0215,0.11197 0.0215,0.0387 0.0603,0.0603 0.0387,0.0172 0.10766,0.0172 z"
-         id="text6"
-         aria-label="TM" />
-    </g>
-  </g>
   <g
      id="layer2"
      style="display:inline"
