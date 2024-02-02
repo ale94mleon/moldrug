@@ -30,7 +30,7 @@ from moldrug import utils
 # st.set_page_config('wide')
 st.sidebar.empty()
 st.title('Dashboard')
-st.image('https://github.com/ale94mleon/MolDrug/raw/main/docs/source/_static/logo.png?raw=true', width=150)
+st.image('https://raw.githubusercontent.com/ale94mleon/MolDrug/main/docs/source/_static/MolDrug-logo-full.svg', width=200)
 
 with st.expander('**About the App**'):
     st.markdown("👈 Open the side bar to introduce the data.\n\n"
