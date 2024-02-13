@@ -571,6 +571,8 @@ if __name__ == "__main__":
         sliders = []
         for prop in properties:
             minimum, maximum = convert(dataframe[prop].min()), convert(dataframe[prop].max())
+            if minimum == maximum:
+                maximum += 0.001
             sliders.append(st.sidebar.slider(f'**{prop}**', minimum, maximum, [minimum, maximum]))
 
         grid = mols2grid.MolGrid(dataframe, mol_col='mol', fixedBondLength=25, clearBackground=False, size=(130, 120))
