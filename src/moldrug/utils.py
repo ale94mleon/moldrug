@@ -12,7 +12,7 @@ import tempfile
 import time
 from copy import deepcopy
 from inspect import signature
-from typing import Dict, Iterable, List, Union
+from typing import Dict, Iterable, List, Union, Callable
 from warnings import warn
 
 import dill as pickle
@@ -1275,10 +1275,18 @@ class GA:
         The list of best cost for each generations.
     avg_cost : list[float]
         The list of average cost for each generations.
-    TODO: Timing the simulation, add tracking variable for the timing of the evaluation and genereation of moleucles. Print at the end of each call
+
+    TODO:
+
+        * Timing the simulation, add tracking variable for the timing of the evaluation and genereation of moleucles. Print at the end of each call
+        * Extend to other genereators:
+            - mutate_crem_kwargs = None and some other keyword that get the generator function, in this case the mutate method will be overwrite
+            with the user provided, this fucntion will take an Individual and return a new offspring, to be more copatible and not create issues,
+            I good idea will be that this fucntion accept a self as first arguemnt, and internally, it will use the self of the GA class
+
     """
     def __init__(self, seed_mol: Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],
-                 costfunc: object, costfunc_kwargs: Dict, crem_db_path: str, maxiter: int = 10, popsize: int = 20,
+                 costfunc: Callable, costfunc_kwargs: Dict, crem_db_path: str, maxiter: int = 10, popsize: int = 20,
                  beta: float = 0.001, pc: float = 1, get_similar: bool = False, mutate_crem_kwargs: Union[None, Dict] = None,
                  save_pop_every_gen: int = 0, checkpoint: bool = False, deffnm: str = 'ga',
                  AddHs: bool = False, randomseed: Union[None, int] = None) -> None:
@@ -1289,7 +1297,7 @@ class GA:
         seed_mol : Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]]
             The seed molecule submitted to genetic algorithm optimization on the chemical space. Could be only one RDKit
             molecule or more than one specified in an Iterable object.
-        costfunc : object
+        costfunc : Callable
             The cost function to work with (any from :mod:`moldrug.fitness` or a valid user defined).
         costfunc_kwargs : Dict
             The keyword arguments of the selected cost function
@@ -1357,7 +1365,7 @@ class GA:
         self.nc = round(pc * popsize)
         self.get_similar = get_similar
         # Internally update with default values, TODO, maybe I should remove this
-        # and the user should handled CReM parameters byt itself.
+        # and the users should handled CReM parameters by themself.
         # I think that this will avoid confusion.
         self.mutate_crem_kwargs = {
             'radius': 3,
@@ -1553,7 +1561,17 @@ class GA:
             probs = softmax((-self.beta * np.array(self.pop)).astype('float64'))
             if any(np.isnan(probs)):
                 probs = np.nan_to_num(probs)
-
+            
+            
+            # TODO: This cycle should run in this way only if no user generetor was provided
+            # with and if, else statment I could correct, and then the genereator functions is completlly up to the user,
+            # then I do not need to worry in how the selection is made,
+            # In this case self.nc will not have any validity unless the user use it with its evaluator
+            # the checking of SawIndivduals must be done after the user funcrion return the popc
+            # The other that I need to change is that if the if it is a new genereator the genereation of the initil population is different
+            # the other is that checking for redundancy may be complicated in the case, that molecules are, for example peptides,
+            # in this case other identifier like the aa sequnce should be ued intead. For that the user may need a different Individual instance
+            # a one more efficient, there are a lot of if here :`-)
             popc = []
             for _ in range(self.nc):
                 # Perform Roulette Wheel Selection
