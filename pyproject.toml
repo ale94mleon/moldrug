@@ -15,7 +15,7 @@ Changelog = "https://github.com/ale94mleon/MolDrug/blob/main/docs/source/CHANGEL
 [project]
 name = "moldrug"
 dynamic = ["version"]
-description = "MolDrug (from Molecule to Drug) is a python package for drug-oriented optimization on the chemical space."
+description = "MolDrug is a python package for drug-oriented optimization on the chemical space."
 readme = "README.rst"
 
 authors=[
