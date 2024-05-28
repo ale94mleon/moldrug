@@ -567,7 +567,8 @@ if __name__ == "__main__":
         # Plot the prolif and the tridimensional structure with py3Dmol
         # That two columns
         # Get the minimum and maximum of the variables and used them
-        cost_threshold = st.sidebar.slider('**Coloring cost threshold:**', 0.0, 1.0, 0.5)
+        min_cost, max_cost = convert(dataframe['cost'].min()), convert(dataframe['cost'].max())
+        cost_threshold = st.sidebar.slider('**Coloring cost threshold:**', min_cost, max_cost + 0.001, (min_cost+max_cost)/2)
         sliders = []
         for prop in properties:
             minimum, maximum = convert(dataframe[prop].min()), convert(dataframe[prop].max())
