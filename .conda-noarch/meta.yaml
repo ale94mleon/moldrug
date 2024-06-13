@@ -32,6 +32,6 @@ about:
   license:  {{ data['license'] }}
   dev_url: {{ data['url'] }}
   doc_url: {{ data['project_urls']['Documentation'] }}
-  doc_source_url: https://github.com/ale94mleon/MolDrug/tree/main/docs/source
+  doc_source_url: https://github.com/ale94mleon/moldrug/tree/main/docs/source
   summary: {{ data['description'] }}
 

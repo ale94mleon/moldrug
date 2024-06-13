@@ -6,7 +6,7 @@ __pycache__
 .ipynb_checkpoints
 jupyter_execute
 error
-*.costfunc_MolDrug*
+*.costfunc_moldrug*
 .coverage*
 coverage.xml
 interesting_struct.txt

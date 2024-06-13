@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.abspath('./notebooks/'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'MolDrug'
+project = 'moldrug'
 copyright = f"2022-{datetime.now().year}, Alejandro Martínez León"
 author = 'Alejandro Martínez León'
 
@@ -110,7 +110,7 @@ html_theme_options = {
         }
     ],
 }
-html_logo = "source/_static/MolDrug-logo.svg"
+html_logo = "source/_static/moldrug-logo.svg"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

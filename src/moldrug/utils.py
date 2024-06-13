@@ -12,7 +12,7 @@ import tempfile
 import time
 from copy import deepcopy
 from inspect import signature
-from typing import Dict, Iterable, List, Union, Callable
+from typing import Callable, Dict, Iterable, List, Union
 from warnings import warn
 
 import dill as pickle
@@ -964,7 +964,7 @@ def _make_kwargs_copy(costfunc, costfunc_kwargs,):
         A copy of self.costfunc_kwargs with wd changed if needed
     """
     kwargs_copy = costfunc_kwargs.copy()
-    costfunc_jobs_tmp_dir = tempfile.TemporaryDirectory(prefix='.costfunc_MolDrug_', dir='.')
+    costfunc_jobs_tmp_dir = tempfile.TemporaryDirectory(prefix='.costfunc_moldrug_', dir='.')
     if 'wd' in signature(costfunc).parameters:
         kwargs_copy['wd'] = costfunc_jobs_tmp_dir.name
     return kwargs_copy, costfunc_jobs_tmp_dir
@@ -1137,7 +1137,7 @@ class Local:
             How many molecules take from the generated throgh the grow_mol CReM operation,
             by default None which means all generated.
         """
-        # Check version of MolDrug
+        # Check version of moldrug
         if self.__moldrug_version != __version__:
             warn(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} "
                  f"but was called with moldrug-{__version__}")
@@ -1402,7 +1402,7 @@ class GA:
         if self.AddHs:
             self._seed_mol = [Chem.AddHs(mol) for mol in self._seed_mol]
         # if 'protected_ids' in self.mutate_crem_kwargs or 'replace_ids' in self.mutate_crem_kwargs:
-        #     _ = [atom.SetIntProp('label_MolDrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
+        #     _ = [atom.SetIntProp('label_moldrug', atom.GetIdx()) for atom in seed_mol.GetAtoms()]
 
         # Create the first Individual
         self.InitIndividual = Individual(self._seed_mol[0], idx=0, randomseed=self.randomseed)
@@ -1425,7 +1425,7 @@ class GA:
         # Counting the calls
         self.NumCalls += 1
 
-        # Check version of MolDrug
+        # Check version of moldrug
         if self.__moldrug_version__ != __version__:
             warn(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version__} "
                  f"but was called with moldrug-{__version__}")

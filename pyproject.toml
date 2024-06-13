@@ -10,12 +10,12 @@ Hompage = "https://github.com/ale94mleon/moldrug"
 Documentation = "https://moldrug.readthedocs.io/en/latest/"
 Discussions = "https://github.com/ale94mleon/moldrug/discussions"
 Issues = "https://github.com/ale94mleon/moldrug/issues"
-Changelog = "https://github.com/ale94mleon/MolDrug/blob/main/docs/source/CHANGELOG.md"
+Changelog = "https://github.com/ale94mleon/moldrug/blob/main/docs/source/CHANGELOG.md"
 
 [project]
 name = "moldrug"
 dynamic = ["version"]
-description = "MolDrug is a python package for drug-oriented optimization on the chemical space."
+description = "moldrug is a python package for drug-oriented optimization on the chemical space."
 readme = "README.rst"
 
 authors=[

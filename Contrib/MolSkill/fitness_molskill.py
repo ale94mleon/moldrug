@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+from typing import Dict, List
+
+from molskill.scorer import MolSkillScorer
+from rdkit import Chem, RDLogger
+
 from moldrug import utils
 from moldrug.fitness import _vinadock
-from rdkit import Chem
-from typing import Dict, List
-from rdkit import RDLogger
-from molskill.scorer import MolSkillScorer
+
 RDLogger.DisableLog('rdApp.*')
 
 
@@ -74,7 +76,7 @@ def Cost(
     constraint_receptor_pdb_path : str, optional
         The same as constraint_receptor_pdbqt_path but in pdb format, by default None
     constraint_num_conf : int, optional
-        Maximum number of conformer to be generated internally by MolDrug , by default 100
+        Maximum number of conformer to be generated internally by moldrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional

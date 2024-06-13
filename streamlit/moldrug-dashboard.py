@@ -30,14 +30,14 @@ from moldrug import utils
 # st.set_page_config('wide')
 st.sidebar.empty()
 st.title('Dashboard')
-st.image('https://raw.githubusercontent.com/ale94mleon/MolDrug/main/docs/source/_static/MolDrug-logo-full.svg', width=200)
+st.image('https://raw.githubusercontent.com/ale94mleon/moldrug/main/docs/source/_static/moldrug-logo-full.svg', width=200)
 
 with st.expander('**About the App**'):
     st.markdown("👈 Open the side bar to introduce the data.\n\n"
-                "This app is to get an overview of a **MolDrug**'s result at glance. "
+                "This app is to get an overview of a **moldrug**'s result at glance. "
                 "Check this [flash tutorial](https://moldrug.readthedocs.io/en/latest/source/moldrug_dahsboard.html) "
-                "in case you get stock on how to use the app; or [MolDrug's docs](https://moldrug.rtfd.io/) "
-                "and [MolDrug's GitHub](https://github.com/ale94mleon/moldrug/) for more information.\n\n"
+                "in case you get stock on how to use the app; or [moldrug's docs](https://moldrug.rtfd.io/) "
+                "and [moldrug's GitHub](https://github.com/ale94mleon/moldrug/) for more information.\n\n"
                 "This project received foundings from [Marie Skłodowska-Curie Actions](https://cordis.europa.eu/project/id/860592). "
                 "It was developed in the [Computational Biophysics Group](https://biophys.uni-saarland.de/) "
                 "of [Saarland University](https://www.uni-saarland.de/en/home.html) in collaboration "
@@ -150,7 +150,7 @@ def convert(number):
 
 
 def plot_dist(individuals: list[utils.Individual], properties: list[str], every_gen: int = 1, figsize=(25, 25)):
-    """Create the violin plot for the MolDrug run
+    """Create the violin plot for the moldrug run
 
     Parameters
     ----------
@@ -523,7 +523,7 @@ def get_pubchem_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     Parameters
     ----------
     df : pd.DataFrame
-        With columns: idx (the identification used in MolDrug) and smiles (the SMILES of the molecule)
+        With columns: idx (the identification used in moldrug) and smiles (the SMILES of the molecule)
 
     Returns
     -------
@@ -551,8 +551,8 @@ def get_pubchem_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 if __name__ == "__main__":
     # Upload the data, result and PDB used fopr the docking
     st.sidebar.subheader('Upload pbz2:')
-    # pbz2 = '/home/ale/mnt/snowden2/MolDrug/HIPS/Second/LasB/Cost/free/CH4/replica1/04_local_result.pbz2'
-    pbz2 = st.sidebar.file_uploader('**MolDrug pbz2**', accept_multiple_files=False)
+    # pbz2 = '/home/ale/mnt/snowden2/moldrug/HIPS/Second/LasB/Cost/free/CH4/replica1/04_local_result.pbz2'
+    pbz2 = st.sidebar.file_uploader('**moldrug pbz2**', accept_multiple_files=False)
 
     if pbz2:
         # TODO, make gen a selectable user parameter
@@ -613,9 +613,9 @@ if __name__ == "__main__":
                     st.download_button(
                         "Press to Download",
                         convert_df(prop_df),
-                        "MolDrug_properties.csv",
+                        "moldrug_properties.csv",
                         "text/csv",
-                        key='download-MolDrug_prop-csv')
+                        key='download-moldrug_prop-csv')
                     st.dataframe(prop_df)
 
         except ValueError:
@@ -718,4 +718,4 @@ if __name__ == "__main__":
                     st.info('Nothing to show. The input is not a MoDrug GA.')
 
     else:
-        st.sidebar.info("☝️ Upload MolDrug's pbz2 file.")
+        st.sidebar.info("☝️ Upload moldrug's pbz2 file.")

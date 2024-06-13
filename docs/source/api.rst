@@ -4,7 +4,7 @@ Summary
 Input data
 ----------
 
-Currently, **MolDrug** only accepts valid RDKit molecules and a valid pdbqt file that
+Currently, **moldrug** only accepts valid RDKit molecules and a valid pdbqt file that
 will be processed in case AutoDock-Vina is used.
 
 The idea
@@ -29,7 +29,7 @@ The offspring will be merged with the current population, sorted with respect to
 and the first ``popsize`` individuals will be kept for the next generation.
 This cycle will run for ``maxiter`` generations.
 
-In a general way **MolDrug** will try to minimize:
+In a general way **moldrug** will try to minimize:
 
 .. math::
     cost = f(\vec{X})
@@ -70,7 +70,7 @@ The following are the response variables:
 #. `Synthetic accessibility score.  <https://jcheminf.biomedcentral.com/articles/10.1186/1758-2946-1-8)>`_
 
 For each of this response variable we create their corresponding `Derringer-Suich desirability functions <https://www.tandfonline.com/doi/abs/10.1080/00224065.1980.11980968>`_
-(see `here <https://moldrug.readthedocs.io/en/latest/notebooks/desirability.html>`_ some examples of how it is implemented in MolDrug).
+(see `here <https://moldrug.readthedocs.io/en/latest/notebooks/desirability.html>`_ some examples of how it is implemented in moldrug).
 And then we combine them as a geometric mean:
 
 .. math::

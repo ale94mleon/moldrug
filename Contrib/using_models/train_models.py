@@ -1,16 +1,18 @@
+import os
 import urllib.request
 from io import StringIO
-import pandas as pd
-from scipy.stats import pearsonr
-import numpy as np
-from rdkit import Chem
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from featurize import Featurizer
-import joblib
 from urllib.parse import urlparse
-import os
+
+import joblib
+import numpy as np
+import pandas as pd
+from featurize import Featurizer
+from rdkit import Chem
+from scipy.stats import pearsonr
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+
 
 def is_url(string:str) -> bool:
     """Check if the string is a valid URL
@@ -85,7 +87,7 @@ def prepare_model(name, source, y_transform = None, scaler = None):
     y_pred = model.predict(X_te)
     print("Pearson Correlation: {:.3f}".format(pearsonr(y_pred, y_te)[0]))
 
-    # Change n_jobs to 1 in order to avoid warnings during MolDrug run.
+    # Change n_jobs to 1 in order to avoid warnings during moldrug run.
     model.n_jobs = 1
 
     joblib.dump(

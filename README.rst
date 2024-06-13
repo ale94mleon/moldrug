@@ -1,4 +1,4 @@
-MolDrug
+moldrug
 =======
 
 |logo|
@@ -29,13 +29,13 @@ MolDrug
 Description
 -----------
 
-**MolDrug** is a Python package for drug-oriented optimization in the chemical space. It uses a Genetic Algorithm (GA) as a search engine in the chemical space and
+**moldrug** is a Python package for drug-oriented optimization in the chemical space. It uses a Genetic Algorithm (GA) as a search engine in the chemical space and
 `CReM <https://github.com/DrrDom/crem>`__ library as chemical structure generator.
 
 
 You can try it out before any installation on `Binder <https://mybinder.org/v2/gh/ale94mleon/moldrug/HEAD?labpath=%2Fdocs%2Fnotebooks%2F>`__.
 
-You can use `MolDrug-Dashboard <https://moldrug-dashboard.streamlit.app/>`__ to process the results.
+You can use `moldrug-Dashboard <https://moldrug-dashboard.streamlit.app/>`__ to process the results.
 
 Documentation
 -------------
@@ -50,9 +50,9 @@ If you have found a bug, please open an issue on the `GitHub Issues <https://git
 Discussion
 ----------
 
-If you have questions on how to use **MolDrug**, or if you want to give feedback or share ideas and new features, please head to the `GitHub Discussions <https://github.com/ale94mleon/moldrug/discussions>`_.
+If you have questions on how to use **moldrug**, or if you want to give feedback or share ideas and new features, please head to the `GitHub Discussions <https://github.com/ale94mleon/moldrug/discussions>`_.
 
-Citing **MolDrug**
+Citing **moldrug**
 ------------------
 
 Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/source/citations.html>`__ on the documentation.
@@ -65,7 +65,7 @@ This project received funding from `Marie Skłodowska-Curie Actions <https://cor
 with the pharmaceutical company `Boehringer Ingelheim <https://www.boehringer-ingelheim.com/de/>`__.
 
 
-..  |logo|  image:: https://github.com/ale94mleon/MolDrug/blob/main/docs/source/_static/MolDrug-logo-full.svg?raw=true
+..  |logo|  image:: https://github.com/ale94mleon/moldrug/blob/main/docs/source/_static/moldrug-logo-full.svg?raw=true
     :target: https://github.com/ale94mleon/moldrug/
     :alt: logo
 ..  |docs|  image:: https://readthedocs.org/projects/moldrug/badge/?version=latest
@@ -74,17 +74,17 @@ with the pharmaceutical company `Boehringer Ingelheim <https://www.boehringer-in
 ..  |binder| image:: https://mybinder.org/badge_logo.svg
     :target: https://mybinder.org/v2/gh/ale94mleon/moldrug/HEAD?labpath=%2Fdocs%2Fnotebooks%2F
     :alt: binder
-..  |tests| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/tests.yml/badge.svg
-    :target: https://github.com/ale94mleon/MolDrug/actions/workflows/tests.yml
+..  |tests| image:: https://github.com/ale94mleon/moldrug/actions/workflows/tests.yml/badge.svg
+    :target: https://github.com/ale94mleon/moldrug/actions/workflows/tests.yml
     :alt: tests
 ..  |codacy-codecove| image:: https://app.codacy.com/project/badge/Coverage/08a3ac7c13df4339b8a1da0e8d31810e
-    :target: https://app.codacy.com/gh/ale94mleon/MolDrug/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage
+    :target: https://app.codacy.com/gh/ale94mleon/moldrug/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_coverage
     :alt: codacy-codecove
 ..  |codacy-grade| image:: https://app.codacy.com/project/badge/Grade/08a3ac7c13df4339b8a1da0e8d31810e
-    :target: https://app.codacy.com/gh/ale94mleon/MolDrug/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
+    :target: https://app.codacy.com/gh/ale94mleon/moldrug/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
     :alt: codacy-grade
-..  |CodeQL| image:: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml/badge.svg
-    :target: https://github.com/ale94mleon/MolDrug/actions/workflows/codeql-analysis.yml
+..  |CodeQL| image:: https://github.com/ale94mleon/moldrug/actions/workflows/codeql-analysis.yml/badge.svg
+    :target: https://github.com/ale94mleon/moldrug/actions/workflows/codeql-analysis.yml
     :alt: CodeQL
 ..  |pypi-version|  image:: https://img.shields.io/pypi/v/moldrug.svg
     :target: https://pypi.python.org/pypi/moldrug/

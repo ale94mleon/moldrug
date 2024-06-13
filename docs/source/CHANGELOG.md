@@ -164,7 +164,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - From `csf` to `toml` package configuration.
 - Structure of the repo. Now `src/moldrug`.
-- Improve [MolDrug-Dashboard](https://moldrug-dashboard.streamlit.app/).
+- Improve [moldrug-Dashboard](https://moldrug-dashboard.streamlit.app/).
 
 ### Removed
 
@@ -177,12 +177,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Continuation option to the command line.
 - `moldrug.cli.CommandLineHelper` class to work with the parameters passed through the command line.
 - `checkpoint` option to `moldrug.utils.GA`.
-- [MolDrug-Dashboard](https://moldrug-dashboard.streamlit.app/) add-on. This is not included on the package itself, but could be used online or locally. In the case of locally you must check [Streamlit](https://streamlit.io/), the [requirements.txt](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/requirements.txt) and the [app script](https://github.com/ale94mleon/MolDrug/blob/main/streamlit/streamlit_app.py).
+- [moldrug-Dashboard](https://moldrug-dashboard.streamlit.app/) add-on. This is not included on the package itself, but could be used online or locally. In the case of locally you must check [Streamlit](https://streamlit.io/), the [requirements.txt](https://github.com/ale94mleon/moldrug/blob/main/streamlit/requirements.txt) and the [app script](https://github.com/ale94mleon/moldrug/blob/main/streamlit/streamlit_app.py).
 - `retunr_mol` option to `utils.to_dataframe`
 
 ### Changed
 
-- The warnings are not printed for: `moldrug.fitness._vinadock` and `moldrug.constraintconf.generate_conformers`. Now, only at the end of a MolDrug simulation, a note will be printed if the `error.tar.gz` file is created.
+- The warnings are not printed for: `moldrug.fitness._vinadock` and `moldrug.constraintconf.generate_conformers`. Now, only at the end of a moldrug simulation, a note will be printed if the `error.tar.gz` file is created.
 - `moldrug.utils.run` does not print extra info if the command fails. It only raises the corresponding `RuntimeError`.
 - `moldrug.fitness.__vinadock` by `moldrug.fitness._vinadock`.
 - Remove conformers that clash with the protein in case of score_only, for local_only vina will handle the clash.
@@ -211,7 +211,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Improve docs.
-- Cleaning of temporal files in `/tmp` directory. Now it is created temporal directories in the working directory with the pattern: `.costfunc_MolDrug_XXXXXXXX`.
+- Cleaning of temporal files in `/tmp` directory. Now it is created temporal directories in the working directory with the pattern: `.costfunc_moldrug_XXXXXXXX`.
 - Cleaning errors. Now all warnings and errors are saved in `.error` directory and at the end they are compressed to `error.tar.gz``.
 
 ## [3.2.2] - 2022.12.12
@@ -257,7 +257,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Warning in case `moldrug.utils.Local` or `moldrug.utils.GA` are called with a different **MolDrug** as they were initialized.
+- Warning in case `moldrug.utils.Local` or `moldrug.utils.GA` are called with a different **moldrug** as they were initialized.
 
 ### Changed
 
@@ -301,7 +301,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `acceptance` attribute to `moldrug.utils.GA`. This is a dictionary that has as a keyword the generation ID, and as values a dictionary with keywords: `accepted` (number of generated molecules accepted on the current generation) and `generated` (number of total molecules generated)
 - Print `Accepted rate= accepted /  generated` during running.
 - Add hydrogens before creating `pdbt` file with `meeko` when constrain docking `i` used.
-- `seed_mol` of `moldrug.utils.GA` now could be a list (or iterable in a general way) of RDKit molecules. This feature could be used to combine several MolDrug runs and create a final run with this combined population.
+- `seed_mol` of `moldrug.utils.GA` now could be a list (or iterable in a general way) of RDKit molecules. This feature could be used to combine several moldrug runs and create a final run with this combined population.
 - `seed_mol` from the command line could be a valid SMILES, a list of valid SMILES or a list of paths to the `_pop.pbz2` binary files. In the last case, all the populations will be combined and sorted based on the cost attribute. If the result population is less that `popsize` new structures will be generated to complete the initial population. The individuals of this initial population will be reinitialized and the cost function will be calculated.
 
 ## [2.1.12] - 2022.09.29
@@ -309,7 +309,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `score_only` bool parameter to `moldrug.fitness.get_mol_cost`.
-Print the starting date when MolDrug is called from the command line.
+Print the starting date when moldrug is called from the command line.
 
 ### Removed
 
@@ -425,7 +425,7 @@ Print the starting date when MolDrug is called from the command line.
 
 ### Added
 
-- Print MolDrug's version when the command line is used.
+- Print moldrug's version when the command line is used.
 
 ## [1.0.0] - 2022.07.30
 
@@ -449,7 +449,7 @@ Print the starting date when MolDrug is called from the command line.
 
 ### Changed
 
-- The whole MolDrug works base on the RDKit mol instead of the SMILES string:
+- The whole moldrug works base on the RDKit mol instead of the SMILES string:
     1. `moldrug.utils.Individual` is now initialized `mol` instead `smiles`. Now the SMILES string is generated internally, it still used as identifying for the instance.
     2. `moldrug.utils.GA` changed `smiles` for `seed_mol` and it is not needed the `mol` variable any more.
     3. `moldrug.utils.Local` changed `mol` for `seed_mol` in the initialization variables.
@@ -471,34 +471,34 @@ Print the starting date when MolDrug is called from the command line.
 
 ### Fixed
 
-- Minor compatibility issue with Python 3.8 (issue [#4](https://github.com/ale94mleon/MolDrug/issues/4)).
+- Minor compatibility issue with Python 3.8 (issue [#4](https://github.com/ale94mleon/moldrug/issues/4)).
 - Problem with the user's custom cost function supplied on the command line.
 - `Local` class compatible with the command line.
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/MolDrug/compare/3.7.2...HEAD
-[3.7.2]: https://github.com/ale94mleon/MolDrug/compare/3.7.1...3.7.2
-[3.7.1]: https://github.com/ale94mleon/MolDrug/compare/3.7.0...3.7.1
-[3.7.0]: https://github.com/ale94mleon/MolDrug/compare/3.6.1...3.7.0
-[3.6.1]: https://github.com/ale94mleon/MolDrug/compare/3.6.0...3.6.1
-[3.6.0]: https://github.com/ale94mleon/MolDrug/compare/3.5.0...3.6.0
-[3.5.0]: https://github.com/ale94mleon/MolDrug/compare/3.4.0...3.5.0
-[3.4.0]: https://github.com/ale94mleon/MolDrug/compare/3.3.0...3.4.0
-[3.3.0]: https://github.com/ale94mleon/MolDrug/compare/3.2.5...3.3.0
-[3.2.5]: https://github.com/ale94mleon/MolDrug/compare/3.2.2...3.2.5
-[3.2.2]: https://github.com/ale94mleon/MolDrug/compare/3.2.0...3.2.2
-[3.2.0]: https://github.com/ale94mleon/MolDrug/compare/3.1.0...3.2.0
-[3.1.0]: https://github.com/ale94mleon/MolDrug/compare/3.0.3...3.1.0
-[3.0.3]: https://github.com/ale94mleon/MolDrug/compare/3.0.1...3.0.3
-[3.0.1]: https://github.com/ale94mleon/MolDrug/compare/3.0.0...3.0.1
-[3.0.0]: https://github.com/ale94mleon/MolDrug/compare/2.1.12...3.0.0
-[2.1.12]: https://github.com/ale94mleon/MolDrug/compare/2.1.7...2.1.12
-[2.1.7]: https://github.com/ale94mleon/MolDrug/compare/2.1.0...2.1.7
-[2.1.0]: https://github.com/ale94mleon/MolDrug/compare/2.0.0...2.1.0
-[2.0.0]: https://github.com/ale94mleon/MolDrug/compare/1.1.0...2.0.0
-[1.1.0]: https://github.com/ale94mleon/MolDrug/compare/1.0.2...1.1.0
-[1.0.2]: https://github.com/ale94mleon/MolDrug/compare/1.0.0...1.0.2
-[1.0.0]: https://github.com/ale94mleon/MolDrug/compare/0.1.0...1.0.0
-[0.1.0]: https://github.com/ale94mleon/MolDrug/compare/0.0.4...0.1.0
-[0.0.4]: https://github.com/ale94mleon/MolDrug/compare/0.0.3...0.0.4
+[unreleased]: https://github.com/ale94mleon/moldrug/compare/3.7.2...HEAD
+[3.7.2]: https://github.com/ale94mleon/moldrug/compare/3.7.1...3.7.2
+[3.7.1]: https://github.com/ale94mleon/moldrug/compare/3.7.0...3.7.1
+[3.7.0]: https://github.com/ale94mleon/moldrug/compare/3.6.1...3.7.0
+[3.6.1]: https://github.com/ale94mleon/moldrug/compare/3.6.0...3.6.1
+[3.6.0]: https://github.com/ale94mleon/moldrug/compare/3.5.0...3.6.0
+[3.5.0]: https://github.com/ale94mleon/moldrug/compare/3.4.0...3.5.0
+[3.4.0]: https://github.com/ale94mleon/moldrug/compare/3.3.0...3.4.0
+[3.3.0]: https://github.com/ale94mleon/moldrug/compare/3.2.5...3.3.0
+[3.2.5]: https://github.com/ale94mleon/moldrug/compare/3.2.2...3.2.5
+[3.2.2]: https://github.com/ale94mleon/moldrug/compare/3.2.0...3.2.2
+[3.2.0]: https://github.com/ale94mleon/moldrug/compare/3.1.0...3.2.0
+[3.1.0]: https://github.com/ale94mleon/moldrug/compare/3.0.3...3.1.0
+[3.0.3]: https://github.com/ale94mleon/moldrug/compare/3.0.1...3.0.3
+[3.0.1]: https://github.com/ale94mleon/moldrug/compare/3.0.0...3.0.1
+[3.0.0]: https://github.com/ale94mleon/moldrug/compare/2.1.12...3.0.0
+[2.1.12]: https://github.com/ale94mleon/moldrug/compare/2.1.7...2.1.12
+[2.1.7]: https://github.com/ale94mleon/moldrug/compare/2.1.0...2.1.7
+[2.1.0]: https://github.com/ale94mleon/moldrug/compare/2.0.0...2.1.0
+[2.0.0]: https://github.com/ale94mleon/moldrug/compare/1.1.0...2.0.0
+[1.1.0]: https://github.com/ale94mleon/moldrug/compare/1.0.2...1.1.0
+[1.0.2]: https://github.com/ale94mleon/moldrug/compare/1.0.0...1.0.2
+[1.0.0]: https://github.com/ale94mleon/moldrug/compare/0.1.0...1.0.0
+[0.1.0]: https://github.com/ale94mleon/moldrug/compare/0.0.4...0.1.0
+[0.0.4]: https://github.com/ale94mleon/moldrug/compare/0.0.3...0.0.4

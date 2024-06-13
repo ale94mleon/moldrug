@@ -18,7 +18,7 @@ Install dependencies:
 pip install sklearn
 ```
 
-The other dependencies are already inside **MolDrug**. You must have in the same folder the scripts: `train_models.py`, `featurize.py` and then just:
+The other dependencies are already inside **moldrug**. You must have in the same folder the scripts: `train_models.py`, `featurize.py` and then just:
 
 ```bash
 python train_models.py
@@ -32,9 +32,9 @@ Here is a detailed list of public databases to construct ADME models: [adme](htt
 
 ## EGFR data set
 
-This data was retrieved using this [EGFR-kinase tutorial](https://projects.volkamerlab.org/teachopencadd/talktorials/T001_query_chembl.html#Get-target-data-(EGFR-kinase)). The mentioned tutorial should encourage the user to retrieve data for proteins for which the 3D structure is not available and use ML/AI methods like the ones presented in this example and design molecules with MolDrug using those models as fitness functions.
+This data was retrieved using this [EGFR-kinase tutorial](https://projects.volkamerlab.org/teachopencadd/talktorials/T001_query_chembl.html#Get-target-data-(EGFR-kinase)). The mentioned tutorial should encourage the user to retrieve data for proteins for which the 3D structure is not available and use ML/AI methods like the ones presented in this example and design molecules with moldrug using those models as fitness functions.
 
-## Run MolDrug from the command line
+## Run moldrug from the command line
 
 ```bash
 moldrug config.yml --fitness /the/path/for/fitness_plus_admes.py

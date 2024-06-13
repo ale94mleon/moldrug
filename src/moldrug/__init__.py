@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-For information of MolDrug:
+For information of moldrug:
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
 import os
+
 from moldrug._version import __version__
 
 __author__ = "Alejandro Martínez León"

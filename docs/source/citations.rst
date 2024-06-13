@@ -1,9 +1,9 @@
 Citation
 --------
 
-If you use MolDrug in your research, please cite the DOI corresponding to the release version you've used:
+If you use moldrug in your research, please cite the DOI corresponding to the release version you've used:
 
-.. list-table:: MolDrug releases
+.. list-table:: moldrug releases
     :widths: 10 10 15
     :align: center
 

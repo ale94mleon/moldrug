@@ -27,7 +27,7 @@ or:
 .. code-block:: bash
 
     # To get the version on development (not recommended)
-    pip install -U git+https://github.com/ale94mleon/MolDrug.git@main
+    pip install -U git+https://github.com/ale94mleon/moldrug.git@main
 
 There are multiple methods to obtain `AutoDock-Vina <https://vina.scripps.edu/>`_. You can use `conda <https://anaconda.org/conda-forge/vina>`_ or download the latest release from the `Vina Repository <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_.
 We highly recommend using the last release posted on `Vina Repository <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_.
@@ -35,7 +35,7 @@ We highly recommend using the last release posted on `Vina Repository <https://g
 Via conda
 ---------
 
-MolDrug is also available through conda. However, the pip installation is the recommended one.
+moldrug is also available through conda. However, the pip installation is the recommended one.
 
 .. code-block:: bash
 
@@ -57,7 +57,7 @@ AutoDock-Vina dependency and related software
 ---------------------------------------------
 
 .. note::
-    `AutoDock-Vina <https://vina.scripps.edu/>`_ is the only non-pip dependency required for ``moldrug``. This section is useful in case you would like to use the build-in cost functions of MolDrug from :mod:`moldrug.fitness`
+    `AutoDock-Vina <https://vina.scripps.edu/>`_ is the only non-pip dependency required for ``moldrug``. This section is useful in case you would like to use the build-in cost functions of moldrug from :mod:`moldrug.fitness`
 
 AutoDock-Vina is an ongoing project, and it is advisable to stay up-to-date by regularly checking for the latest `release <https://github.com/ccsb-scripps/AutoDock-Vina/releases/>`_.
 As of the creation of this documentation, the most recent version is `v1.2.5 <https://github.com/ccsb-scripps/AutoDock-Vina/releases/tag/v1.2.5>`_.
@@ -110,7 +110,7 @@ To perform the docking you must provide ``boxcenter`` (``center`` for AutoDock-V
 Work with a docker container
 ----------------------------
 
-#. Use the `Docker configuration file on GitHub <https://github.com/ale94mleon/MolDrug/blob/main/Dockerfile>`__.
-#. Visit the `MolDrug <https://hub.docker.com/r/ale94mleon/4moldrug>`__ docker container.
+#. Use the `Docker configuration file on GitHub <https://github.com/ale94mleon/moldrug/blob/main/Dockerfile>`__.
+#. Visit the `moldrug <https://hub.docker.com/r/ale94mleon/4moldrug>`__ docker container.
 
 Finally ``pip install moldrug`` inside it.

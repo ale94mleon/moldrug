@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-For information of MolDrug:
+For information of moldrug:
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
-from moldrug import utils, constraintconf, __version__
-import yaml
 import argparse
+import datetime
 import inspect
 import os
 import sys
-import datetime
-from rdkit import Chem
 from typing import Union
+
+import yaml
+from rdkit import Chem
+
+from moldrug import __version__, constraintconf, utils
 
 
 class CommandLineHelper:
@@ -39,7 +41,7 @@ class CommandLineHelper:
         self._translate_config()
         # Here FollowConfig is updated and the corresponded initialization occurs if self.continuation.
         # pbz2 and new_maxiter attributes are generated
-        self._set_init_MolDrugClass()
+        self._set_init_moldrugClass()
 
     def _set_config(self):
         with open(self.yaml_file, 'r') as c:
@@ -55,11 +57,11 @@ class CommandLineHelper:
         if self.fitness:
             # If the fitness module provided is not in the current directory or if its name is not fitness
             with open(self.fitness, 'r') as source:
-                with open('CustomMolDrugFitness.py', 'w') as destination:
+                with open('CustomMoldrugFitness.py', 'w') as destination:
                     destination.write(source.read())
             sys.path.append('.')
-            import CustomMolDrugFitness
-            costfunc = dict(inspect.getmembers(CustomMolDrugFitness))[self._split_config()[0]['costfunc']]
+            import CustomMoldrugFitness
+            costfunc = dict(inspect.getmembers(CustomMoldrugFitness))[self._split_config()[0]['costfunc']]
         else:
             from moldrug import fitness
             costfunc = dict(inspect.getmembers(fitness))[self._split_config()[0]['costfunc']]
@@ -217,30 +219,30 @@ class CommandLineHelper:
         self.pbz2 = pbz2
         self.new_maxiter = new_maxiter
 
-    def _set_init_MolDrugClass(self):
+    def _set_init_moldrugClass(self):
         # Here is where the continuation code is added
 
         # Get if if needed to continue and make the corresponded updates on self.FollowConfig
         self._get_continuation_point()
 
         if self.pbz2:
-            self.MolDrugClass = utils.decompress_pickle(self.pbz2)
-            self.MolDrugClass.maxiter = self.new_maxiter
+            self.moldrugClass = utils.decompress_pickle(self.pbz2)
+            self.moldrugClass.maxiter = self.new_maxiter
         else:
             # Initialize the class from scratch
-            self.MolDrugClass = self.TypeOfRun(**self.InitArgs)
+            self.moldrugClass = self.TypeOfRun(**self.InitArgs)
 
-    def run_MolDrugClass(self):
-        self.MolDrugClass(**self.CallArgs)
+    def run_moldrugClass(self):
+        self.moldrugClass(**self.CallArgs)
 
     def save_data(self):
         # Saving data
         if self._TypeOfRun_str == 'local':
-            self.MolDrugClass.pickle("local_result", compress=True)
-            utils.make_sdf(self.MolDrugClass.pop, sdf_name="local_pop")
+            self.moldrugClass.pickle("local_result", compress=True)
+            utils.make_sdf(self.moldrugClass.pop, sdf_name="local_pop")
         else:
-            self.MolDrugClass.pickle(f"{self.MolDrugClass.deffnm}_result", compress=True)
-            utils.make_sdf(self.MolDrugClass.pop, sdf_name=f"{self.MolDrugClass.deffnm}_pop")
+            self.moldrugClass.pickle(f"{self.moldrugClass.deffnm}_result", compress=True)
+            utils.make_sdf(self.moldrugClass.pop, sdf_name=f"{self.moldrugClass.deffnm}_pop")
 
     def __repr__(self) -> str:
         string = self.args.__repr__().replace('Namespace', self.__class__.__name__)
@@ -251,8 +253,8 @@ class CommandLineHelper:
 
 def __moldrug_cmd():
     """
-    This function is only used in as part of the command line interface of MolDrug.
-    It makes possible to use MolDrug form the command line. More detail help is available
+    This function is only used in as part of the command line interface of moldrug.
+    It makes possible to use moldrug form the command line. More detail help is available
     from the command line `moldrug -h`.
 
     Raises
@@ -280,8 +282,8 @@ def __moldrug_cmd():
                         default=None,
                         type=str)
     parser.add_argument("-c", "--continue",
-                        help="To continue the simulation. The MolDrug command must be the same "
-                        "and all the output MolDrug files must be located "
+                        help="To continue the simulation. The moldrug command must be the same "
+                        "and all the output moldrug files must be located "
                         "in the working directory. This option is only compatible "
                         "with moldrug.utils.GA; otherwise, a RuntimeError will be raised.",
                         action="store_true",
@@ -306,7 +308,7 @@ def __moldrug_cmd():
         f"{UserArgs}\n\n")
 
     # Call the class
-    UserArgs.run_MolDrugClass()
+    UserArgs.run_moldrugClass()
     # Saving data
     UserArgs.save_data()
     # print('The main job finished!')
@@ -323,10 +325,10 @@ def __moldrug_cmd():
 
             # Changing the attributes values
             for arg in InitArgs:
-                setattr(UserArgs.MolDrugClass, arg, InitArgs[arg])
+                setattr(UserArgs.moldrugClass, arg, InitArgs[arg])
 
             # Call the class again
-            UserArgs.run_MolDrugClass()
+            UserArgs.run_moldrugClass()
             # Saving data
             UserArgs.save_data()
             print(f'The job {job} finished!')

@@ -290,7 +290,7 @@ def _vinadock(
     constraint_receptor_pdb_path : str, optional
         The same as constraint_receptor_pdbqt_path but in pdb format, by default None
     constraint_num_conf : int, optional
-        Maximum number of conformer to be generated internally by MolDrug , by default 100
+        Maximum number of conformer to be generated internally by moldrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
 
@@ -319,6 +319,7 @@ def _vinadock(
     # Converting to absolute path in case that vina_executable points to a file
     if os.path.isfile(vina_executable):
         vina_executable = os.path.abspath(vina_executable)
+    # TODO Add Check on the vina executable
     # Creating the command line for vina
     cmd_vina_str = f"{vina_executable}"\
         f" --cpu {ncores} --exhaustiveness {exhaustiveness} --num_modes {num_modes}"
@@ -358,7 +359,7 @@ def _vinadock(
         # for local_only vina will handle the clash.
         if constraint_type == 'score_only':
             clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath=constraint_receptor_pdb_path,
-                                                                   distance=1.5)
+                                                                   distance=1.5)  # TODO is this a good threshold? 
             clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
             _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
@@ -531,7 +532,7 @@ def Cost(
     constraint_receptor_pdb_path : str, optional
         The same as constraint_receptor_pdbqt_path but in pdb format, by default None
     constraint_num_conf : int, optional
-        Maximum number of conformer to be generated internally by MolDrug , by default 100
+        Maximum number of conformer to be generated internally by moldrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
@@ -693,7 +694,7 @@ def CostOnlyVina(
     constraint_receptor_pdb_path : str, optional
         The same as constraint_receptor_pdbqt_path but in pdb format, by default None
     constraint_num_conf : int, optional
-        Maximum number of conformer to be generated internally by MolDrug , by default 100
+        Maximum number of conformer to be generated internally by moldrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     wt_cutoff : Union[None, float], optional
@@ -838,7 +839,7 @@ def CostMultiReceptors(
     constraint_receptor_pdb_path : list[str], optional
         The same as constraint_receptor_pdbqt_path but in pdb format, by default None
     constraint_num_conf : int, optional
-        Maximum number of conformer to be generated internally by MolDrug , by default 100
+        Maximum number of conformer to be generated internally by moldrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
@@ -1094,7 +1095,7 @@ def CostMultiReceptorsOnlyVina(
     constraint_receptor_pdb_path : list[str], optional
         The same as constraint_receptor_pdbqt_path but in pdb format, by default None
     constraint_num_conf : int, optional
-        Maximum number of conformer to be generated internally by MolDrug , by default 100
+        Maximum number of conformer to be generated internally by moldrug , by default 100
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional

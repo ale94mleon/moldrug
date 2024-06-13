@@ -1,6 +1,8 @@
-import yaml
-from moldrug import home
 import os
+
+import yaml
+
+from moldrug import home
 
 _AVAILABLE_DATA = ['6lu7', 'x0161']
 
@@ -10,12 +12,12 @@ class DataNotFound(Exception):
 
 
 def get_data(name: str) -> dict:
-    """Retrieve MolDrug data
+    """Retrieve moldrug data
 
     Parameters
     ----------
     name : str
-        Name of the data directory of MolDrug
+        Name of the data directory of moldrug
 
     Returns
     -------
@@ -30,13 +32,13 @@ def get_data(name: str) -> dict:
     Raises
     ------
     DataNotFound
-        MolDrug does not contains the data.
+        moldrug does not contains the data.
     """
 
     root_data = home.home(dataDir=name)
 
     if not os.path.exists(root_data) or not name:
-        raise DataNotFound(f"MolDrug data does not have '{name}' data set. "
+        raise DataNotFound(f"moldrug data does not have '{name}' data set. "
                            f"Choose from: {_AVAILABLE_DATA}")
 
     with open(os.path.join(root_data, 'box.yml'), 'r') as f:

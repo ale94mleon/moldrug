@@ -1,19 +1,19 @@
-MolDrug Dashboard
+moldrug Dashboard
 =================
-|streamlit| |MolDrug| |rdkit| |mols2grid| |ProLIF| |py3Dmol| |stmol| |mdanalysis| |meeko| |numpy| |pandas| |seaborn|
+|streamlit| |moldrug| |rdkit| |mols2grid| |ProLIF| |py3Dmol| |stmol| |mdanalysis| |meeko| |numpy| |pandas| |seaborn|
 
-`MolDrug-Dashboard <https://moldrug-dashboard.streamlit.app//>`__ will help you to get an overview 
-of your MolDrug simulation. It can be run online, but it is preferable to run it locally to not run with memory issues. To do so, you have to install its dependencies (you could activate your moldrug environment).
+`moldrug-Dashboard <https://moldrug-dashboard.streamlit.app//>`__ will help you to get an overview 
+of your moldrug simulation. It can be run online, but it is preferable to run it locally to not run with memory issues. To do so, you have to install its dependencies (you could activate your moldrug environment).
 
 .. code-block:: bash
 
-    pip install -r https://raw.githubusercontent.com/ale94mleon/MolDrug/main/streamlit/requirements.txt
+    pip install -r https://raw.githubusercontent.com/ale94mleon/moldrug/main/streamlit/requirements.txt
 
 And finally
 
 .. code-block:: bash
 
-    streamlit run https://raw.githubusercontent.com/ale94mleon/MolDrug/main/streamlit/moldrug-dashboard.py
+    streamlit run https://raw.githubusercontent.com/ale94mleon/moldrug/main/streamlit/moldrug-dashboard.py
 
 Of course, you can always download the app to your personal computer.
 
@@ -36,7 +36,7 @@ The first step is to upload the pbz2 file. As soon as it is done some new option
 
 Customizing filters and properties
 ----------------------------------
-All the properties used during the MolDrug run will be shown in ``Choose properties`` and can be selected.
+All the properties used during the moldrug run will be shown in ``Choose properties`` and can be selected.
 The slide bar filter could be used to only show specific molecules in the table.
 |03|
 
@@ -66,7 +66,7 @@ You can change the default representation to a 3D vie selecting ``py3Dmol`` in `
 
 Running info
 ------------
-On this tab you can find valuable information about the convergency of MolDrug. It is customizable based on:
+On this tab you can find valuable information about the convergency of moldrug. It is customizable based on:
 ``Choose properties`` and ``Every how many generations`` bottoms.
 |08|
 
@@ -96,9 +96,9 @@ On this tab you can find valuable information about the convergency of MolDrug. 
 ..  |streamlit| image:: https://img.shields.io/static/v1?label=Powered%20by&message=Streamlit&color=FF3333&style=flat
     :target: https://streamlit.io/
     :alt: streamlit
-..  |MolDrug| image:: https://img.shields.io/static/v1?label=Powered%20by&message=MolDrug&color=33FF5E&style=flat
+..  |moldrug| image:: https://img.shields.io/static/v1?label=Powered%20by&message=moldrug&color=33FF5E&style=flat
     :target: https://moldrug.readthedocs.io/en/latest/
-    :alt: MolDrug
+    :alt: moldrug
 ..  |rdkit| image:: https://img.shields.io/static/v1?label=Powered%20by&message=RDKit&color=3838ff&style=flat&logo=data:image/x-icon;base64,AAABAAEAEBAQAAAAAABoAwAAFgAAACgAAAAQAAAAIAAAAAEAGAAAAAAAAAMAABILAAASCwAAAAAAAAAAAADc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nz/FBT/FBT/FBT/FBT/FBT/FBTc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nz/FBT/PBT/PBT/PBT/PBT/PBT/PBT/FBTc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nz/FBT/PBT/ZGT/ZGT/ZGT/ZGT/ZGT/ZGT/PBT/FBTc3Nzc3Nzc3Nzc3Nzc3Nz/FBT/PBT/ZGT/ZGT/ZGT/ZGT/ZGT/ZGT/ZGT/ZGT/PBT/FBTc3Nzc3Nzc3Nz/FBT/PBT/ZGT/ZGT/ZGT/jIz/jIz/jIz/jIz/ZGT/ZGT/ZGT/PBT/FBTc3Nzc3Nz/FBT/PBT/ZGT/ZGT/jIz/jIz/jIz/jIz/jIz/jIz/ZGT/ZGT/PBT/FBTc3Nzc3Nz/FBT/PBT/ZGT/ZGT/jIz/jIz/tLT/tLT/jIz/jIz/ZGT/ZGT/PBT/FBTc3Nzc3Nz/FBT/PBT/ZGT/ZGT/jIz/jIz/tLT/tLT/jIz/jIz/ZGT/ZGT/PBT/FBTc3Nzc3Nz/FBT/PBT/ZGT/ZGT/jIz/jIz/jIz/jIz/jIz/jIz/ZGT/ZGT/PBT/FBTc3Nzc3Nz/FBT/PBT/ZGT/ZGT/ZGT/jIz/jIz/jIz/jIz/ZGT/ZGT/ZGT/PBT/FBTc3Nzc3Nzc3Nz/FBT/PBT/ZGT/ZGT/ZGT/ZGT/ZGT/ZGT/ZGT/ZGT/PBT/FBTc3Nzc3Nzc3Nzc3Nzc3Nz/FBT/PBT/ZGT/ZGT/ZGT/ZGT/ZGT/ZGT/PBT/FBTc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nz/FBT/PBT/PBT/PBT/PBT/PBT/PBT/FBTc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nz/FBT/FBT/FBT/FBT/FBT/FBTc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nz/////+B////AP///gB///wAP//4AB//+AAf//gAH//4AB//+AAf//gAH//8AD///gB///8A////gf////////
     :target: https://www.rdkit.org/docs/index.html
     :alt: rdkit
