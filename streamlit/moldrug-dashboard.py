@@ -715,7 +715,7 @@ if __name__ == "__main__":
                 if is_GA:
                     st.info('Nothing to show. Consider to select some properties in the side bar.')
                 else:
-                    st.info('Nothing to show. The input is not a MoDrug GA.')
+                    st.info('Nothing to show. The input is not a moldrug GA.')
 
     else:
         st.sidebar.info("☝️ Upload moldrug's pbz2 file.")
