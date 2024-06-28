@@ -298,7 +298,7 @@ def prolif_plot_3d(ligand_pdbqt_string, protein_pdb_string, spin=False):
         st.warning('No possible to display')
 
 
-@st.cache_data
+# @st.cache_data
 def lig_prot_overview(_pop, protein_pdb_string):
     protein = ProtPdbBlockToProlifMol(protein_pdb_string)
     with tempfile.NamedTemporaryFile(mode='w+') as tmp:
