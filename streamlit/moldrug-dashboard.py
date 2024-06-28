@@ -208,8 +208,8 @@ def plot_dist(individuals: list[utils.Individual], properties: list[str], every_
 def ProtPdbBlockToProlifMol(protein_pdb_string):
     with tempfile.NamedTemporaryFile(prefix='.pro', suffix='.pdb', mode='w+') as tmp:
         tmp.write(protein_pdb_string)
-        protein = mda.Universe(tmp.name)
-        protein = plf.Molecule.from_mda(protein)
+        protein = Chem.MolFromPDBFile(tmp.name)
+        protein = plf.Molecule.from_rdkit(protein)
     return protein
 
 
