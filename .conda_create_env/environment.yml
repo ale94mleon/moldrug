@@ -15,7 +15,7 @@ dependencies:
   # This is needed to make easy the documentation build.
   - vina
   - pip:
-    - numpy
+    - numpy<2
     - tqdm
     - pandas
     - rdkit
