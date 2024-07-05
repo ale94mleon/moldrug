@@ -65,7 +65,7 @@ This project received funding from `Marie Skłodowska-Curie Actions <https://cor
 with the pharmaceutical company `Boehringer Ingelheim <https://www.boehringer-ingelheim.com/de/>`__.
 
 
-..  |logo|  image:: https://github.com/ale94mleon/moldrug/blob/main/docs/source/_static/moldrug-logo-full.png
+..  |logo|  image:: https://github.com/ale94mleon/moldrug/blob/main/docs/source/_static/moldrug-logo-full.svg
     :target: https://github.com/ale94mleon/moldrug/
     :alt: logo
 ..  |docs|  image:: https://readthedocs.org/projects/moldrug/badge/?version=latest
