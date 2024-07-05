@@ -28,6 +28,7 @@ public
 moldrug.egg-info
 
 src/moldrug/postpro.py
+src/moldrug/_version.py
 vina
 
 streamlit/test/moldrug-dashboard.py

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [3.7.3] - 2024.07.05
+
 ### Changed
 
 - Name from MolDrug to moldrug (mainly for documentation).
@@ -481,7 +483,8 @@ Print the starting date when moldrug is called from the command line.
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/moldrug/compare/3.7.2...HEAD
+[unreleased]: https://github.com/ale94mleon/moldrug/compare/3.7.3...HEAD
+[3.7.3]: https://github.com/ale94mleon/moldrug/compare/3.7.2...3.7.3
 [3.7.2]: https://github.com/ale94mleon/moldrug/compare/3.7.1...3.7.2
 [3.7.1]: https://github.com/ale94mleon/moldrug/compare/3.7.0...3.7.1
 [3.7.0]: https://github.com/ale94mleon/moldrug/compare/3.6.1...3.7.0
