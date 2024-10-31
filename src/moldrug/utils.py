@@ -1116,7 +1116,7 @@ class Local:
         if not self.InitIndividual.pdbqt:
             raise Exception("For some reason, it was not possible to create for the class Individula "
                             "a pdbqt from the seed_smiles. Consider to check the validity of the SMILES string!")
-        if os.path.exists(crem_db_path):
+        if os.path.isfile(crem_db_path):
             self.crem_db_path = os.path.abspath(crem_db_path)
         else:
             raise FileNotFoundError(f"{crem_db_path = } does not exists or is not accesible")
