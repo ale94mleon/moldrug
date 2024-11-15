@@ -52,7 +52,7 @@ dependencies = [
     "pandas",
     "pyyaml",
     "dill",
-    "meeko>=0.4.0",
+    "meeko>=0.4.0,<0.6.0",
     "six",
     "rdkit>=2022.3.5",
     "scipy",  # a meeko dependency
