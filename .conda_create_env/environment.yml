@@ -28,5 +28,7 @@ dependencies:
     - pytest
     - sphinx_copybutton
     - myst_nb
-    - recommonmark
     - sphinx_book_theme
+    - sphinx-inline-tabs
+    - sphinx_design
+    - pickleshare

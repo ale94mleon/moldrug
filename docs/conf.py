@@ -45,9 +45,10 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.napoleon",
     "sphinx.ext.autosectionlabel",
-    "recommonmark",
     "IPython.sphinxext.ipython_console_highlighting",
     "IPython.sphinxext.ipython_directive",
+    "sphinx_design",
+    "sphinx_inline_tabs",
     "myst_nb",
     "sphinx_copybutton",
 ]
