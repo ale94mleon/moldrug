@@ -88,7 +88,7 @@ Check [here](https://ccsb.scripps.edu/adfr/how-to-create-a-pdbqt-for-my-receptor
 
 ## Getting docking box information
 
-To perform docking you must provide `boxcenter` (`center` for AutoDock-Vina) and `boxsize` (`size` for AutoDock-Vina) to the cost functions defined in {py:mod}`moldrug.fitness`. For that, two PyMOl plugins are useful: [GetBox](https://github.com/MengwuXiao/GetBox-PyMOL-Plugin/blob/master/GetBox%20Plugin.py) and/or [autodock](https://github.com/ADplugin/ADplugin/blob/master/autodock.py). Details of their installation and use are not discussed here, please visit their corresponding repositories for more information.
+To perform docking you must provide `boxcenter` (`center` for AutoDock-Vina) and `boxsize` (`size` for AutoDock-Vina) to the cost functions defined in {py:mod}`moldrug.fitness`. For that, two PyMOl plugins are useful: [GetBox](https://raw.githubusercontent.com/ale94mleon/GetBox-PyMOL-Plugin/refs/heads/master/GetBox.py) and/or [autodock](https://github.com/ADplugin/ADplugin/blob/master/autodock.py). Details of their installation and use are not discussed here, please visit their corresponding repositories for more information.
 
 ## Working with a docker container
 
