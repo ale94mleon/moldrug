@@ -1,13 +1,12 @@
-Citation
---------
+# Citation
 
 If you use moldrug in your research, please cite the following paper:
 
 ```bibtex
-@article{leon2024moldrug,
+@article{leon2025moldrug,
   title={Moldrug algorithm for an automated ligand binding site exploration by 3D aware molecular enumerations},
   author={Le{\'o}n, Alejandro Mart{\'\i}nez and Ries, Benjamin and Hub, Jochen and Magarkar, Aniket},
-  year={2024}
+  year={2025}
 }
 
 ```
