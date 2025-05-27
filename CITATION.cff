@@ -1,20 +1,26 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite the following publication:"
-authors:
-  - family-names: "Martínez León"
-    given-names: "Alejandro"
-    orcid: "https://orcid.org/0009-0005-6162-7303"
-  - family-names: "Ries"
-    given-names: "Benjamin"
-    orcid: "https://orcid.org/0000-0002-0945-8304"
-  - family-names: "Hub"
-    given-names: "Jochen S."
-    orcid: "https://orcid.org/0000-0001-7716-1767"
-  - family-names: "Magarkar"
-    given-names: "Aniket"
-    orcid: "https://orcid.org/0000-0003-3385-964X"
-title: "Moldrug algorithm for an automated ligand binding site exploration by 3D aware molecular enumerations"
-year: 2025
-doi: "10.1186/s13321-025-01022-3"
-url: "https://jcheminf.biomedcentral.com/articles/10.1186/s13321-025-01022-3"
-date-released: "2025-05-26"
+preferred-citation:
+  type: article
+  authors:
+    - family-names: "Martínez León"
+      given-names: "Alejandro"
+      orcid: "https://orcid.org/0009-0005-6162-7303"
+    - family-names: "Ries"
+      given-names: "Benjamin"
+      orcid: "https://orcid.org/0000-0002-0945-8304"
+    - family-names: "Hub"
+      given-names: "Jochen S."
+      orcid: "https://orcid.org/0000-0001-7716-1767"
+    - family-names: "Magarkar"
+      given-names: "Aniket"
+      orcid: "https://orcid.org/0000-0003-3385-964X"
+  title: "Moldrug algorithm for an automated ligand binding site exploration by 3D aware molecular enumerations"
+  journal: "Journal of Cheminformatics"
+  year: 2025
+  month: 5
+  day: 26
+  number: 85
+  volume: 17
+  start: 1 # First page number
+  end: 22 # Last page number
