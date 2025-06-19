@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 import json
 import sys
 import warnings
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 from rdkit import Chem
@@ -180,14 +180,14 @@ class UniqAtomParams:
 @dataclass
 class Atom:
     index: int
-    pdbinfo: str or PDBAtomInfo = DEFAULT_PDBINFO
+    pdbinfo: Union[str, PDBAtomInfo] = DEFAULT_PDBINFO
     charge: float = DEFAULT_CHARGE
     coord: np.ndarray = field(default_factory=np.ndarray)
     atomic_num: int = DEFAULT_ATOMIC_NUM
     atom_type: str = DEFAULT_ATOM_TYPE
     is_ignore: bool = DEFAULT_IS_IGNORE
-    graph: List[int] = field(default_factory=List)
-    interaction_vectors: List[np.array] = field(default_factory=List)
+    graph: List[int] = field(default_factory=list)
+    interaction_vectors: List[np.array] = field(default_factory=list)
 
     is_dummy: bool = False
     is_pseudo_atom: bool = False
@@ -383,7 +383,7 @@ class RingClosureInfo:
 @dataclass
 class Restraint:
     atom_index: int
-    target_coords: (float, float, float)
+    target_coords: Tuple[float]  # three floats
     kcal_per_angstrom_square: float
     delay_angstroms: float
 
@@ -497,7 +497,7 @@ class MoleculeSetup:
         self,
         atom_index: int = None,
         overwrite: bool = False,
-        pdbinfo: str or PDBAtomInfo = DEFAULT_PDBINFO,
+        pdbinfo: Union[str,PDBAtomInfo] = DEFAULT_PDBINFO,
         charge: float = DEFAULT_CHARGE,
         coord: np.ndarray = None,
         atomic_num: int = DEFAULT_ATOMIC_NUM,
