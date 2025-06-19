@@ -6,6 +6,7 @@
 
 from collections import defaultdict
 from operator import itemgetter
+from typing import Tuple
 
 from .molsetup import Bond
 
@@ -100,7 +101,7 @@ class FlexMacrocycle:
 
         return breakable_rings, bonds_in_rigid_cycles
 
-    def _score_bond(self, bond: tuple[int, int]) -> int:
+    def _score_bond(self, bond: Tuple[int]) -> int:
         """
         Calculates a score for the likeliness that a bond will be broken.
 

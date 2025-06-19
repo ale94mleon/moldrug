@@ -4,6 +4,7 @@ from .utils import mini_periodic_table
 from .pdbutils import PDBAtomInfo
 from rdkit.Geometry import Point3D
 from rdkit.Chem import rdDetermineBonds
+from typing import Tuple
 
 periodic_table = Chem.GetPeriodicTable()
 
@@ -207,7 +208,8 @@ def _aux_altloc_mol_build(atom_field_list, requested_altloc, default_altloc):
 
     return pdbmol, idx_to_rdkit, missed_altloc, needed_altloc
 
-def react_and_map(reactants: tuple[Chem.Mol], rxn: rdChemReactions.ChemicalReaction):
+
+def react_and_map(reactants: Tuple[Chem.Mol], rxn: rdChemReactions.ChemicalReaction):
     """
     Run a reaction and keep track of atom indices from reactants to products.
     

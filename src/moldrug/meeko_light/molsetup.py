@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 import json
 import sys
 import warnings
+from typing import List, Tuple
 
 import numpy as np
 from rdkit import Chem
@@ -185,8 +186,8 @@ class Atom:
     atomic_num: int = DEFAULT_ATOMIC_NUM
     atom_type: str = DEFAULT_ATOM_TYPE
     is_ignore: bool = DEFAULT_IS_IGNORE
-    graph: list[int] = field(default_factory=list)
-    interaction_vectors: list[np.array] = field(default_factory=list)
+    graph: List[int] = field(default_factory=List)
+    interaction_vectors: List[np.array] = field(default_factory=List)
 
     is_dummy: bool = False
     is_pseudo_atom: bool = False
@@ -502,7 +503,7 @@ class MoleculeSetup:
         atomic_num: int = DEFAULT_ATOMIC_NUM,
         atom_type: str = DEFAULT_ATOM_TYPE,
         is_ignore: bool = DEFAULT_IS_IGNORE,
-        graph: list[int] = None,
+        graph: List[int] = None,
     ):
         """
         Adds an atom with all the specified attributes to the MoleculeSetup, either at the specified atom index, or by
@@ -586,9 +587,9 @@ class MoleculeSetup:
         coord: np.ndarray = None,
         atom_type: str = DEFAULT_ATOM_TYPE,
         is_ignore: bool = DEFAULT_IS_IGNORE,
-        anchor_list: list[int] = None,
+        anchor_list: List[int] = None,
         rotatable: bool = False,
-        directional_vectors: list[int] = None,
+        directional_vectors: List[int] = None,
     ):
         """
         Adds a pseudoatom with all the specified attributes to the MoleculeSetup. Default values will be used for any
@@ -756,7 +757,7 @@ class MoleculeSetup:
         return
 
     def add_rotamers(
-        self, index_list: list[(int, int, int, int)], angle_list: np.ndarray
+        self, index_list: List[Tuple[int]], angle_list: np.ndarray
     ):
         """
         Adds rotamers to the internal record of rotamers.
@@ -788,8 +789,8 @@ class MoleculeSetup:
 
     def delete_rotamers(
         self,
-        bond_id_list: list[tuple] = None,
-        index_list: list[(int, int, int, int)] = None,
+        bond_id_list: List[Tuple] = None,
+        index_list: List[Tuple[int]] = None,
     ):
         """
         Deletes rotamers from the internal list of rotamers, either by using bond ids or by generating bond ids from a
@@ -816,7 +817,7 @@ class MoleculeSetup:
                     del self.rotamers[bond_id]
         return
 
-    def _add_interaction_vectors(self, atom_index: int, vector_list: list[np.array]):
+    def _add_interaction_vectors(self, atom_index: int, vector_list: List[np.array]):
         """
         Adds input vector list to the list of directional interaction vectors for the specified atom.
 
@@ -1174,7 +1175,7 @@ class MoleculeSetup:
 
     # NOTE: This is a candidate for moving to utils
     @staticmethod
-    def get_bonds_in_ring(ring: tuple) -> list[tuple]:
+    def get_bonds_in_ring(ring: Tuple) -> List[Tuple]:
         """
         Takes as input a tuple of atom indices corresponding to atoms in a ring and returns a list of all the bonds ids
         in the ring.
@@ -1197,7 +1198,7 @@ class MoleculeSetup:
         return bonds
 
     def _recursive_graph_walk(
-        self, idx: int, collected: list[int] = None, exclude: list[int] = None
+        self, idx: int, collected: List[int] = None, exclude: List[int] = None
     ):
         """
         Recursively walks through a molecular graph and returns bond-connected subgroups.
@@ -1645,7 +1646,7 @@ class RDKitMoleculeSetup(MoleculeSetup, MoleculeSetupExternalToolkit):
         mol = Chem.AddHs(mol)
         return mol, idx_to_rm, rm_to_neigh
 
-    def init_atom(self, assign_charges: bool, coords: list[np.ndarray]):
+    def init_atom(self, assign_charges: bool, coords: List[np.ndarray]):
         """
         Generates information about the atoms in an RDKit Mol and adds them to an RDKitMoleculeSetup.
 
@@ -1875,7 +1876,7 @@ class RDKitMoleculeSetup(MoleculeSetup, MoleculeSetupExternalToolkit):
         return smiles, order
 
     # region Ring Construction
-    def _is_ring_aromatic(self, ring_atom_indices: list[(int, int)]):
+    def _is_ring_aromatic(self, ring_atom_indices: List[Tuple[int]]):
         """
         Determines whether a ring is aromatic.
 
@@ -1894,7 +1895,7 @@ class RDKitMoleculeSetup(MoleculeSetup, MoleculeSetupExternalToolkit):
         return True
 
     @staticmethod
-    def _construct_old_graph(atom_list: list[Atom]):
+    def _construct_old_graph(atom_list: List[Atom]):
         """
         To support older implementations of helper functions in Meeko, takes a list of atoms and uses it to create a
         list of each atom's graph value, where the index of a graph in the list corresponds to the atom's atom_index.
