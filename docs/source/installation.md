@@ -1,15 +1,4 @@
-# Installation
-
-Requirements:
-
-- [Python 3.8+](https://docs.python.org/3/).
-- [RDKit](https://www.rdkit.org/docs/) (2022.3.5+).
-- [Pandas](https://pandas.pydata.org/).
-- [NumPy](https://numpy.org/).
-- [tqdm](https://tqdm.github.io/).
-- [CReM](https://github.com/DrrDom/crem) (0.2.9+).
-- [Meeko](https://pypi.org/project/meeko/).
-- [AutoDock-Vina](https://vina.scripps.edu/).
+# 💿 Installation
 
 ## Via pip (standard)
 
@@ -18,7 +7,7 @@ Requirements:
 Strongly recommended; although this project is still in beta state.
 
 ```bash
-    pip install moldrug
+pip install moldrug
 ```
 
 ## Getting the development version
@@ -68,7 +57,7 @@ chmod a+x vina_1.2.5_mac_x86_64
 ```
 
 ```{note}
-MacOs users might need to allow the execution of the application on ``Privacy & Security`` depending on the MacOS version.
+MacOS users might need to allow the execution of the application on ``Privacy & Security`` depending on the MacOS version.
 ```
 ````
 
@@ -84,7 +73,7 @@ This step can be achieved through [OpenBabel](https://github.com/openbabel/openb
 /Users/$USER/ADFRsuite-1.0/bin/prepare_receptor -r your_protein.pdb -o your_protein.pdbqt
 ```
 
-Check [here](https://ccsb.scripps.edu/adfr/how-to-create-a-pdbqt-for-my-receptor/) for more information.
+Check [this tutorial](https://ccsb.scripps.edu/adfr/how-to-create-a-pdbqt-for-my-receptor/) for more information. MacOS users may need to use ADFRsuite inside a docker container to avoid Gatekeeper's restrictions (see [this](https://alejandro.netlify.app/post/adfr/) article).
 
 ## Getting docking box information
 

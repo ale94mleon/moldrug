@@ -7,39 +7,25 @@ Welcome to moldrug (AKA mouse)'s documentation!
 ===================================
 .. include:: ../README.rst
 
+Index
+-----
+
 .. toctree::
-   :caption: User guide
-   :maxdepth: 2
+   :maxdepth: 1
 
    source/installation
    source/citations
-   source/about_us
+   source/about-us
+   
+   source/tutorials
+
+.. toctree::
+   :caption: 📖 Reference
+   :maxdepth: 1
+   
+   source/summary
    source/CHANGELOG
-
-.. toctree::
-   :caption: Tutorials
-   :numbered:
-
-   source/note_on_crem
-   source/note_on_rdkit
-
-   notebooks/quickstart
-   notebooks/how_to
-   notebooks/moldrug_without_receptor
-   notebooks/constraint_docking
-   notebooks/advance_topics
-   notebooks/oncoming
-   notebooks/desirability
-
-   source/moldrug_dahsboard
-
-.. toctree::
-   :caption: Documentation
-   :maxdepth: 2
-   :glob:
-
-   source/api
-   source/modules/*
+   source/api-reference
 
 Indices and tables
 ==================

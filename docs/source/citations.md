@@ -1,4 +1,4 @@
-# Citation
+# 🖋️ Citation
 
 If you use moldrug in your research, please cite the following paper:
 

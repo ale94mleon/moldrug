@@ -1,4 +1,4 @@
-# Changelog
+# 🗒️ Changelog
 
 All notable changes to this project will be documented in this file.
 
@@ -20,13 +20,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.7.2] - 2024.01.22
 
-### Fix
+### Fixed
 
 - It was possible to generate the same children in the same generations. Now there is a filter to avoid repeated evaluations.
 
 ## [3.7.1] - 2024.01.14
 
-### Fix
+### Fixed
 
 - Remove an unnecessary print statement.
 
@@ -51,11 +51,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.6.1] - 2023.12.11
 
-### Fix
+### Fixed
 
 - LICENCE on PyPi.
 
-### Add
+### Added
 
 - Extra metadata to the package.
 

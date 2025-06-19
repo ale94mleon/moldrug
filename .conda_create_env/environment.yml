@@ -9,8 +9,6 @@ dependencies:
   - ipywidgets
   - pip
   - python==3.9.*
-  - nbsphinx
-  - sphinx==5.3.0
   - conda-build
   # This is needed to make easy the documentation build.
   - vina
@@ -26,9 +24,11 @@ dependencies:
     - crem
     - requests
     - pytest
-    - sphinx_copybutton
-    - myst_nb
+    - myst-nb
+    - myst-parser
     - sphinx_book_theme
-    - sphinx-inline-tabs
+    - sphinx==7.2.6
     - sphinx_design
-    - pickleshare
+    - sphinxcontrib-katex
+    - sphinx-inline-tabs
+    - sphinx_copybutton

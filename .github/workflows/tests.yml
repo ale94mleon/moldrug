@@ -57,7 +57,7 @@ jobs:
       run: |
         pytest tests --cov moldrug --cov-report xml
     - name: Run codacy-coverage-reporter
-      uses: codacy/codacy-coverage-reporter-action@v1
+      uses: codacy/codacy-coverage-reporter-action@v1.3.0
       if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.9'
       with:
         project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
