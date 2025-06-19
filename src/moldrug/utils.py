@@ -20,8 +20,8 @@ import numpy as np
 import pandas as pd
 import tqdm
 from crem.crem import grow_mol, mutate_mol
-from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
-                   RDKitMolCreate)
+from moldrug.meeko_light import (MoleculePreparation,
+                                 PDBQTMolecule, PDBQTWriterLegacy, RDKitMolCreate)
 from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, DataStructs, Descriptors, Lipinski, rdFMCS
 
@@ -1561,8 +1561,7 @@ class GA:
             probs = softmax((-self.beta * np.array(self.pop)).astype('float64'))
             if any(np.isnan(probs)):
                 probs = np.nan_to_num(probs)
-            
-            
+
             # TODO: This cycle should run in this way only if no user generetor was provided
             # with and if, else statment I could correct, and then the genereator functions is completlly up to the user,
             # then I do not need to worry in how the selection is made,
