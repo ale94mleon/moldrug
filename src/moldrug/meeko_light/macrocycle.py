@@ -313,19 +313,3 @@ class FlexMacrocycle:
             if is_unbroken:
                 unbroken.append(ring)
         return unbroken
-
-    # region Deprecated
-
-    def get_broken_rings(self, rings, broken_bonds):
-        broken_rings = []
-        for ring in rings:
-            is_broken = False
-            for bond in broken_bonds:
-                if bond in self.setup.get_bonds_in_ring(
-                    ring
-                ):  # consider precalculating bonds
-                    is_broken = True
-                    break  # pun intended
-            if is_broken:
-                broken_rings.append(ring)
-        return broken_rings
