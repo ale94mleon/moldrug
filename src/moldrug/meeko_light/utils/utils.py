@@ -170,7 +170,7 @@ class HJKRingDetection:
             for n in neigh:
                 # use sets for unique id
                 edge = set((node, n))
-                if not edge in self.pgraph:
+                if edge not in self.pgraph:
                     self.pgraph.append(edge)
         # re-convert the edges to lists because order matters in cycle detection
         self.pgraph = [list(x) for x in self.pgraph]
@@ -180,7 +180,6 @@ class HJKRingDetection:
         the REMOVE function from the paper)
         """
         visited = {}
-        remove = []
         pool = []
         for path in self.pgraph:
             if self._has_vertex(vertex, path):
@@ -213,7 +212,7 @@ class HJKRingDetection:
                 if is_ring:
                     self._add_ring(joint_path)
                 # ...or the common path
-                elif not joint_path in self.pgraph:
+                elif joint_path not in self.pgraph:
                     self.pgraph.append(joint_path)
         # remove used paths
         for p in pool:
@@ -303,8 +302,8 @@ class HJKRingDetection:
                     continue
                 ring_contacts[i].append(j)
                 # get edges difference (r2_edges - r1_edges)
-                core_edges = [x for x in r2_edges if not x in r1_edges]
-                chord = [x for x in r1_edges if not x in r2_edges]
+                core_edges = [x for x in r2_edges if x not in r1_edges]
+                chord = [x for x in r1_edges if x not in r2_edges]
                 # combined = chord + core_edges
                 ring_new = []
                 for edge in chord + core_edges:
@@ -337,7 +336,7 @@ class HJKRingDetection:
             if len(ring_contacts[ring_id]) == 0:
                 continue
             size = len(self.rings[ring_id]) - 1
-            if not size in size_clusters:
+            if size not in size_clusters:
                 size_clusters[size] = []
             size_clusters[size].append(ring_id)
         remove = []
@@ -355,7 +354,7 @@ class HJKRingDetection:
                         d2 = set(self.rings[rj]) - set(self.rings[c])
                         if d1 == d2:
                             remove.append(rj)
-        chordless_rings = [i for i in chordless_rings if not i in set(remove)]
+        chordless_rings = [i for i in chordless_rings if i not in set(remove)]
         # for r in set(remove):
         #    chordless_rings.remove(r)
         return chordless_rings
@@ -388,19 +387,18 @@ def parse_begin_res(string):
     resnum = ""
     icode = ""
     resname_chain = ""
-    is_chain_or_resname = False
     got_space = False
-    for i, char in enumerate(reversed(string)):
+    for char in reversed(string):
 
         if char.isspace():
             got_space = True
-            
+
         if char.isdigit() and not resname_chain and not got_space:
             resnum = char + resnum
 
         elif not char.isdigit() and not resnum and not icode and not got_space:
             icode = char
-        
+
         # prevent icode from having more than 1 char
         elif not char.isdigit() and not resnum and icode:
             raise ValueError(f"{string=} misses resnum or has len(icode) > 1")
@@ -425,41 +423,3 @@ def parse_begin_res(string):
         raise ValueError(f"can't parse {string=}")
 
     return f"{chain}:{resnum}{icode}"
-
-
-# def writeList(filename, inlist, mode = 'w', addNewLine = False):
-#     if addNewLine: nl = "\n"
-#     else: nl = ""
-#     fp = open(filename, mode)
-#     for i in inlist:
-#         fp.write(str(i)+nl)
-#     fp.close()
-
-
-# def getResInfo(string):
-#    """ CHAIN:RESnum -> [ "CHAIN", "RES", num ]"""
-#    if ':' in string:
-#        chain, resraw = string.split(':')
-#    else:
-#        chain = ''
-#        resraw = string
-#    try:
-#        res = resraw[0:3]
-#        num = int(resraw[3:])
-#    except:
-#        # heuristic for nucleic acids
-#        regex = r'[UACGT]+\d'
-#        match = re.search(regex, resraw)
-#        if match is None:
-#            print("WARNING! Unknown residue naming scheme")
-#            return chain, "X", "X"
-#        res = resraw[0]
-#        num = int(resraw[1:])
-#        #print "NUCLEIC:",  chain, res, num
-#    return chain, res, num
-
-
-# def get_data_file(file_handle, dir_name, data_file):
-#     module_dir, module_fname = os.path.split(file_handle)
-#     DATAPATH = os.path.join(module_dir, dir_name, data_file)
-#     return DATAPATH

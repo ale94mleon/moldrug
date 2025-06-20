@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import warnings
+from typing import List
 
 import numpy as np
 
@@ -183,7 +184,7 @@ class AtomTyper:
     @staticmethod
     def _set_offatoms(molsetup, cached_offatoms, coords):
         """add cached offatoms"""
-        for k, (atomgeom, args) in cached_offatoms.items():
+        for _, (atomgeom, args) in cached_offatoms.items():
             (atom_type, dist, theta, phi, pull_charge_fraction) = args
             offatom_coords = atomgeom.calc_point(dist, theta, phi, coords)
             tmp = molsetup.get_pdbinfo(atomgeom.parent + 1)
@@ -208,29 +209,30 @@ class AtomTyper:
 class AtomicGeometry:
     """generate reference frames and add extra sites"""
 
-    def __init__(self, parent, neigh, xneigh=[], x90=False, planar_tol=0.1):
+    def __init__(self, parent, neigh, xneigh: List = None, x90=False, planar_tol=0.1):
         """arguments are indices of atoms"""
 
         self.planar_tol = planar_tol  # angstroms, length of neighbor vecs for z-axis
 
         # real atom hosting extra sites
-        if type(parent) != int:
+        if not isinstance(parent, int):
             raise RuntimeError("parent must be int")
         self.parent = parent
 
         # list of bonded atoms (used to define z-axis)
         self.neigh = []
         for i in neigh:
-            if type(i) != int:
+            if not isinstance(i, int):
                 raise RuntimeError("neigh indices must be int")
             self.neigh.append(i)
 
         # list of atoms that
         self.xneigh = []
-        for i in xneigh:
-            if type(i) != int:
-                raise RuntimeError("xneigh indices must be int")
-            self.xneigh.append(i)
+        if isinstance(xneigh, List):
+            for i in xneigh:
+                if not isinstance(i, int):
+                    raise RuntimeError("xneigh indices must be int")
+                self.xneigh.append(i)
 
         self.calc_x = len(self.xneigh) > 0
         self.x90 = x90  # y axis becomes x axis (useful to rotate in-plane by 90 deg)
@@ -245,7 +247,7 @@ class AtomicGeometry:
             return z * distance + np.array(coords[self.parent])
 
         # need x-vec if phi != 0
-        elif self.calc_x == False:
+        elif self.calc_x is False:
             raise RuntimeError("phi must be zero if X undefined")
 
         else:
@@ -321,7 +323,7 @@ class AtomicGeometry:
 
     def normalized(self, vec):
         l = sum([x**2 for x in vec]) ** 0.5
-        if type(vec) == list:
+        if isinstance(vec, list):
             return [x / l for x in vec]
         else:
             # should be np.array

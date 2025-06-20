@@ -184,7 +184,7 @@ def get_flexibility_model(
     best_index = None
     # Loops through the potential bond break combinations, generates flexibility model information for each one, and
     # compares the flexibility models to determine the best model to return.
-    for index in range(len(bond_break_combos)):
+    for index, _ in enumerate(bond_break_combos):
         bond_break_combo = bond_break_combos[index]
         bond_break_score = bond_break_scores[index]
         unbroken_rings_bonds = []
@@ -419,7 +419,7 @@ def walk_rigid_body_graph(
         idx += 1
     data["rigid_body_members"][rigid_index] = list(group_members)
     data["rigid_body_graph"].setdefault(rigid_index, [])
-    for i, (current, neigh) in enumerate(sprouts_buffer):
+    for current, neigh in sprouts_buffer:
         if neigh in data["visited"]:
             continue
         data["rigid_body_count"] += 1

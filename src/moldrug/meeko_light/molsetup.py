@@ -210,7 +210,7 @@ class Atom:
         """
         # if the input object is not a dict, we know that it will not be parsable and is unlikely to be usable or
         # safe data, so we should ignore it.
-        if type(obj) is not dict:
+        if not isinstance(obj, dict):
             return obj
 
         # Check that all the keys we expect are in the object dictionary as a safety measure
@@ -260,7 +260,7 @@ class Atom:
 
 @dataclass
 class Bond:
-    canon_id: (int, int)
+    canon_id: Tuple[int]  # two ints
     index1: int
     index2: int
     rotatable: bool = DEFAULT_BOND_ROTATABLE
@@ -497,7 +497,7 @@ class MoleculeSetup:
         self,
         atom_index: int = None,
         overwrite: bool = False,
-        pdbinfo: Union[str,PDBAtomInfo] = DEFAULT_PDBINFO,
+        pdbinfo: Union[str, PDBAtomInfo] = DEFAULT_PDBINFO,
         charge: float = DEFAULT_CHARGE,
         coord: np.ndarray = None,
         atomic_num: int = DEFAULT_ATOMIC_NUM,
@@ -582,7 +582,7 @@ class MoleculeSetup:
 
     def add_pseudoatom(
         self,
-        pdbinfo: str or PDBAtomInfo = DEFAULT_PDBINFO,
+        pdbinfo: Union[str, PDBAtomInfo] = DEFAULT_PDBINFO,
         charge: float = DEFAULT_CHARGE,
         coord: np.ndarray = None,
         atom_type: str = DEFAULT_ATOM_TYPE,
@@ -774,14 +774,13 @@ class MoleculeSetup:
         # It's unclear how this will work without the coordinates in the moleculesetup. food for thought.
         # TODO: address issues with the lack of coords and add detail in function comment
         rotamers = {}
-        for (idx1, idx2, idx3, idx4), angle in zip(index_list, angle_list):
+        for (_, idx2, idx3, _), angle in zip(index_list, angle_list):
             bond_id = Bond.get_bond_id(idx2, idx3)
             if bond_id in rotamers:
-                raise RuntimeError("repeated bond %d-$d" % bond_id)
+                raise RuntimeError(f"repeated bond {bond_id}")
             if not self.bond_info[bond_id].rotatable:
                 raise RuntimeError(
-                    "trying to add rotamer for non rotatable bond %d-%d" % bond_id
-                )
+                    f"trying to add rotamer for non rotatable bond {bond_id}")
             dihedral = 0  # TODO: fix this
             rotamers[bond_id] = angle - dihedral
         self.rotamers.append(rotamers)
@@ -807,7 +806,7 @@ class MoleculeSetup:
         """
         # loops through the index list, generates bond ids from the provided indices and adds them to the bond_id_list
         if index_list is not None:
-            for idx1, idx2, idx3, idx4 in index_list:
+            for _, idx2, idx3, _ in index_list:
                 bond_id = Bond.get_bond_id(idx2, idx3)
                 bond_id_list.append(bond_id)
         # deletes all bond_ids in bond_id_list from self.rotamers
@@ -1487,8 +1486,6 @@ class MoleculeSetupExternalToolkit(ABC):
     def get_smiles_and_order(self):
         pass
 
-    pass
-
 
 class RDKitMoleculeSetup(MoleculeSetup, MoleculeSetupExternalToolkit):
     """
@@ -1639,7 +1636,7 @@ class RDKitMoleculeSetup(MoleculeSetup, MoleculeSetupExternalToolkit):
         mol = rwmol.GetMol()
         for idx in neigh_idx_to_nr_h:
             n = neigh_idx_to_nr_h[idx]
-            newidx = idx - sum([i < idx for i in idx_to_rm]) 
+            newidx = idx - sum([i < idx for i in idx_to_rm])
             mol.GetAtomWithIdx(newidx).SetNumExplicitHs(n + 1)
         mol.UpdatePropertyCache()
         Chem.SanitizeMol(mol)
@@ -1699,7 +1696,7 @@ class RDKitMoleculeSetup(MoleculeSetup, MoleculeSetupExternalToolkit):
                     # print(f"{i=}, {neighs=}")
                     ok_charges[i] += idx_rm_to_formal_charge[i]
                     for idx in neighs:
-                        newidx = idx - sum([i <= idx for i in idx_rm_to_formal_charge]) 
+                        newidx = idx - sum([i <= idx for i in idx_rm_to_formal_charge])
                         # print(f"{idx=} {newidx=}")
                         ok_charges[i] += chrg_by_heavy_atom[newidx]
                 charges = ok_charges

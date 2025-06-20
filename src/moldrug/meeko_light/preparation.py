@@ -76,8 +76,8 @@ class MoleculePreparation:
         keep_equivalent_rings=False,
         double_bond_penalty=M_DEFAULT_DOUBLE_BOND_PENALTY,
         macrocycle_allow_A=False,
-        rigidify_bonds_smarts=[],
-        rigidify_bonds_indices=[],
+        rigidify_bonds_smarts=None,
+        rigidify_bonds_indices=None,
         input_atom_params=None,
         load_atom_params="ad4_types",
         add_atom_types=(),
@@ -124,7 +124,11 @@ class MoleculePreparation:
         self.keep_equivalent_rings = keep_equivalent_rings
         self.double_bond_penalty = double_bond_penalty
         self.macrocycle_allow_A = macrocycle_allow_A
+        if rigidify_bonds_smarts is None:
+            rigidify_bonds_smarts = []
         self.rigidify_bonds_smarts = rigidify_bonds_smarts
+        if rigidify_bonds_indices is None:
+            rigidify_bonds_indices = []
         self.rigidify_bonds_indices = rigidify_bonds_indices
 
         self.input_atom_params = input_atom_params
@@ -139,7 +143,7 @@ class MoleculePreparation:
             raise NotImplementedError("load_offatom_params not implemented")
         self.load_offatom_params = load_offatom_params
 
-        allowed_charge_models = ["espaloma", "gasteiger", "zero"]
+        allowed_charge_models = ["gasteiger", "zero"]
         if charge_model not in allowed_charge_models:
             raise ValueError(
                 "unrecognized charge_model: %s, allowed options are: %s"
@@ -298,7 +302,7 @@ class MoleculePreparation:
 
         """
         atom_params = {}
-        if type(load_atom_params) is str:
+        if isinstance(load_atom_params, str):
             load_atom_params = [load_atom_params]
         elif load_atom_params is None:
             load_atom_params = ()

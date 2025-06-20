@@ -95,6 +95,7 @@ class Mol2MolSupplier:
         self.buff = [line]
         return mol
 
+
 class AtomField:
     """Stores data parsed from PDB or mmCIF"""
 
@@ -127,9 +128,9 @@ class AtomField:
         self.atomic_nr = periodic_table.GetAtomicNumber(element)
 
 
-def _build_rdkit_mol_for_altloc(atom_fields_list, wanted_altloc:str=None):
+def _build_rdkit_mol_for_altloc(atom_fields_list, wanted_altloc: str = None):
     mol = Chem.EditableMol(Chem.Mol())
-    mol.BeginBatchEdit() 
+    mol.BeginBatchEdit()
     positions = []
     idx_to_rdkit = {}
     for index_list, atom in enumerate(atom_fields_list):
@@ -155,7 +156,7 @@ def _build_rdkit_mol_for_altloc(atom_fields_list, wanted_altloc:str=None):
         conformer.SetAtomPosition(index, position)
     mol.AddConformer(conformer, assignId=True)
     return mol, idx_to_rdkit
-        
+
 
 def build_one_rdkit_mol_per_altloc(atom_fields_list):
     """ if no altlocs, the only key in the output dict is None
@@ -174,11 +175,11 @@ def build_one_rdkit_mol_per_altloc(atom_fields_list):
 def _aux_altloc_mol_build(atom_field_list, requested_altloc, default_altloc):
     missed_altloc = False
     needed_altloc = False
-    mols_dict = build_one_rdkit_mol_per_altloc(atom_field_list) 
+    mols_dict = build_one_rdkit_mol_per_altloc(atom_field_list)
     has_altloc = None not in mols_dict
     if has_altloc and requested_altloc is None and default_altloc is None:
         pdbmol = None
-        missed_altloc = False 
+        missed_altloc = False
         needed_altloc = True
     elif requested_altloc and requested_altloc in mols_dict:
         pdbmol, idx_to_rdkit = mols_dict[requested_altloc]
@@ -196,7 +197,7 @@ def _aux_altloc_mol_build(atom_field_list, requested_altloc, default_altloc):
         pdbmol, idx_to_rdkit = mols_dict[None]
     else:
         raise RuntimeError("programming bug, please post full error on github")
-    if pdbmol is None: 
+    if pdbmol is None:
         idx_to_rdkit = None
         return pdbmol, idx_to_rdkit, missed_altloc, needed_altloc
     else:
@@ -212,27 +213,27 @@ def _aux_altloc_mol_build(atom_field_list, requested_altloc, default_altloc):
 def react_and_map(reactants: Tuple[Chem.Mol], rxn: rdChemReactions.ChemicalReaction):
     """
     Run a reaction and keep track of atom indices from reactants to products.
-    
+
     Parameters
     ----------
     reactants : tuple[Chem.Mol]
         A tuple of RDKit molecule objects representing the reactants.
     rxn : rdChemReactions.ChemicalReaction
         The RDKit reaction object.
-        
+
     Returns
     -------
     list[tuple[Chem.Mol, dict[str, list[Optional[int]]]]]
         A list of tuples where each tuple contains a product molecule and a dictionary.
         The dictionary has keys 'atom_idx' and 'new_atom_label', which are ordered lists for product atoms:
-        - 'atom_idx' holds the corresponding atom indices in reactant. None for newly added atoms. 
-        - 'new_atom_label' holds the reaction mapping number, only for newly added atoms. 
+        - 'atom_idx' holds the corresponding atom indices in reactant. None for newly added atoms.
+        - 'new_atom_label' holds the reaction mapping number, only for newly added atoms.
     """
 
     # Prepare for multiple possible outcomes resulted from multiple matched reactive sites in reactant
     outcomes = []
-    for products in rxn.RunReactants(reactants): 
-        # Assumes single product 
+    for products in rxn.RunReactants(reactants):
+        # Assumes single product
         product = products[0]
         # For each atom, get react_atom_idx if they were in reactant
         atom_idxmap = [

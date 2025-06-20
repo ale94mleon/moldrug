@@ -3,10 +3,7 @@
 #
 # Meeko macrocycle builder
 #
-
-from collections import defaultdict
-from operator import itemgetter
-from typing import Tuple
+from typing import List, Set, Tuple
 
 from .molsetup import Bond
 
@@ -237,7 +234,7 @@ class FlexMacrocycle:
         return break_combo_data
 
     def _recursive_break(
-        self, rings, max_breaks, breakable_bonds, output=set(), broken_bonds=[]
+        self, rings, max_breaks, breakable_bonds, output: Set = None, broken_bonds: List = None
     ):
         """
 
@@ -256,6 +253,10 @@ class FlexMacrocycle:
         output: set
 
         """
+        if output is None:
+            output = set()
+        if broken_bonds is None:
+            broken_bonds = []
         if max_breaks == 0:
             return output
         unbroken_rings = self.get_unbroken_rings(rings, broken_bonds)

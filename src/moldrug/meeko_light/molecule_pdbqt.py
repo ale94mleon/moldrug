@@ -33,7 +33,7 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
     tmp_atoms = []
     tmp_actives = []
     tmp_pdbqt_string = ''
-    water_indices = {*()}  
+    water_indices = {*()}
     location = 'ligand'
     energy_best_pose = None
     is_first_pose = True
@@ -48,7 +48,7 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
 
     # flexible_residue is for atoms between BEGIN_RES and END_RES keywords, ligand otherwise.
     # flexres assigned "ligand" if BEGIN/END RES keywords are missing
-    # mol_index distinguishes different ligands and flexres because ROOT keyword increments mol_index  
+    # mol_index distinguishes different ligands and flexres because ROOT keyword increments mol_index
     atom_annotations = {'ligand': [], 'flexible_residue': [], 'water': [],
                         'hb_acc': [], 'hb_don': [],
                         'all': [], 'vdw': [],
@@ -58,7 +58,7 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
     pose_data = {
         'n_poses': None,
         'active_atoms': [],
-        'free_energies': [], 
+        'free_energies': [],
         'intermolecular_energies': [],
         'internal_energies': [],
         'index_map': {},
@@ -100,10 +100,10 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
                 continue
 
         if not line.startswith(('MODEL', 'ENDMDL')):
-            """This is very lazy I know...
-            But would you rather spend time on rebuilding the whole torsion tree and stuff
-            for writing PDBQT files or drinking margarita? Energy was already spend to build
-            that, so let's re-use it!"""
+            # This is very lazy I know...
+            # But would you rather spend time on rebuilding the whole torsion tree and stuff
+            # for writing PDBQT files or drinking margarita? Energy was already spend to build
+            # that, so let's re-use it!
             tmp_pdbqt_string += line
 
         if line.startswith('MODEL'):
@@ -130,13 +130,13 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
                 partial_charges = 0.0
             atom_type = line[77:-1].strip()
 
-            """ We are looking for gap in the serial atom numbers. Usually if they
-            are not following it means that atoms are missing. This will happen with
-            water molecules after using dry.py, only non-overlapping water molecules
-            are kept. Also if the current serial becomes suddenly inferior than the
-            previous and equal to 1, it means that we are now in another molecule/flexible 
-            residue. So here we are adding dummy atoms
-            """
+            # We are looking for gap in the serial atom numbers. Usually if they
+            # are not following it means that atoms are missing. This will happen with
+            # water molecules after using dry.py, only non-overlapping water molecules
+            # are kept. Also if the current serial becomes suddenly inferior than the
+            # previous and equal to 1, it means that we are now in another molecule/flexible
+            # residue. So here we are adding dummy atoms
+
             if (previous_serial + 1 != serial) and not (serial < previous_serial and serial == 1):
                 diff = serial - previous_serial - 1
                 for _ in range(diff):
@@ -182,7 +182,7 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
             integers = [int(integer) for integer in line.split()[3:]]
             if len(integers) % 2 == 1:
                 raise RuntimeError("Number of indices in INDEX MAP is odd")
-            for j in range(int(len(integers) / 2)): 
+            for j in range(int(len(integers) / 2)):
                 buffer_index_map[integers[j*2]] = integers[j*2 + 1]
         elif line.startswith('REMARK SMILES IDX') and is_first_pose:
             integers = [int(integer) for integer in line.split()[3:]]
@@ -238,11 +238,11 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
             tmp_atoms = np.array(tmp_atoms, dtype=atoms_dtype)
 
             if atoms is None:
-                """We store the atoms (topology) only once, since it is supposed to be
-                the same for all the molecules in the PDBQT file (except when water molecules
-                are involved... classic). But we will continue to compare the topology of
-                the current pose with the first one seen in the PDBQT file, to be sure only
-                the atom positions are changing."""
+                # We store the atoms (topology) only once, since it is supposed to be
+                # the same for all the molecules in the PDBQT file (except when water molecules
+                # are involved... classic). But we will continue to compare the topology of
+                # the current pose with the first one seen in the PDBQT file, to be sure only
+                # the atom positions are changing.
                 atoms = tmp_atoms.copy()
             else:
                 # Check if the molecule topology is the same for each pose
@@ -268,9 +268,9 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
             if (n_poses >= poses_to_read and poses_to_read != -1):
                 break
 
-    """ if there is no model, it means that there is only one molecule
-    so when we reach the end of the file, we store the atoms, 
-    positions and actives stuff. """
+    # if here is only one molecule
+    # so when we reach the end of the file, we store the atoms,
+    # positions and actives stuff.
     if not is_model:
         n_poses += 1
         atoms = np.array(tmp_atoms, dtype=atoms_dtype)
@@ -286,7 +286,7 @@ def _read_ligand_pdbqt_file(pdbqt_string, poses_to_read=-1, energy_range=-1, is_
     if water_indices:
         atom_annotations['water'] = list(water_indices)
 
-    # clustering        
+    # clustering
     if len(tmp_cluster_data) > 0:
         if len(tmp_cluster_data) != n_poses:
             raise RuntimeError("Nr of poses in cluster data (%d) differs from nr of poses (%d)" % (len(tmp_cluster_data, n_poses)))
@@ -339,7 +339,7 @@ class PDBQTMolecule:
             pdbqt_string (str): pdbqt string
             name (str): name of the molecule (default: None, use filename without pdbqt suffix)
             poses_to_read (int): total number of poses to read (default: None, read all)
-            energy_range (float): read docked poses until the maximum energy difference 
+            energy_range (float): read docked poses until the maximum energy difference
                 from best pose is reach, for example 2.5 kcal/mol (default: Non, read all)
             is_dlg (bool): input file is in dlg (AutoDock docking log) format (default: False)
             skip_typing (bool, optional): Flag indicating that atomtyping should be skipped
@@ -370,16 +370,16 @@ class PDBQTMolecule:
             mol_atoms = self._atoms[self._atom_annotations['ligand']]
             self._bonds = _identify_bonds(self._atom_annotations['ligand'], mol_atoms['xyz'], mol_atoms['atom_type'])
 
-            """... then in the flexible residues 
+            """... then in the flexible residues
             Since we are extracting bonds from docked poses, we might be in the situation
-            where the ligand reacted with one the flexible residues and we don't want to 
+            where the ligand reacted with one the flexible residues and we don't want to
             consider them as normally bonded..."""
             if self.has_flexible_residues():
                 flex_atoms = self._atoms[self._atom_annotations['flexible_residue']]
                 self._bonds.update(_identify_bonds(self._atom_annotations['flexible_residue'], flex_atoms['xyz'], flex_atoms['atom_type']))
 
     @classmethod
-    def from_file(cls, pdbqt_filename, name=None, poses_to_read=None, energy_range=None, is_dlg=False, skip_typing=False): 
+    def from_file(cls, pdbqt_filename, name=None, poses_to_read=None, energy_range=None, is_dlg=False, skip_typing=False):
         if name is None:
             name = os.path.splitext(os.path.basename(pdbqt_filename))[0]
         with open(pdbqt_filename) as f:
@@ -416,7 +416,7 @@ class PDBQTMolecule:
         repr_str = '<Molecule named %s containing %d poses of %d atoms>'
         return (repr_str % (self._name, self._pose_data['n_poses'], self._atoms.shape[0]))
 
-    @property    
+    @property
     def name(self):
         """Return the name of the molecule."""
         return self._name
@@ -517,7 +517,7 @@ class PDBQTMolecule:
         """Return atom based on their properties
 
         Args:
-            atom_properties (str or list): property of the atoms to retrieve 
+            atom_properties (str or list): property of the atoms to retrieve
                 (properties: ligand, flexible_residue, vdw, hb_don, hb_acc, metal, water, reactive, glue)
             only_active (bool): return only active atoms (default: True, return only active atoms)
 
@@ -549,13 +549,13 @@ class PDBQTMolecule:
             return np.array([])
 
     def closest_atoms_from_positions(self, xyz, radius, atom_properties=None, ignore=None):
-        """Retrieve indices of the closest atoms around a positions/coordinates 
+        """Retrieve indices of the closest atoms around a positions/coordinates
         at a certain radius.
 
         Args:
             xyz (np.ndarray): array of 3D coordinates
             raidus (float): radius
-            atom_properties (str): property of the atoms to retrieve 
+            atom_properties (str): property of the atoms to retrieve
                 (properties: ligand, flexible_residue, vdw, hb_don, hb_acc, metal, water, reactive, glue)
             ignore (int or list): ignore atom for the search using atom id (0-based)
 
@@ -603,13 +603,13 @@ class PDBQTMolecule:
             return np.array([])
 
     def closest_atoms(self, atom_idx, radius, atom_properties=None):
-        """Retrieve indices of the closest atoms around a positions/coordinates 
+        """Retrieve indices of the closest atoms around a positions/coordinates
         at a certain radius.
 
         Args:
             atom_idx (int, list): index of one or multiple atoms (0-based)
             raidus (float): radius
-            atom_properties (str or list): property of the atoms to retrieve 
+            atom_properties (str or list): property of the atoms to retrieve
                 (properties: ligand, flexible_residue, vdw, hb_don, hb_acc, metal, water, reactive, glue)
 
         Returns:
@@ -650,20 +650,20 @@ class PDBQTMolecule:
 
     def write_pdbqt_string(self, as_model=True):
         """Write PDBQT output string of the current pose
-        
+
         Args:
             as_model (bool): Qdd MODEL/ENDMDL keywords to the output PDBQT string (default: True)
-        
+
         Returns:
             string: Description
-        
+
         """
         if as_model:
             pdbqt_string = 'MODEL    %5d\n' % (self._current_pose + 1)
             pdbqt_string += self._pose_data['pdbqt_string'][self._current_pose]
             pdbqt_string += 'ENDMDL\n'
             return pdbqt_string
-        else: 
+        else:
             return self._pose_data['pdbqt_string'][self._current_pose]
 
     def write_pdbqt_file(self, output_pdbqtfilename, overwrite=False, as_model=False):
@@ -681,11 +681,10 @@ class PDBQTMolecule:
 
         if as_model:
             pdbqt_string = 'MODEL    %5d\n' % (self._current_pose + 1)
-            pdbqt_string += self._pose_data['pdbqt_string'][self._current_pose] 
+            pdbqt_string += self._pose_data['pdbqt_string'][self._current_pose]
             pdbqt_string += 'ENDMDL\n'
         else:
             pdbqt_string = self._pose_data['pdbqt_string'][self._current_pose]
 
         with open(output_pdbqtfilename, 'w') as w:
             w.write(pdbqt_string)
-

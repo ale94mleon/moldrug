@@ -40,8 +40,6 @@ def oids_json_from_setup(molsetup, name="LigandFromMeeko"):
     charges = []
     offchrg_by_oid_parent = {}
     elements = []
-    n_real_atoms = molsetup.true_atom_count
-    n_fake_atoms = molsetup.pseudoatom_count
     indexmap = {}  # molsetup: oid
     count_oids = 0
     for atom in molsetup.atoms:
@@ -49,7 +47,7 @@ def oids_json_from_setup(molsetup, name="LigandFromMeeko"):
         if atom.is_dummy or atom.is_pseudo_atom or atom.is_ignore:
             continue
         if atom.atom_type == offchrg_type:
-            continue # handled by offchrg_by_parent
+            continue  # handled by offchrg_by_parent
         oid_id = count_oids + index_start
         indexmap[index] = count_oids
         x, y, z = atom.coord
@@ -115,7 +113,7 @@ def oids_json_from_setup(molsetup, name="LigandFromMeeko"):
     output += charges_line
     output += elements_line
     output += bonds_line
-    #output += bondorder_line
+    # output += bondorder_line
     output += staticlinks_line
     output += "number = 1\t\t// can only be 1 for the sandbox currently (but any number for classical MC)\n"
     output += "group_dipole = 1\t// not relevant for sandbox but classical MC\n"
@@ -153,8 +151,6 @@ def oids_block_from_setup(molsetup, name="LigandFromMeeko"):
     charges = []
     offchrg_by_oid_parent = {}
     elements = []
-    n_real_atoms = molsetup.true_atom_count
-    n_fake_atoms = molsetup.pseudoatom_count
     indexmap = {}  # molsetup: oid
     count_oids = 0
     for atom in molsetup.atoms:
@@ -480,7 +476,7 @@ class PDBQTWriterLegacy:
                 success = False
             c = atom.charge
             if not bad_charge_ok and (
-                type(c) != float and type(c) != int or math.isnan(c) or math.isinf(c)
+                not isinstance(c, (float, int)) or math.isnan(c) or math.isinf(c)
             ):
                 error_msg += (
                     "atom number %d has non finite charge, mol name: %s, charge: %s\n"
@@ -528,7 +524,7 @@ class PDBQTWriterLegacy:
                 # set ignore to True for static atoms of flexible sidechains
                 # to exclude them from the PDBQT string
                 for atom_idx, is_flex in enumerate(monomer.is_flexres_atom):
-                        molsetup.atoms[atom_idx].is_ignore = not is_flex
+                    molsetup.atoms[atom_idx].is_ignore = not is_flex
                 this_flex_pdbqt, ok, err = PDBQTWriterLegacy.write_string(
                     molsetup, remove_smiles=True, add_index_map=True
                 )
@@ -598,7 +594,6 @@ class PDBQTWriterLegacy:
             "pdbqt_buffer": [],
             "count": 1,
         }
-        atom_counter = {}
 
         torsdof = len(setup.flexibility_model["rigid_body_graph"]) - 1
 
