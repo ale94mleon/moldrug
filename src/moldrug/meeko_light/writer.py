@@ -68,7 +68,7 @@ def oids_json_from_setup(molsetup, name="LigandFromMeeko"):
         elements.append(element)
 
     tmp = []
-    for index in range(len(charges)):
+    for index in enumerate(charges):
         if index in offchrg_by_oid_parent:
             tmplist = [
                 "%f" % charges[index],
@@ -492,7 +492,7 @@ class PDBQTWriterLegacy:
             polymer
         )
         flex_pdbqt_string = ""
-        for res_id, pdbqt_string in flex_pdbqt_dict.items():
+        for pdbqt_string in flex_pdbqt_dict.values():
             flex_pdbqt_string += pdbqt_string
         return rigid_pdbqt_string, flex_pdbqt_string
 

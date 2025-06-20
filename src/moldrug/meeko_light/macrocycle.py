@@ -159,7 +159,7 @@ class FlexMacrocycle:
                     breakable[bond] = score
         return breakable
 
-    def search_macrocycle(self, setup, delete_these_bonds=[]):
+    def search_macrocycle(self, setup, delete_these_bonds: List = None):
         """
         Search for macrocycles in the molecule
 
@@ -173,6 +173,10 @@ class FlexMacrocycle:
         break_combo_data:
         bonds_in_rigid_rings:
         """
+
+        if delete_these_bonds is None:
+            delete_these_bonds = []
+
         self.setup = setup
 
         self.breakable_rings, bonds_in_rigid_rings = self.collect_rings(setup)

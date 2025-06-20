@@ -316,7 +316,7 @@ class Bond:
         """
         # if the input object is not a dict, we know that it will not be parsable and is unlikely to be usable or
         # safe data, so we should ignore it.
-        if type(obj) is not dict:
+        if not isinstance(obj, dict):
             return obj
 
         # Check that all the keys we expect are in the object dictionary as a safety measure

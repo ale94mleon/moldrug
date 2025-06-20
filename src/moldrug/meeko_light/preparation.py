@@ -340,13 +340,13 @@ class MoleculePreparation:
                 msg = "overlapping parameter groups: %s" % str(overlapping_groups)
                 raise ValueError(msg)
             params_set_here = set()
-            for group_key, rows in input_atom_params.items():
+            for rows in input_atom_params.values():
                 for row in rows:
                     for param_name in row:
                         if param_name not in ["smarts", "comment", "IDX"]:
                             params_set_here.add(param_name)
             params_set_before = set()
-            for group_key, rows in atom_params.items():
+            for rows in atom_params.values():
                 for row in rows:
                     for param_name in row:
                         if param_name not in ["smarts", "comment", "IDX"]:
