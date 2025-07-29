@@ -14,7 +14,7 @@ pip install moldrug
 :class: Tip
 
 Recent Linux distributions require creation of virtual environment before calling `pip`.  
-Additionally the default Python might be too new for Moldrug (Python 3.12 is not yet supported).
+Additionally the default Python might be too new for Moldrug. Python 3.12 is not yet supported (see pull requests [#9](https://github.com/ale94mleon/moldrug/pull/9) and [#10](https://github.com/ale94mleon/moldrug/pull/10)).
 
 For example on Ubuntu 24.04 LTS, one needs to perform following steps
 
@@ -117,5 +117,5 @@ Finally, `pip install moldrug` inside the container.
 
 ```sh
 pip install -e .[dev]
-pip install pytest
+pytest tests
 ```
