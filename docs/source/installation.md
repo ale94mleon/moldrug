@@ -10,6 +10,33 @@ Strongly recommended; although this project is still in beta state.
 pip install moldrug
 ```
 
+````{admonition} Linux 🐧
+:class: Tip
+
+Recent Linux distributions require creation of virtual environment before calling `pip`.  
+Additionally the default Python might be too new for Moldrug. Python 3.12 is not yet supported (see pull requests [#9](https://github.com/ale94mleon/moldrug/pull/9) and [#10](https://github.com/ale94mleon/moldrug/pull/10)).
+
+For example on Ubuntu 24.04 LTS, one needs to perform following steps
+
+1. Get older Python
+   ```sh
+   sudo add-apt-repository ppa:deadsnakes/ppa
+   sudo apt update
+   sudo apt install python3.11-venv
+   ```
+2. Create a virtual environment
+   ```sh
+   python3.11 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Only then call `pip`
+   ```sh
+   pip install moldrug
+   ```
+
+The other Linux distributions might require installation of older Python and creation of virtual environment as well.
+````
+
 ## Getting the development version
 
 ```bash
@@ -85,3 +112,10 @@ To perform docking you must provide `boxcenter` (`center` for AutoDock-Vina) and
 - Visit the [moldrug's Docker container](https://hub.docker.com/r/ale94mleon/4moldrug).
 
 Finally, `pip install moldrug` inside the container.
+
+## Running tests
+
+```sh
+pip install -e .[dev]
+pytest tests
+```
