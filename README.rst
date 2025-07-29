@@ -57,6 +57,10 @@ Citing **moldrug**
 
 Please refer to the `citation page <https://moldrug.readthedocs.io/en/latest/source/citations.html>`__ on the documentation.
 
+Acknowledgment
+--------------
+See the full list of contributors in the `CONTRIBUTORS.md <./CONTRIBUTORS.md>`_ file.
+
 Funding
 -------
 
