@@ -15,6 +15,14 @@ from rdkit import Chem
 
 from moldrug import fitness, home, utils
 from moldrug.data import get_data
+from moldrug.runner import Runner, RunnerMode
+
+try:
+    from dask_jobqueue import SLURMCluster
+    dask_available = True
+except ImportError:
+    dask_available = False
+
 
 # This is in case vina is not found. You can change the vina executable here
 vina_executable = os.path.abspath('vina')
@@ -24,7 +32,7 @@ if not os.path.isfile(vina_executable):
 
 
 # Creating a temporal directory
-tmp_path = tempfile.TemporaryDirectory()
+tmp_path = tempfile.TemporaryDirectory(dir='.')
 wd = tmp_path.name
 os.chdir(wd)
 
@@ -43,6 +51,18 @@ open(crem_dbgz_path, 'wb').write(r.content)
 with gzip.open(crem_dbgz_path, 'rb') as f_in:
     with open(crem_db_path, 'wb') as f_out:
         shutil.copyfileobj(f_in, f_out)
+
+
+# Execution mode can be changed to "smaug" or "elwe" to calculate cost functions on Smaug or Elwe clusters.
+# Both configurations are used only internally by the author, because none of the two clusters is publicly available.
+# That being said, an example cluster configuration can be adopted to your needs.
+#
+# Note on Elwe: Worker nodes of Elwe are unable to reach the controller when MolDrug is running directly on the frontend.
+# One way to circumvent it is to run tests from an interactive job, eg. by calling `elwe slot`, `pytest tests -k test_multi_receptor`.
+# Sending the main job to the queue works as well
+#   sbatch --partition uds-hub --nodes 1 --mem-per-cpu 1GB --time 00:15:00 --ntasks-per-node 10 --gres gpu:1 --constraint 'XEON_E5_2630v4' \
+#       --wrap 'bash -c "source .venv/bin/activate ; pytest tests -k test_multi_receptor"'
+execution_mode = "multiprocessing"
 
 
 def test_single_receptor_command_line():
@@ -92,6 +112,38 @@ def test_single_receptor_command_line():
             "deffnm": "02_allow_grow"
         }
     }
+
+    if execution_mode == "multiprocessing":
+        pass
+    elif execution_mode in ["smaug", "elwe"]:
+        assert dask_available
+
+        # This is currently unused
+        if execution_mode == "smaug":
+            Config['01_grow']['cluster'] = {
+                "SLURMCluster_kwargs": {
+                    "queue": "short",
+                    "cores": 12,
+                    "processes": 1,
+                    "memory": "8GB",
+                    "walltime": "00:15:00",
+                    "job_extra_directives": ["--gpus 1"]
+                }
+            }
+        elif execution_mode == "elwe":
+            Config['01_grow']['cluster'] = {
+                "SLURMCluster_kwargs": {
+                    "queue": "uds-hub",
+                    "cores": 10,
+                    "processes": 1,
+                    "memory": "8GB",
+                    "walltime": "00:15:00",
+                    "job_extra_directives": ["--gpus 1"]
+                }
+            }
+    else:
+        raise ValueError(f"Unknown mode {execution_mode}")
+
     with open("test_single_receptor.yml", 'w') as c:
         yaml.dump(Config, c)
     p = utils.run('moldrug test_single_receptor.yml')
@@ -137,8 +189,45 @@ def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
         deffnm='test_multi_receptor',
         randomseed=123)
 
-    for _ in range(NumbCalls):
-        out(njobs=njobs)
+    if execution_mode == "multiprocessing":
+        for _ in range(NumbCalls):
+            out(njobs=njobs)
+    elif execution_mode in ["smaug", "elwe"]:
+        assert dask_available
+
+        if execution_mode == "smaug":
+            cluster = SLURMCluster(
+                queue='short',
+                cores=12,
+                processes=1,
+                memory='8GB',
+                walltime='00:15:00',
+                job_extra_directives=['--gpus 1']
+            )
+        else:
+            cluster = SLURMCluster(
+                queue='uds-hub',
+                cores=10,
+                processes=1,
+                memory='8GB',
+                walltime='00:15:00',
+                job_extra_directives=['--gpus 1'],
+                log_directory="."
+            )
+
+        # Requesting "njobs" workers, each in a separate Slurm slot.
+        cluster.scale(njobs)
+
+        # Hint: By increasing the number of processes one can split Slurm allocations
+        # into multiple workers. It might be useful when requesting entire nodes with
+        # `--exclusive` switch and then running as many processes as GPUs.
+
+        runner = Runner(RunnerMode.DASK_JOB_QUEUE_CLUSTER, dask_cluster=cluster)
+
+        for _ in range(NumbCalls):
+            out(runner=runner)
+    else:
+        assert False, f"Unknown mode: {execution_mode}"
 
     for o in out.pop:
         print(o.smiles, o.cost)

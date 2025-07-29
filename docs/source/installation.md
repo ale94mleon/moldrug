@@ -10,6 +10,14 @@ Strongly recommended; although this project is still in beta state.
 pip install moldrug
 ```
 
+````{note}
+To enable calculation of a cost function on [a cluster](https://jobqueue.dask.org/en/latest/clusters-api.html) install optional set of dependencies
+
+```sh
+pip install moldrug[cluster]
+```
+````
+
 ````{admonition} Linux 🐧
 :class: Tip
 
@@ -119,3 +127,5 @@ Finally, `pip install moldrug` inside the container.
 pip install -e .[dev]
 pytest tests
 ```
+
+To test execution on a cluster, change the `execution_mode` variable in `test_moldrug.py`. The tests you can run on the cluster afterward are called `test_single_receptor_command_line` and `test_multi_receptor`. Each cluster is different, and the current configuration is tailored to our two internal clusters. To test on your own cluster, you’ll also need to modify the `SLURMCluster` configuration in `test_moldrug.py`. During the execution of each test, multiple entries should appear in the Slurm queue.
