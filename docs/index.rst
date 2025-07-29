@@ -25,6 +25,7 @@ Index
    
    source/summary
    source/CHANGELOG
+   source/notes
    source/api-reference
 
 Indices and tables
