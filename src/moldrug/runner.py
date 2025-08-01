@@ -42,7 +42,7 @@ class RunnerMode(Enum):
     SERIAL = "serial"
     MULTIPROCESSING = "multiprocessing"
     DASK_LOCAL = "dask_local"
-    DASK_JOB_QUEUE_CLUSTER = "dask_slurm"
+    DASK_JOB_QUEUE_CLUSTER = "dask_job_queue_cluster"
 
 
 class Runner:
@@ -53,7 +53,7 @@ class Runner:
 
     def __init__(self, mode: RunnerMode, thread_count: Optional[int] = None, process_count: Optional[int] = None, dask_cluster = None):
         if mode in [RunnerMode.DASK_LOCAL, RunnerMode.DASK_JOB_QUEUE_CLUSTER]:
-            assert dask_cluster is not None, "Execution using Dask requires installation of optional dependencies. The optional pip package group is called 'dask'"
+            assert dask_cluster is not None, "Execution using Dask requires installation of optional dependencies. The optional pip package group is called 'cluster'"
 
         if mode is RunnerMode.SERIAL:
             assert thread_count is None and process_count is None and dask_cluster is None, "Serial execution doesn't take any parameters."

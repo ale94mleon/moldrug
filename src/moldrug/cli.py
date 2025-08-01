@@ -8,6 +8,7 @@ For information of moldrug:
 import argparse
 import datetime
 import inspect
+import importlib
 import os
 import sys
 from typing import Union
@@ -114,7 +115,8 @@ class CommandLineHelper:
         InitArgs = MainConfig.copy()
 
         # Modifying InitArgs
-        _ = [InitArgs.pop(key, None) for key in ['type', 'njobs', 'pick']]
+        for key in ['type', 'njobs', 'cluster', 'pick']:
+            InitArgs.pop(key, None)
         InitArgs['costfunc'] = self.costfunc
 
         # Getting call arguments
@@ -124,6 +126,23 @@ class CommandLineHelper:
                 CallArgs[key] = MainConfig[key]
             except KeyError:
                 pass
+
+        if 'cluster' in MainConfig:
+            if 'type' not in MainConfig['cluster'] or 'kwargs' not in MainConfig['cluster']:
+                raise ValueError("The cluster configuration must contain 'type' and 'kwargs'.")
+
+            from moldrug.runner import Runner, RunnerMode  # terminates with a message if dask is not installed
+
+            try:
+                cluster_class = getattr(importlib.import_module("dask_jobqueue"), MainConfig['cluster']['type'])
+            except ImportError:
+                raise ImportError(f"Unable to import {MainConfig['cluster']['type']} from dask_jobqueue module.")
+
+            cluster = cluster_class(**MainConfig['cluster']['kwargs'])
+            cluster.scale(MainConfig.get('njobs', 1))
+
+            CallArgs['runner'] = Runner(RunnerMode.DASK_JOB_QUEUE_CLUSTER, dask_cluster=cluster)
+            del CallArgs['njobs']
 
         # Checking for follow jobs and sanity check on the arguments
         if FollowConfig:
@@ -145,7 +164,7 @@ class CommandLineHelper:
                         InitArgs[param.name] = param.default
 
                 MutableArgs = {
-                    'njobs': CallArgs['njobs'],
+                    'njobs': MainConfig['njobs'],
                     'crem_db_path': InitArgs['crem_db_path'],
                     'maxiter': InitArgs['maxiter'],
                     'popsize': InitArgs['popsize'],

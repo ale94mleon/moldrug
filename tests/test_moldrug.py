@@ -121,7 +121,8 @@ def test_single_receptor_command_line():
         # This is currently unused
         if execution_mode == "smaug":
             Config['01_grow']['cluster'] = {
-                "SLURMCluster_kwargs": {
+                "type": "SLURMCluster",
+                "kwargs": {
                     "queue": "short",
                     "cores": 12,
                     "processes": 1,
@@ -132,7 +133,8 @@ def test_single_receptor_command_line():
             }
         elif execution_mode == "elwe":
             Config['01_grow']['cluster'] = {
-                "SLURMCluster_kwargs": {
+                "type": "SLURMCluster",
+                "kwargs": {
                     "queue": "uds-hub",
                     "cores": 10,
                     "processes": 1,
@@ -211,8 +213,7 @@ def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
                 processes=1,
                 memory='8GB',
                 walltime='00:15:00',
-                job_extra_directives=['--gpus 1'],
-                log_directory="."
+                job_extra_directives=['--gpus 1']
             )
 
         # Requesting "njobs" workers, each in a separate Slurm slot.
