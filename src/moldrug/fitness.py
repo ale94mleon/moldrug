@@ -311,7 +311,7 @@ def _vinadock(
 
     # Creating the error directory if needed
     if not os.path.isdir('error'):
-        os.makedirs('error')
+        os.makedirs('error', exist_ok=True)
     # Creating the working directory if needed
     if not os.path.exists(wd):
         os.makedirs(wd)

@@ -162,7 +162,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
     """
     # Creating the error directory if needed
     if not os.path.isdir('error'):
-        os.makedirs('error')
+        os.makedirs('error', exist_ok=True)
     # if SMILES to be fixed are not given, assume to the MCS
     if ref_smi:
         if not Chem.MolFromSmiles(ref_smi):

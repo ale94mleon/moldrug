@@ -63,6 +63,7 @@ file = "LICENSE"
 
 [project.optional-dependencies]
 dev = ["requests", "pytest"]
+cluster = ["dask[distributed]", "dask-jobqueue"]
 
 [tool.versioningit]
 default-version = "1+unknown"
