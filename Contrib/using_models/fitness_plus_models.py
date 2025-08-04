@@ -6,7 +6,7 @@ from typing import Dict, List
 import joblib
 import numpy as np
 from rdkit import Chem, RDLogger
-from rdkit.Chem import AllChem, Descriptors
+from rdkit.Chem import QED, AllChem, Descriptors
 
 from moldrug import utils
 from moldrug.fitness import _vinadock
@@ -15,7 +15,7 @@ RDLogger.DisableLog('rdApp.*')
 
 
 class Featurizer:
-    def __init__(self, fpb=2048, calc_descriptors=True, scale = False):
+    def __init__(self, fpb=2048, calc_descriptors=True, scale=False):
         """
         :param fpb: number of Morgan bits
         :param descriptors: boolean - calculate descriptors.
@@ -118,25 +118,26 @@ class Predictors():
 
         return to_return
 
+
 def Cost(
-    Individual:utils.Individual,
-    wd:str = '.vina_jobs',
-    vina_executable:str = 'vina',
-    receptor_pdbqt_path:str = None,
-    boxcenter:List[float] = None,
-    boxsize:List[float] = None,
-    exhaustiveness:int = 8,
-    ad4map:str = None,
-    ncores:int = 1,
-    num_modes:int = 1,
-    constraint:bool = False,
-    constraint_type = 'score_only', # score_only, local_only
-    constraint_ref:Chem.rdchem.Mol = None,
-    constraint_receptor_pdb_path:str = None,
-    constraint_num_conf:int = 100,
-    constraint_minimum_conf_rms:int = 0.01,
-    models:Dict = None,
-    desirability:Dict = None,
+    Individual: utils.Individual,
+    wd: str = '.vina_jobs',
+    vina_executable: str = 'vina',
+    receptor_pdbqt_path: str = None,
+    boxcenter: List[float] = None,
+    boxsize: List[float] = None,
+    exhaustiveness: int = 8,
+    ad4map: str = None,
+    ncores: int = 1,
+    num_modes: int = 1,
+    constraint: bool = False,
+    constraint_type: str = 'score_only',  # score_only, local_only
+    constraint_ref: Chem.rdchem.Mol = None,
+    constraint_receptor_pdb_path: str = None,
+    constraint_num_conf: int = 100,
+    constraint_minimum_conf_rms: int = 0.01,
+    models: Dict = None,
+    desirability: Dict = None
     ):
     """
     This is the main Cost function of the module. It use the concept of desirability functions. The response variables are:
@@ -197,7 +198,7 @@ def Cost(
         must be the same as in desirability. In case that provided more models than hppb and clearance
         the same must be done in desirability.
     desirability : dict, optional
-        The definition of the desirability to use for each used variable = [qed, sa_score, vina_score].
+        The definition of the desirability to use for each used variable = [hppb, clearance, qed, sa_score, vina_score].
         Each variable only will accept the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
         by default None which means that it will be used:
         desirability = {
@@ -218,18 +219,13 @@ def Cost(
         pdbqt, qed, vina_score, sa_score and cost.
         cost attribute will be a number between 0 and 1, been 0 the optimal value.
     """
-    if not models:
-        models = {
-            'hppb':  'hppb.jlib',
-            'clearance': 'clearance.jlib',
-        }
-    if not desirability:
-        desirability = {
+
+    internal_default_desirability = {
             'hppb': {
                 'w': 1,
                 'LargerTheBest': {
                     'LowerLimit': 25,
-                    'Target':75,
+                    'Target': 75,
                     'r': 1
                 }
             },
@@ -241,6 +237,8 @@ def Cost(
                     'r': 1
                 }
             },
+            # Definitions of extra properties
+            # Those that are not jlib models
             'vina_score': {
                 'w': 1,
                 'SmallerTheBest': {
@@ -248,53 +246,80 @@ def Cost(
                     'UpperLimit': -6,
                     'r': 1
                 }
-            }
+            },
+            'qed': {
+                'w': 1,
+                'LargerTheBest': {
+                    'LowerLimit': 0.1,
+                    'Target': 0.75,
+                    'r': 1
+                }
+            },
+            'sa_score': {
+                'w': 1,
+                'SmallerTheBest': {
+                    'Target': 3,
+                    'UpperLimit': 7,
+                    'r': 1
+                }
+            },
         }
-    # Check that everything is ok with naming in models and desirability
-    diff = list(set(desirability) - set(models))
-    if len(diff) == 0:
-        # vina_score was not defined. the default values will be used.
-        desirability['vina_score'] = {
-            'w': 1,
-            'SmallerTheBest': {
-                'Target': -12,
-                'UpperLimit': -6,
-                'r': 1
-            }
+
+    internal_default_models = {
+            'hppb':  'hppb.jlib',
+            'clearance': 'clearance.jlib',
         }
+
+    if desirability is None:
+        desirability = internal_default_desirability
     else:
-        if len(diff) != 1:
-            raise Exception(f"You provided models = {models.keys()} and desirability = {desirability.keys()}. "\
-                "However, desirability must have the same keywords as models and optionally the keyword vina_score")
-        elif diff[0] != 'vina_score':
-            raise Exception(f"desirability has the keyword: '{diff[0]}' which is not defined in models =  {models.keys()} and is not vina_score")
+        desirability = utils.deep_update(
+            target_dict=internal_default_desirability,
+            update_dict=desirability
+        )
+
+    if models is None:
+        models = internal_default_models
+
+    for model in models.keys():
+        if model not in desirability.keys():
+            raise ValueError(f"Model {model} was not defined in the desirability")
 
     # Getting and setting properties on the Individual
+
+    # ### JLIB modelss # ###
     predictor = Predictors(featurizer=Featurizer(), models=models.values())
 
     # MUST be a copy of Individual.mol becasue if not creazy stuffs will happen!!
     predictions = predictor.predict(deepcopy(Individual.mol))
     _ = [setattr(Individual, name, value) for name, value in zip(models, predictions)]
 
+    # ### Non-JLIB properties # ###
+    sascorer = utils.import_sascorer()
+    # Getting estimate of drug-likness
+    Individual.qed = QED.weights_mean(Chem.RemoveHs(Individual.mol))
+
+    # Getting synthetic accessibility score
+    Individual.sa_score = sascorer.calculateScore(Chem.RemoveHs(Individual.mol))
 
     # Getting vina_score and update pdbqt
     Individual.vina_score, Individual.pdbqt = _vinadock(
-        Individual = Individual,
-        wd = wd,
-        vina_executable = vina_executable,
-        receptor_pdbqt_path =  receptor_pdbqt_path,
-        boxcenter = boxcenter,
-        boxsize = boxsize,
-        exhaustiveness = exhaustiveness,
-        ad4map = ad4map,
-        ncores = ncores,
-        num_modes = num_modes,
-        constraint = constraint,
-        constraint_type = constraint_type,
-        constraint_ref = constraint_ref,
-        constraint_receptor_pdb_path = constraint_receptor_pdb_path,
-        constraint_num_conf = constraint_num_conf,
-        constraint_minimum_conf_rms = constraint_minimum_conf_rms,
+        Individual=Individual,
+        wd=wd,
+        vina_executable=vina_executable,
+        receptor_pdbqt_path=receptor_pdbqt_path,
+        boxcenter=boxcenter,
+        boxsize=boxsize,
+        exhaustiveness=exhaustiveness,
+        ad4map=ad4map,
+        ncores=ncores,
+        num_modes=num_modes,
+        constraint=constraint,
+        constraint_type=constraint_type,
+        constraint_ref=constraint_ref,
+        constraint_receptor_pdb_path=constraint_receptor_pdb_path,
+        constraint_num_conf=constraint_num_conf,
+        constraint_minimum_conf_rms=constraint_minimum_conf_rms,
     )
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
@@ -309,9 +334,9 @@ def Cost(
             elif key in utils.DerringerSuichDesirability():
                 d = utils.DerringerSuichDesirability()[key](getattr(Individual, variable), **desirability[variable][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "\
-                f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any "\
-                f"possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "
+                                   f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any "
+                                   f"possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
         base *= d**w
         exponent += w
 

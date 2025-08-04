@@ -34,6 +34,7 @@ vina
 streamlit/test/moldrug-dashboard.py
 
 Contrib/MP
+*.jlib
 
 .venv
 vina*_linux_x86_64

@@ -12,23 +12,23 @@ RDLogger.DisableLog('rdApp.*')
 
 
 def Cost(
-    Individual:utils.Individual,
-    wd:str = '.vina_jobs',
-    vina_executable:str = 'vina',
-    receptor_pdbqt_path:str = None,
-    boxcenter:List[float] = None,
-    boxsize:List[float] = None,
-    exhaustiveness:int = 8,
-    ad4map:str = None,
-    ncores:int = 1,
-    num_modes:int = 1,
-    constraint:bool = False,
-    constraint_type:str = 'score_only', # score_only, local_only
-    constraint_ref:Chem.rdchem.Mol = None,
-    constraint_receptor_pdb_path:str = None,
-    constraint_num_conf:int = 100,
-    constraint_minimum_conf_rms:int = 0.01,
-    desirability:Dict = None,
+    Individual: utils.Individual,
+    wd: str = '.vina_jobs',
+    vina_executable: str = 'vina',
+    receptor_pdbqt_path: str = None,
+    boxcenter: List[float] = None,
+    boxsize: List[float] = None,
+    exhaustiveness: int = 8,
+    ad4map: str = None,
+    ncores: int = 1,
+    num_modes: int = 1,
+    constraint: bool = False,
+    constraint_type: str = 'score_only',  # score_only, local_only
+    constraint_ref: Chem.rdchem.Mol = None,
+    constraint_receptor_pdb_path: str = None,
+    constraint_num_conf: int = 100,
+    constraint_minimum_conf_rms: int = 0.01,
+    desirability: Dict = None,
     ):
     """
     This is the main Cost function of the module. It use the concept of desirability functions. The response variables are:
@@ -95,28 +95,26 @@ def Cost(
     -------
     utils.Individual
         A new instance of the original Individual with the the new attributes:
-        pdbqt, qed, vina_score, sa_score and cost.
+        pdbqt, molskill_score, vina_score, sa_score and cost.
         cost attribute will be a number between 0 and 1, been 0 the optimal value.
     Example
     -------
     .. ipython:: python
 
-        from moldrug import utils, fitness
+        from moldrug import utils
+        import fitness_molskill as fitness
         from rdkit import Chem
         import tempfile, os
-        from moldrug.data import ligands, boxes, receptor_pdbqt
+        from moldrug.data import get_data
         tmp_path = tempfile.TemporaryDirectory()
-        ligand_mol = Chem.MolFromSmiles(ligands.r_x0161)
+        data_x0161 = get_data('x0161')
+        ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
         I = utils.Individual(ligand_mol)
-        receptor_path = os.path.join(tmp_path.name,'receptor.pdbqt')
-        with open(receptor_path, 'w') as r: r.write(receptor_pdbqt.r_x0161)
-        box = boxes.r_x0161['A']
+        box = data_x0161['box']
         # Using the default desirability
-        NewI = fitness.Cost(
-            Individual = I,wd = tmp_path.name,
-            receptor_pdbqt_path = receptor_path,boxcenter = box['boxcenter'],
-            boxsize = box['boxsize'],exhaustiveness = 4,ncores = 4)
-        print(NewI.cost, NewI.vina_score, NewI.qed, NewI.sa_score)
+        NewI = fitness.Cost(Individual=I, wd=tmp_path.name, receptor_pdbqt_path=data_x0161['protein']['pdbqt'], \
+            boxcenter=box['boxcenter'], boxsize=box['boxsize'], exhaustiveness=4, ncores=4)
+        print(NewI.cost, NewI.vina_score, NewI.molskill_score, NewI.sa_score)
     """
     if not desirability:
         desirability = {
@@ -146,7 +144,6 @@ def Cost(
             }
         }
 
-
     # Multicriteria optimization,Optimization of Several Response Variables
     # Estimation of SkillScorer
     molskill_scorer = MolSkillScorer()
@@ -158,22 +155,22 @@ def Cost(
 
     # Getting vina_score and update pdbqt
     Individual.vina_score, Individual.pdbqt = _vinadock(
-        Individual = Individual,
-        wd = wd,
-        vina_executable = vina_executable,
-        receptor_pdbqt_path =  receptor_pdbqt_path,
-        boxcenter = boxcenter,
-        boxsize = boxsize,
-        exhaustiveness = exhaustiveness,
-        ad4map = ad4map,
-        ncores = ncores,
-        num_modes = num_modes,
-        constraint = constraint,
-        constraint_type = constraint_type,
-        constraint_ref = constraint_ref,
-        constraint_receptor_pdb_path = constraint_receptor_pdb_path,
-        constraint_num_conf = constraint_num_conf,
-        constraint_minimum_conf_rms = constraint_minimum_conf_rms,
+        Individual=Individual,
+        wd=wd,
+        vina_executable=vina_executable,
+        receptor_pdbqt_path=receptor_pdbqt_path,
+        boxcenter=boxcenter,
+        boxsize=boxsize,
+        exhaustiveness=exhaustiveness,
+        ad4map=ad4map,
+        ncores=ncores,
+        num_modes=num_modes,
+        constraint=constraint,
+        constraint_type=constraint_type,
+        constraint_ref=constraint_ref,
+        constraint_receptor_pdb_path=constraint_receptor_pdb_path,
+        constraint_num_conf=constraint_num_conf,
+        constraint_minimum_conf_rms=constraint_minimum_conf_rms,
     )
     # Adding the cost using all the information of qed, sas and vina_cost
     # Construct the desirability
@@ -188,9 +185,9 @@ def Cost(
             elif key in utils.DerringerSuichDesirability():
                 d = utils.DerringerSuichDesirability()[key](getattr(Individual, variable), **desirability[variable][key])
             else:
-                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "\
-                f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any "\
-                f"possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
+                raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "
+                                   f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and any "
+                                   f"possible Derringer-Suich desirability function: {utils.DerringerSuichDesirability().keys()}")
         base *= d**w
         exponent += w
 
