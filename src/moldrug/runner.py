@@ -60,9 +60,9 @@ class Runner:
         elif mode in [RunnerMode.MULTIPROCESSING]:
             assert thread_count is None and process_count is not None and dask_cluster is None, "Only process count is needed."
         elif mode in [RunnerMode.DASK_LOCAL]:
-            assert (thread_count is not None or process_count is None) and dask_cluster is None, "Only process count and/or thread count are needed."
+            assert (thread_count is not None or process_count is not None) and dask_cluster is None, "Only process count and/or thread count are needed."
         elif mode in [RunnerMode.DASK_JOB_QUEUE_CLUSTER]:
-            assert thread_count is None and process_count is None and dask_cluster is not None, "Dask execution takes only a Dask cluster object."
+            assert thread_count is None and process_count is None and dask_cluster is not None, "Dask cluster execution takes only a Dask cluster object."
         else:
             assert False
 

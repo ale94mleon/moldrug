@@ -1413,6 +1413,10 @@ class GA:
         njobs : int, optional
             The number of jobs for parallelization, the module multiprocessing will be used, by default 1,
 
+        runner: Runner, optional
+            Providing this parameter instead of njobs allows execution on a cluster with Dask. Few other modes
+            of executions are also available, but useful mostly for debugging and profiling.
+
         Raises
         ------
         RuntimeError

@@ -21,7 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Cluster configuration can be provided to calculate cost function on multiple nodes of a cluster.  
   Cluster support requires installation of optional packages related to Dask, a package set called `cluster`.
-  ```
+
+- ```sh
   pip install moldrug[cluster]
   ```
 
