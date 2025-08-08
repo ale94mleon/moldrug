@@ -6,8 +6,8 @@ from typing import Dict, List, Union
 
 import numpy as np
 # from warnings import import warn
-from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
-                   RDKitMolCreate)
+from moldrug.meeko_light import (MoleculePreparation,
+                                 PDBQTMolecule, PDBQTWriterLegacy, RDKitMolCreate)
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
 
