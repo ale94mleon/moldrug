@@ -9,8 +9,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Move from .rst to .md on the documentation.
+- Move from `.rst` to `.md` on the documentation.
 - Update installation instructions.
+
+### Fixed
+
+- The tests no longer rely on `/tmp`; they now create temporary files in the current directory instead. This approach was already used throughout the package, except in the tests. The change makes the behavior consistent and avoids issues that occurred on certain clusters when using `/tmp`.
+- Prevent race condition when creating `error` directory during parallel execution.
+
+### Added
+
+- Cluster configuration can be provided to calculate cost function on multiple nodes of a cluster.  
+  Cluster support requires installation of optional packages related to Dask, a package set called `cluster`.
+
+- ```sh
+  pip install moldrug[cluster]
+  ```
+
+  An example of local parallel execution (same as before, for reference)
+
+  ```python
+  for _ in range(NumbCalls):
+      ga(njobs=njobs)
+  ```
+
+  An example of parallel execution on a SLURM cluster
+
+  ```python
+  cluster = SLURMCluster(
+      queue='short',
+      cores=12,
+      processes=1,
+      memory='8GB',
+      walltime='00:30:00',
+      job_extra_directives=[]
+  )
+  
+  cluster.scale(4)
+
+  runner = Runner(RunnerMode.DASK_JOB_QUEUE_CLUSTER, dask_cluster=cluster)
+
+  for _ in range(NumbCalls):
+      ga(runner=runner)
+  ```
 
 ## [3.7.3] - 2024.07.05
 

@@ -3,7 +3,6 @@
 import bz2
 import collections.abc
 import datetime
-import multiprocessing as mp
 import os
 import random
 import shutil
@@ -12,13 +11,12 @@ import tempfile
 import time
 from copy import deepcopy
 from inspect import signature
-from typing import Callable, Dict, Iterable, List, Union
+from typing import Callable, Dict, Iterable, List, Optional, Union
 from warnings import warn
 
 import dill as pickle
 import numpy as np
 import pandas as pd
-import tqdm
 from crem.crem import grow_mol, mutate_mol
 from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
                    RDKitMolCreate)
@@ -26,6 +24,7 @@ from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, DataStructs, Descriptors, Lipinski, rdFMCS
 
 from moldrug import __version__
+from moldrug.runner import Runner, RunnerMode, parallel_execution_multiprocessing
 
 RDLogger.DisableLog('rdApp.*')
 # # in order to pickle the isotope properties of the molecule
@@ -1126,8 +1125,8 @@ class Local:
         self.costfunc_kwargs = costfunc_kwargs
         self.pop = [self.InitIndividual]
 
-    def __call__(self, njobs: int = 1, pick: int = None):
-        """Call deffinition
+    def __call__(self, njobs: int = 1, pick: int = None, runner: Optional[Runner] = None):
+        """Call definition
 
         Parameters
         ----------
@@ -1136,7 +1135,16 @@ class Local:
         pick : int, optional
             How many molecules take from the generated throgh the grow_mol CReM operation,
             by default None which means all generated.
+        runner: Runner, optional
+            Providing this parameter instead of njobs allows execution on a cluster with Dask. Few other modes
+            of executions are also available, but useful mostly for debugging and profiling.
         """
+        if njobs > 1:
+            assert runner is None, "Both njobs > 1 and runner have been specified. Please use only one of the parameters."
+
+        if runner is None:
+            runner = Runner(RunnerMode.MULTIPROCESSING, process_count=njobs)
+
         # Check version of moldrug
         if self.__moldrug_version != __version__:
             warn(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} "
@@ -1164,9 +1172,7 @@ class Local:
             args_list.append((individual, kwargs_copy))
 
         print('Calculating cost function...')
-        pool = mp.Pool(njobs)
-        self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
-        pool.close()
+        self.pop = runner.run(self.__costfunc__, args_list)
 
         # Clean directory
         costfunc_jobs_tmp_dir.cleanup()
@@ -1408,19 +1414,28 @@ class GA:
         self.InitIndividual = Individual(self._seed_mol[0], idx=0, randomseed=self.randomseed)
         self.pop = []
 
-    def __call__(self, njobs: int = 1):
+    def __call__(self, njobs: int = 1, runner: Optional[Runner] = None):
         """Call definition
 
         Parameters
         ----------
         njobs : int, optional
             The number of jobs for parallelization, the module multiprocessing will be used, by default 1,
+        runner: Runner, optional
+            Providing this parameter instead of njobs allows execution on a cluster with Dask. Few other modes
+            of executions are also available, but useful mostly for debugging and profiling.
 
         Raises
         ------
         RuntimeError
             Error during the initialization of the population.
         """
+        if njobs > 1:
+            assert runner is None, "Both njobs > 1 and runner have been specified. Please use only one of the parameters."
+
+        if runner is None:
+            runner = Runner(RunnerMode.MULTIPROCESSING, process_count=njobs)
+
         ts = time.time()
         # Counting the calls
         self.NumCalls += 1
@@ -1492,18 +1507,8 @@ class GA:
                 args_list.append((individual, kwargs_copy))
 
             print(f'\n\nCreating the first population with {len(self.pop)} members:')
-            try:
-                pool = mp.Pool(njobs)
-                self.pop = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
-                pool.close()
-            except Exception as e1:
-                warn("Parallelization did not work. Trying with serial...")
-                try:
-                    self.pop = [self.__costfunc__(args) for args in tqdm.tqdm(args_list, total=len(args_list))]
-                except Exception as e2:
-                    raise RuntimeError("Serial did not work either. Here are the ucurred exceptions:\n"
-                                       f"=========Parellel=========:\n {e1}\n"
-                                       f"==========Serial==========:\n {e2}")
+            self.pop = runner.run(self.__costfunc__, entries=args_list)
+
             # Clean directory
             costfunc_jobs_tmp_dir.cleanup()
 
@@ -1603,19 +1608,8 @@ class GA:
                     args_list.append((individual, kwargs_copy))
                 print(f'Evaluating generation {self.NumGens} / {self.maxiter + number_of_previous_generations}:')
 
-                # Calculating cost fucntion in parallel
-                try:
-                    pool = mp.Pool(njobs)
-                    popc = [individual for individual in tqdm.tqdm(pool.imap(self.__costfunc__, args_list), total=len(args_list))]
-                    pool.close()
-                except Exception as e1:
-                    warn("Parallelization did not work. Trying with serial...")
-                    try:
-                        popc = [self.__costfunc__(args) for args in tqdm.tqdm(args_list, total=len(args_list))]
-                    except Exception as e2:
-                        raise RuntimeError("Serial did not work either. Here are the ucurred exceptions:\n"
-                                           f"=========Parellel=========:\n {e1}\n"
-                                           f"==========Serial==========:\n {e2}")
+                # Calculating cost function in parallel
+                popc = runner.run(self.__costfunc__, args_list)
 
                 # Clean directory
                 costfunc_jobs_tmp_dir.cleanup()
