@@ -1125,8 +1125,8 @@ class Local:
         self.costfunc_kwargs = costfunc_kwargs
         self.pop = [self.InitIndividual]
 
-    def __call__(self, njobs: int = 1, pick: int = None):
-        """Call deffinition
+    def __call__(self, njobs: int = 1, pick: int = None, runner: Optional[Runner] = None):
+        """Call definition
 
         Parameters
         ----------
@@ -1135,7 +1135,16 @@ class Local:
         pick : int, optional
             How many molecules take from the generated throgh the grow_mol CReM operation,
             by default None which means all generated.
+        runner: Runner, optional
+            Providing this parameter instead of njobs allows execution on a cluster with Dask. Few other modes
+            of executions are also available, but useful mostly for debugging and profiling.
         """
+        if njobs > 1:
+            assert runner is None, "Both njobs > 1 and runner have been specified. Please use only one of the parameters."
+
+        if runner is None:
+            runner = Runner(RunnerMode.MULTIPROCESSING, process_count=njobs)
+
         # Check version of moldrug
         if self.__moldrug_version != __version__:
             warn(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} "
@@ -1163,7 +1172,7 @@ class Local:
             args_list.append((individual, kwargs_copy))
 
         print('Calculating cost function...')
-        self.pop = parallel_execution_multiprocessing(self.__costfunc__, args_list, njobs)
+        self.pop = runner.run(self.__costfunc__, args_list)
 
         # Clean directory
         costfunc_jobs_tmp_dir.cleanup()
@@ -1412,7 +1421,6 @@ class GA:
         ----------
         njobs : int, optional
             The number of jobs for parallelization, the module multiprocessing will be used, by default 1,
-
         runner: Runner, optional
             Providing this parameter instead of njobs allows execution on a cluster with Dask. Few other modes
             of executions are also available, but useful mostly for debugging and profiling.
