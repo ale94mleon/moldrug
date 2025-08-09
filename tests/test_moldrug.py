@@ -158,6 +158,19 @@ def test_single_receptor_command_line():
     print(p.stdout)
 
 
+def test_dask_local():
+    from moldrug.runner import RunnerMode, Runner
+
+    runner_instance = Runner(
+        mode=RunnerMode.DASK_LOCAL,
+        process_count=6
+    )
+
+    result = runner_instance.run(sum, entries=[[1, 2], [2, 3]])
+    assert result == [3, 5]
+    runner_instance.client.close()
+
+
 def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
     out = utils.GA(
         seed_mol=[Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']), Chem.MolFromSmiles(TEST_DATA['x0161']['smiles'])],
