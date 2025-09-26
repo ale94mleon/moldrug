@@ -44,7 +44,7 @@ keywords = [
     "genetic algorithm",
 ]
 
-requires-python = ">= 3.8 , < 3.12"
+requires-python = ">= 3.8"
 dependencies = [
     "crem",
     "tqdm",
@@ -52,10 +52,10 @@ dependencies = [
     "pandas",
     "pyyaml",
     "dill",
-    "meeko>=0.4.0,<0.6.0",
+    "meeko @ git+https://github.com/ale94mleon/meeko.git@main",
+    "scipy",  # a meeko dependency
     "six",
     "rdkit>=2022.3.5",
-    "scipy",  # a meeko dependency
 ]
 
 [project.license]
