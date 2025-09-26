@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Move from `.rst` to `.md` on the documentation.
 - Update installation instructions.
+- Versioning: `Major.Minor.Patch` --> `Major.Minnor.Patch.postX` it helps to distinguish commits that are not yet included on the `Patch`.
 
 ### Fixed
 

@@ -69,9 +69,9 @@ cluster = ["dask[distributed]", "dask-jobqueue"]
 default-version = "1+unknown"
 
 [tool.versioningit.format]
-distance = "{base_version}"
-dirty = "{base_version}"
-distance-dirty = "{base_version}"
+distance = "{base_version}.post{distance}"
+dirty = "{base_version}.post{distance}.dev0"
+distance-dirty = "{base_version}.post{distance}.dev0"
 
 [tool.versioningit.vcs]
 method = "git"
