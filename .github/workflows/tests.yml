@@ -5,6 +5,7 @@ name: tests
 
 on:
   push:
+    branches: [ "main" ]
     paths:
       - src/moldrug/**
       - .github/workflows/tests.yml
@@ -15,7 +16,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - moldrug/**
+      - src/moldrug/**
       - .github/workflows/tests.yml
       - tests/**
       - pyproject.toml
