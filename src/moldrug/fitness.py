@@ -567,7 +567,7 @@ def Cost(
         tmp_path = tempfile.TemporaryDirectory()
         data_x0161 = get_data('x0161')
         ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
-        I = Individual(ligand_mol)
+        I = utils.Individual(ligand_mol)
         box = data_x0161['box']
         # Using the default desirability
         NewI = fitness.Cost(Individual=I, wd=tmp_path.name, receptor_pdbqt_path=data_x0161['protein']['pdbqt'], \
@@ -721,7 +721,7 @@ def CostOnlyVina(
         tmp_path = tempfile.TemporaryDirectory()
         data_x0161 = get_data('x0161')
         ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
-        I = Individual(ligand_mol)
+        I = utils.Individual(ligand_mol)
         box = data_x0161['box']
         NewI = fitness.CostOnlyVina(Individual=I, wd=tmp_path.name, receptor_pdbqt_path=data_x0161['protein']['pdbqt'],\
             boxcenter=box['boxcenter'], boxsize=box['boxsize'], exhaustiveness=4,ncores=4)
@@ -878,7 +878,7 @@ def CostMultiReceptors(
         data_6lu7 = get_data('6lu7')
         tmp_path = tempfile.TemporaryDirectory()
         ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
-        I = Individual(ligand_mol)
+        I = utils.Individual(ligand_mol)
         receptor_paths = [data_x0161['protein']['pdbqt'], data_6lu7['protein']['pdbqt']]
         boxcenter = [data_x0161['box']['boxcenter'], data_6lu7['box']['boxcenter']]
         boxsize = [data_x0161['box']['boxsize'], data_6lu7['box']['boxsize']]
@@ -1150,7 +1150,7 @@ def CostMultiReceptorsOnlyVina(
         data_6lu7 = get_data('6lu7')
         tmp_path = tempfile.TemporaryDirectory()
         ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
-        I = Individual(ligand_mol)
+        I = utils.Individual(ligand_mol)
         receptor_paths = [data_x0161['protein']['pdbqt'], data_6lu7['protein']['pdbqt']]
         boxcenter = [data_x0161['box']['boxcenter'], data_6lu7['box']['boxcenter']]
         boxsize = [data_x0161['box']['boxsize'], data_6lu7['box']['boxsize']]
