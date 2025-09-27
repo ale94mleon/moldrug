@@ -11,7 +11,8 @@ from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
 
-from moldrug import constraintconf, utils, verbose
+from moldrug import constraintconf, utils
+from moldrug.logging_utils import log, LogLevel
 
 
 def __get_default_desirability(multireceptor: bool = False) -> dict:
@@ -352,8 +353,7 @@ def _vinadock(
                 minimum_conf_rms=constraint_minimum_conf_rms,
                 randomseed=vina_seed)
         except Exception as e:
-            if verbose:
-                print(f"constraintconf.generate_conformers fails inside moldrug.fitness._vinadock with {e}")
+            log(f"constraintconf.generate_conformers fails inside moldrug.fitness._vinadock with {e}", LogLevel.DEBUG)
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
         # Remove conformers that clash with the protein in case of score_only,
@@ -450,9 +450,8 @@ def _vinadock(
             }
             utils.compressed_pickle(f'error/{Individual.idx}_error', error)
             # warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file in error.\n")
-            if verbose:
-                for key in error:
-                    print(f"{key}: {error[key]}")
+            for key in error:
+                log(f"{key}: {error[key]}", LogLevel.DEBUG)
             vina_score_pdbqt = (np.inf, 'VinaFailed')
             return vina_score_pdbqt
 

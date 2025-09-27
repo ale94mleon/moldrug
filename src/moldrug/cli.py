@@ -7,8 +7,8 @@ For information of moldrug:
 """
 import argparse
 import datetime
-import inspect
 import importlib
+import inspect
 import os
 import sys
 from typing import Union
@@ -17,6 +17,7 @@ import yaml
 from rdkit import Chem
 
 from moldrug import __version__, constraintconf, utils
+from moldrug.logging_utils import log
 
 
 class CommandLineHelper:
@@ -131,7 +132,8 @@ class CommandLineHelper:
             if 'type' not in MainConfig['cluster'] or 'kwargs' not in MainConfig['cluster']:
                 raise ValueError("The cluster configuration must contain 'type' and 'kwargs'.")
 
-            from moldrug.runner import Runner, RunnerMode  # terminates with a message if dask is not installed
+            from moldrug.runner import (  # terminates with a message if dask is not installed
+                Runner, RunnerMode)
 
             try:
                 cluster_class = getattr(importlib.import_module("dask_jobqueue"), MainConfig['cluster']['type'])
@@ -321,10 +323,9 @@ def __moldrug_cmd():
     )
     UserArgs = CommandLineHelper(parser)
 
-    print(
-        f"Started at {datetime.datetime.now().strftime('%c')}\n"
-        f"You are using moldrug: {__version__}.\n\n"
-        f"{UserArgs}\n\n")
+    log(f"Started at {datetime.datetime.now().strftime('%c')}")
+    log(f"You are using moldrug: {__version__}\n")
+    log(f"{UserArgs}\n\n")
 
     # Call the class
     UserArgs.run_moldrugClass()
@@ -336,7 +337,7 @@ def __moldrug_cmd():
     if UserArgs.FollowConfig:
         MutableArgs = UserArgs.MutableArgs.copy()
         for job in UserArgs.FollowConfig:
-            print(f"The follow job {job} started.")
+            log(f"The follow job {job} started.")
 
             # Updating arguments
             MutableArgs.update(UserArgs.FollowConfig[job])
@@ -350,7 +351,7 @@ def __moldrug_cmd():
             UserArgs.run_moldrugClass()
             # Saving data
             UserArgs.save_data()
-            print(f'The job {job} finished!')
+            log(f'The job {job} finished!')
 
     # Clean checkpoint on normal end
     if os.path.isfile('cpt.pbz2'):
@@ -429,4 +430,5 @@ def __constraintconf_cmd():
 
 
 if __name__ == '__main__':
+    pass
     pass
