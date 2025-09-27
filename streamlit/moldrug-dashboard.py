@@ -5,7 +5,6 @@ import urllib.parse
 from io import StringIO
 
 import matplotlib.pyplot as plt
-import MDAnalysis as mda
 import mols2grid
 import numpy as np
 import pandas as pd
