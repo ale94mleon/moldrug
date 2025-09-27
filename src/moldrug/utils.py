@@ -956,7 +956,7 @@ def make_sdf(individuals: List[Individual], sdf_name: str = 'out'):
                         f"{individual} does not have a valid pdbqt: {individual.pdbqt}.",
                         LogLevel.ERROR
                     )
-        log(f"File {sdf_name}_{i+1}.sdf was created!")
+        log(f"File {sdf_name}.sdf was createad!")
 
 
 def _make_kwargs_copy(costfunc, costfunc_kwargs,):
