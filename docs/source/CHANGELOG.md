@@ -7,13 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Removed
+
+- Python 3.8 compatibility. The dependency `meeko @ git+https://github.com/ale94mleon/meeko.git@main` requires a higher Python version because building it requires `setuptools>=77.0.0`, which is not compatible with Python 3.8.
+
 ### Changed
 
 - Move from `.rst` to `.md` on the documentation.
 - Update installation instructions.
+- Versioning: `Major.Minor.Patch` --> `Major.Minnor.Patch.postX` it helps to distinguish commits that are not yet included on the `Patch`.
 
 ### Fixed
 
+- Meeko dependency and Python=3.12. Now we use a [simplified version of Meeko](https://github.com/ale94mleon/Meeko).
 - The tests no longer rely on `/tmp`; they now create temporary files in the current directory instead. This approach was already used throughout the package, except in the tests. The change makes the behavior consistent and avoids issues that occurred on certain clusters when using `/tmp`.
 - Prevent race condition when creating `error` directory during parallel execution.
 
