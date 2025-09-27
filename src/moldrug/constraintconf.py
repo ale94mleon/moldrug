@@ -28,7 +28,7 @@ from rdkit.Chem import AllChem, rdFMCS
 # import warnings
 from tqdm import tqdm
 
-from moldrug import verbose
+from moldrug.logging_utils import LogLevel, log
 from moldrug.utils import compressed_pickle
 
 
@@ -190,10 +190,9 @@ def generate_conformers(mol: Chem.rdchem.Mol,
             try:
                 AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
             except Exception as e:
-                if verbose:
-                    print(f"AllChem.ConstrainedEmbed fails with: {e}. \n"
-                          f"On the molecules:\n current mol: {Chem.MolToSmiles(temp_mol)}\n"
-                          f"core: {Chem.MolToSmiles(core1)}\nTrying with gen_aligned_conf")
+                log(f"AllChem.ConstrainedEmbed fails with: {e}. \n"
+                    f"On the molecule:\n current mol: {Chem.MolToSmiles(temp_mol)}\n"
+                    f"core: {Chem.MolToSmiles(core1)}\nTrying with gen_aligned_conf", LogLevel.DEBUG)
                 temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi, randomseed=randomseed)
             # Remove the explicit Hs
             temp_mol = Chem.RemoveHs(temp_mol)

@@ -12,7 +12,6 @@ import time
 from copy import deepcopy
 from inspect import signature
 from typing import Callable, Dict, Iterable, List, Optional, Union
-from warnings import warn
 
 import dill as pickle
 import numpy as np
@@ -24,7 +23,8 @@ from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, DataStructs, Descriptors, Lipinski, rdFMCS
 
 from moldrug import __version__
-from moldrug.runner import Runner, RunnerMode, parallel_execution_multiprocessing
+from moldrug.logging_utils import log, LogLevel
+from moldrug.runner import Runner, RunnerMode
 
 RDLogger.DisableLog('rdApp.*')
 # # in order to pickle the isotope properties of the molecule
@@ -930,8 +930,11 @@ def make_sdf(individuals: List[Individual], sdf_name: str = 'out'):
                         w.write(mol)
                     except Exception:
                         # Should be that the pdbqt is not valid
-                        print(f"{individual} does not have a valid pdbqt: {individual.pdbqt}.")
-            print(f" File {sdf_name}_{i+1}.sdf was created!")
+                        log(
+                            f"{individual} does not have a valid pdbqt: {individual.pdbqt}.",
+                            LogLevel.ERROR
+                        )
+            log(f"File {sdf_name}_{i+1}.sdf was created!")
     else:
         with Chem.SDWriter(f"{sdf_name}.sdf") as w:
             for individual in individuals:
@@ -949,8 +952,11 @@ def make_sdf(individuals: List[Individual], sdf_name: str = 'out'):
                     w.write(mol)
                 except Exception:
                     # Should be that the pdbqt is not valid
-                    print(f"{individual} does not have a valid pdbqt: {individual.pdbqt}.")
-        print(f"File {sdf_name}.sdf was createad!")
+                    log(
+                        f"{individual} does not have a valid pdbqt: {individual.pdbqt}.",
+                        LogLevel.ERROR
+                    )
+        log(f"File {sdf_name}.sdf was createad!")
 
 
 def _make_kwargs_copy(costfunc, costfunc_kwargs,):
@@ -982,9 +988,10 @@ def tar_errors(error_path: str = 'error'):
     if os.path.isdir(error_path):
         if os.listdir(error_path):
             shutil.make_archive('error', 'gztar', error_path)
-            print(f"\n{50*'=+'}")
-            print("Note: Check the running warnings and erorrs in error.tar.gz file!")
-            print(f"{50*'=+'}\n")
+            
+            log(f"\t\t{20*'=+'}")
+            log("Check the running warnings and erorrs in error.tar.gz file!", LogLevel.WARNING)
+            log(f"\t\t{20*'=+'}")
         shutil.rmtree(error_path)
 
 ######################
@@ -1147,8 +1154,8 @@ class Local:
 
         # Check version of moldrug
         if self.__moldrug_version != __version__:
-            warn(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} "
-                 f"but was called with moldrug-{__version__}")
+            log(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} "
+                 f"but was called with moldrug-{__version__}", LogLevel.ERROR)
         self.grow_crem_kwargs.update({'return_mol': True})
         new_mols = list(grow_mol(self._seed_mol, self.crem_db_path, **self.grow_crem_kwargs))
         if pick:
@@ -1171,7 +1178,7 @@ class Local:
         for individual in self.pop:
             args_list.append((individual, kwargs_copy))
 
-        print('Calculating cost function...')
+        log('Calculating cost function...')
         self.pop = runner.run(self.__costfunc__, args_list)
 
         # Clean directory
@@ -1180,7 +1187,7 @@ class Local:
         tar_errors('error')
 
         # Printing how long was the simulation
-        print(f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
+        log(f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
         Individual, kwargs = args_list
@@ -1442,8 +1449,8 @@ class GA:
 
         # Check version of moldrug
         if self.__moldrug_version__ != __version__:
-            warn(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version__} "
-                 f"but was called with moldrug-{__version__}")
+            log(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version__} "
+                f"but was called with moldrug-{__version__}", LogLevel.ERROR)
 
         # Here we will update if needed some parameters for
         # the crem operations that could change between different calls.
@@ -1466,7 +1473,7 @@ class GA:
                                        "generate any new molecule during the initialization of the population. "
                                        "Check the provided crem parameters!")
                 if len(GenInitStructs) < (self.popsize - len(self._seed_mol)):
-                    print('The initial population has repeated elements')
+                    log('The initial population has repeated elements', LogLevel.WARNING)
                     # temporal solution
                     GenInitStructs += random.choices(GenInitStructs,
                                                      k=self.popsize - len(GenInitStructs) - len(self._seed_mol))
@@ -1506,7 +1513,7 @@ class GA:
             for individual in self.pop:
                 args_list.append((individual, kwargs_copy))
 
-            print(f'\n\nCreating the first population with {len(self.pop)} members:')
+            log(f'Creating the first population with {len(self.pop)} members:')
             self.pop = runner.run(self.__costfunc__, entries=args_list)
 
             # Clean directory
@@ -1527,8 +1534,8 @@ class GA:
                 self.pop = sorted(self.pop, key=lambda x: x.idx)
             self.pop = sorted(self.pop)
             # Print some information of the initial population
-            print(f"Initial Population: Best Individual: {self.pop[0]}")
-            print(f"Accepted rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
+            log(f"Initial Population: Best Individual: {self.pop[0]}")
+            log(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
             # Updating the info of the first individual (parent)
             # to print at the end how well performed the method (cost function)
             # Because How the population was initialized and because we are using pool.imap (ordered).
@@ -1606,7 +1613,7 @@ class GA:
                     individual.idx = i + NumbOfSawIndividuals
                     # The problem here is that we are not being general for other possible Cost functions.
                     args_list.append((individual, kwargs_copy))
-                print(f'Evaluating generation {self.NumGens} / {self.maxiter + number_of_previous_generations}:')
+                log(f'Evaluating generation {self.NumGens} / {self.maxiter + number_of_previous_generations}:')
 
                 # Calculating cost function in parallel
                 popc = runner.run(self.__costfunc__, args_list)
@@ -1650,24 +1657,24 @@ class GA:
                         compressed_pickle('cpt', self)
 
             # Show Iteration Information
-            print(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}.")
-            print(f"Accepted rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
+            log(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}")
+            log(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
 
         # Printing summary information
-        print(f"\n{50*'=+'}\n")
-        print(f"The simulation finished successfully after {self.NumGens} generations with"
-              f"a population of {self.popsize} individuals. "
-              f"A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.")
-        print(f"Initial Individual: {self.InitIndividual}")
-        print(f"Final Individual: {self.pop[0]}")
-        print(f"The cost function dropped in {self.InitIndividual - self.pop[0]} units.")
-        print(f"\n{50*'=+'}\n")
+        log(f"\t\t{20*'=+'}\n")
+        log(f"The simulation finished successfully after {self.NumGens} generations with"
+            f"a population of {self.popsize} individuals. "
+            f"A total number of {len(self.SawIndividuals)} Individuals were seen during the simulation.")
+        log(f"Initial Individual: {self.InitIndividual}")
+        log(f"Final Individual: {self.pop[0]}")
+        log(f"The cost function dropped in {self.InitIndividual - self.pop[0]} units.")
+        log(f"\t\t{20*'=+'}\n")
 
         # Tar errors
         tar_errors('error')
 
         # Printing how long was the simulation
-        print(f"Total time ({self.maxiter} generations): {time.time() - ts:>5.2f} (s).\n"
+        log(f"Total time ({self.maxiter} generations): {time.time() - ts:>5.2f} (s).\n"
               f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
@@ -1712,7 +1719,7 @@ class GA:
             else:
                 _, mol = random.choice(mutants)  # nosec
         except Exception:
-            print(f'Note: The mutation on {individual} did not work, it will be returned the same individual')
+            log(f'The mutation on {individual} did not work, it will be returned the same individual', LogLevel.WARNING)
             mol = individual.mol
         if self.AddHs:
             mol = Chem.AddHs(mol)
