@@ -13,9 +13,16 @@ import requests
 import yaml
 from rdkit import Chem
 
-from moldrug import fitness, home, utils
+from moldrug import GA, home
 from moldrug.data import get_data
+from moldrug.fitness import (Cost, CostMultiReceptors,
+                             CostMultiReceptorsOnlyVina, CostOnlyVina,
+                             __get_mol_cost)
 from moldrug.runner import Runner, RunnerMode
+from moldrug.utils import (VINA_OUT, Individual, NominalTheBest,
+                           compressed_pickle, decompress_pickle, full_pickle,
+                           get_sim, lipinski_filter, lipinski_profile, loosen,
+                           run, tar_errors)
 
 try:
     from dask_jobqueue import SLURMCluster
@@ -148,18 +155,18 @@ def test_single_receptor_command_line():
 
     with open("test_single_receptor.yml", 'w') as c:
         yaml.dump(Config, c)
-    p = utils.run('moldrug test_single_receptor.yml')
+    p = run('moldrug test_single_receptor.yml')
     print(p.stdout)
     # Run a second time but with a seed population
     Config['01_grow']['seed_mol'] = ['02_allow_grow_pop.pbz2', '02_allow_grow_pop.pbz2']
     with open("test_single_receptor_init_pop.yml", 'w') as c:
         yaml.dump(Config, c)
-    p = utils.run('moldrug test_single_receptor_init_pop.yml')
+    p = run('moldrug test_single_receptor_init_pop.yml')
     print(p.stdout)
 
 
 def test_dask_local():
-    from moldrug.runner import RunnerMode, Runner
+    from moldrug.runner import Runner, RunnerMode
 
     runner_instance = Runner(
         mode=RunnerMode.DASK_LOCAL,
@@ -172,7 +179,7 @@ def test_dask_local():
 
 
 def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
-    out = utils.GA(
+    out = GA(
         seed_mol=[Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']), Chem.MolFromSmiles(TEST_DATA['x0161']['smiles'])],
         AddHs=True,
         maxiter=maxiter,
@@ -188,7 +195,7 @@ def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
             'replace_ids': [3, 4, 5, 7],
             'protected_ids': [0],
         },
-        costfunc=fitness.CostMultiReceptors,
+        costfunc=CostMultiReceptors,
         costfunc_kwargs={
             'receptor_pdbqt_path': [TEST_DATA['x0161']['protein']['pdbqt'], TEST_DATA['6lu7']['protein']['pdbqt']],
             'boxcenter': [TEST_DATA['x0161']['box']['boxcenter'], TEST_DATA['6lu7']['box']['boxcenter']],
@@ -251,7 +258,7 @@ def test_multi_receptor(maxiter=1, popsize=2, njobs=3, NumbCalls=1):
     with open('vina_out.pdbqt', 'w') as p:
         p.write(out.pop[0].pdbqt[0])
 
-    vina_out = utils.VINA_OUT('vina_out.pdbqt')
+    vina_out = VINA_OUT('vina_out.pdbqt')
     vina_out.chunks[0].get_atoms()
     vina_out.chunks[0].write('chunk.pdbqt')
     vina_out.chunks[0].write()
@@ -285,18 +292,18 @@ def test_local_command_line():
     with open("local_config.yml", 'w') as c:
         yaml.dump(Config, c)
 
-    utils.run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')}")
+    run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')}")
     print(os.listdir())
     # This problems with the modules are not so convenient
     sys.path.append('.')
-    result = utils.decompress_pickle('local_result.pbz2')
+    result = decompress_pickle('local_result.pbz2')
     result.pickle('local_non_compress', compress=False)
     print(result.to_dataframe())
 
 
 # @pytest.mark.filterwarnings("ignore:\nVina failed")
 def test_fitness_module():
-    individual = utils.Individual(Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']))
+    individual = Individual(Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']))
     individual_corrupted = copy.deepcopy(individual)
     individual_corrupted.pdbqt = 'This is a corrupted pdbqt'
     receptor_pdbqt_path = [TEST_DATA['x0161']['protein']['pdbqt'], TEST_DATA['6lu7']['protein']['pdbqt']]
@@ -304,7 +311,7 @@ def test_fitness_module():
     boxsize = [TEST_DATA['x0161']['box']['boxsize'], TEST_DATA['6lu7']['box']['boxsize']]
     vina_score_type = ['min', 'max']
 
-    fitness.Cost(
+    Cost(
         Individual=copy.deepcopy(individual),
         wd=wd,
         vina_executable=vina_executable,
@@ -313,7 +320,7 @@ def test_fitness_module():
         boxsize=TEST_DATA['x0161']['box']['boxsize'],
         exhaustiveness=4,
         ncores=4)
-    fitness.Cost(
+    Cost(
         Individual=copy.deepcopy(individual),
         wd=wd,
         vina_executable=vina_executable,
@@ -327,51 +334,51 @@ def test_fitness_module():
         constraint_ref=Chem.MolFromMolFile(TEST_DATA['x0161']['ligand_3D']),
         constraint_receptor_pdb_path=TEST_DATA['x0161']['protein']['pdb'])
 
-    fitness.Cost(Individual=copy.deepcopy(individual_corrupted), wd=wd,
-                 receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'],
-                 vina_executable=vina_executable,
-                 boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
-                 exhaustiveness=4, ncores=4, vina_seed=1234)
-    fitness.CostMultiReceptors(
+    Cost(Individual=copy.deepcopy(individual_corrupted), wd=wd,
+         receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'],
+         vina_executable=vina_executable,
+         boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
+         exhaustiveness=4, ncores=4, vina_seed=1234)
+    CostMultiReceptors(
         Individual=copy.deepcopy(individual_corrupted), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path,
         vina_executable=vina_executable, vina_score_type=vina_score_type, boxcenter=boxcenter,
         boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
-    fitness.CostMultiReceptorsOnlyVina(
+    CostMultiReceptorsOnlyVina(
         Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path,
         vina_executable=vina_executable, vina_score_type=vina_score_type, boxcenter=boxcenter,
         boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
-    fitness.CostMultiReceptorsOnlyVina(
+    CostMultiReceptorsOnlyVina(
         Individual=copy.deepcopy(individual), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path,
         vina_executable=vina_executable, vina_score_type=vina_score_type, boxcenter=boxcenter,
         boxsize=boxsize, exhaustiveness=4, ncores=4, wt_cutoff=2, vina_seed=1234)
-    fitness.CostMultiReceptorsOnlyVina(Individual=copy.deepcopy(
+    CostMultiReceptorsOnlyVina(Individual=copy.deepcopy(
         individual_corrupted), wd=wd, receptor_pdbqt_path=receptor_pdbqt_path,
         vina_executable=vina_executable, vina_score_type=vina_score_type, boxcenter=boxcenter,
         boxsize=boxsize, exhaustiveness=4, ncores=4, vina_seed=1234)
 
-    fitness.CostOnlyVina(
+    CostOnlyVina(
         Individual=copy.deepcopy(individual), wd=wd,
         receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'], vina_executable=vina_executable,
         boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
         exhaustiveness=4, ncores=4, vina_seed=1234)
-    fitness.CostOnlyVina(
+    CostOnlyVina(
         Individual=copy.deepcopy(individual), wd=wd,
         receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'], vina_executable=vina_executable,
         boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
         exhaustiveness=4, ncores=4, wt_cutoff=2, vina_seed=1234)
-    fitness.CostOnlyVina(
+    CostOnlyVina(
         Individual=copy.deepcopy(individual_corrupted), wd=wd,
         receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'], vina_executable=vina_executable,
         boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],
         exhaustiveness=4, ncores=4, vina_seed=1234)
 
-    fitness.__get_mol_cost(
+    __get_mol_cost(
         mol=Chem.MolFromMolFile(TEST_DATA['x0161']['ligand_3D']), wd=wd,
         receptor_pdbqt_path=TEST_DATA['x0161']['protein']['pdbqt'], vina_executable=vina_executable,
         boxcenter=TEST_DATA['x0161']['box']['boxcenter'], boxsize=TEST_DATA['x0161']['box']['boxsize'],)
 
     # Clean
-    utils.tar_errors()
+    tar_errors()
     os.remove('error.tar.gz')
 
 
@@ -387,22 +394,22 @@ def test_get_sim_utils():
         mol = Chem.MolFromSmiles(s)
         mols.append(mol)
         ref_fps.append(AllChem.GetMorganFingerprintAsBitVect(mol, 2))
-    utils.get_sim(mols, ref_fps)
+    get_sim(mols, ref_fps)
 
 
 def test_lipinski():
     mol = Chem.MolFromSmiles('CCCO')
-    utils.lipinski_filter(Chem.MolFromSmiles('BrCC(COCN)CC(Br)CC(Cl)CCc1ccccc1CCCC(NCCCO)'))
-    utils.lipinski_filter(mol)
-    utils.lipinski_profile(mol)
+    lipinski_filter(Chem.MolFromSmiles('BrCC(COCN)CC(Br)CC(Cl)CCc1ccccc1CCCC(NCCCO)'))
+    lipinski_filter(mol)
+    lipinski_profile(mol)
 
 
 def test_Individual():
-    I1 = utils.Individual(Chem.MolFromSmiles('CC'), cost=10)
-    I2 = utils.Individual(Chem.MolFromSmiles('CCO'), cost=2)
+    I1 = Individual(Chem.MolFromSmiles('CC'), cost=10)
+    I2 = Individual(Chem.MolFromSmiles('CCO'), cost=2)
     I3 = copy.copy(I1)
     I4 = copy.deepcopy(I2)
-    I5 = utils.Individual(Chem.MolFromSmiles('CC'), cost=10, pdbqt=I1.pdbqt)
+    I5 = Individual(Chem.MolFromSmiles('CC'), cost=10, pdbqt=I1.pdbqt)
     assert I3 + I4 == 12
     assert I5 - I2 == 8
     assert I1 > I2
@@ -422,12 +429,12 @@ def test_Individual():
 def test_miscellanea():
     obj0 = []
     for i in range(0, 50):
-        obj0.append(utils.NominalTheBest(Value=i, LowerLimit=10, Target=20, UpperLimit=30))
+        obj0.append(NominalTheBest(Value=i, LowerLimit=10, Target=20, UpperLimit=30))
 
-    utils.full_pickle('test_desirability', obj0)
-    utils.compressed_pickle('test_desirability', obj0)
-    obj1 = utils.loosen('test_desirability.pkl')
-    obj2 = utils.decompress_pickle('test_desirability.pbz2')
+    full_pickle('test_desirability', obj0)
+    compressed_pickle('test_desirability', obj0)
+    obj1 = loosen('test_desirability.pkl')
+    obj2 = decompress_pickle('test_desirability.pbz2')
 
     assert obj0 == obj1
     assert obj0 == obj2
@@ -449,7 +456,7 @@ def test_constraintconf():
         randomseed=1234,
     )
     # Clean
-    utils.tar_errors()
+    tar_errors()
 
 
 def test_generate_conformers():
@@ -464,7 +471,7 @@ def test_generate_conformers():
     generate_conformers(Chem.RemoveHs(mol), Chem.RemoveHs(ref), 50, randomseed=1234)
 
     # Clean
-    utils.tar_errors()
+    tar_errors()
 
 
 if __name__ == '__main__':

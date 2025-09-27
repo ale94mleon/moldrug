@@ -16,8 +16,11 @@ from typing import Union
 import yaml
 from rdkit import Chem
 
-from moldrug import __version__, constraintconf, utils
-from moldrug.logging_utils import log
+from moldrug import __version__
+from moldrug.constraintconf import constraintconf
+from moldrug.logging_utils import log, LogLevel
+from moldrug.opt import GA, Local
+from moldrug.utils import decompress_pickle, make_sdf
 
 
 class CommandLineHelper:
@@ -72,9 +75,9 @@ class CommandLineHelper:
     def _set_TypeOfRun(self):
         self._TypeOfRun_str = self._split_config()[0]['type'].lower()
         if self._TypeOfRun_str == 'ga':
-            self.TypeOfRun = utils.GA
+            self.TypeOfRun = GA
         elif self._TypeOfRun_str == 'local':
-            self.TypeOfRun = utils.Local
+            self.TypeOfRun = Local
         else:
             raise NotImplementedError(f"\"{self._split_config()[0]['type']}\" it is not a possible type. "
                                       "Select from: GA or Local")
@@ -92,7 +95,7 @@ class CommandLineHelper:
                 if any([os.path.isfile(path) for path in MainConfig['seed_mol']]):
                     seed_pop = set()
                     for solution in MainConfig['seed_mol']:
-                        _, pop = utils.decompress_pickle(solution)
+                        _, pop = decompress_pickle(solution)
                         seed_pop.update(pop)
                     # Sort
                     seed_pop = sorted(seed_pop)
@@ -132,8 +135,10 @@ class CommandLineHelper:
             if 'type' not in MainConfig['cluster'] or 'kwargs' not in MainConfig['cluster']:
                 raise ValueError("The cluster configuration must contain 'type' and 'kwargs'.")
 
-            from moldrug.runner import (  # terminates with a message if dask is not installed
-                Runner, RunnerMode)
+            from moldrug.runner import (
+                Runner, RunnerMode, dask_available)
+            if not dask_available:
+                log("Dask is not installed and cluster is active", LogLevel.CRITICAL)
 
             try:
                 cluster_class = getattr(importlib.import_module("dask_jobqueue"), MainConfig['cluster']['type'])
@@ -220,7 +225,7 @@ class CommandLineHelper:
             # If there is a continuation file, use this
             if os.path.isfile("cpt.pbz2"):
                 pbz2 = 'cpt.pbz2'
-                iter_done = utils.decompress_pickle(pbz2).NumGens
+                iter_done = decompress_pickle(pbz2).NumGens
                 total_iter = 0
                 for job in self.configuration:
                     total_iter += self.configuration[job]['maxiter']
@@ -228,7 +233,7 @@ class CommandLineHelper:
                         del self.FollowConfig[job]
                         break
             elif pbz2:
-                iter_done = utils.decompress_pickle(pbz2).NumGens
+                iter_done = decompress_pickle(pbz2).NumGens
             else:
                 iter_done = 0
             new_maxiter = total_iter - iter_done
@@ -247,7 +252,7 @@ class CommandLineHelper:
         self._get_continuation_point()
 
         if self.pbz2:
-            self.moldrugClass = utils.decompress_pickle(self.pbz2)
+            self.moldrugClass = decompress_pickle(self.pbz2)
             self.moldrugClass.maxiter = self.new_maxiter
         else:
             # Initialize the class from scratch
@@ -260,10 +265,10 @@ class CommandLineHelper:
         # Saving data
         if self._TypeOfRun_str == 'local':
             self.moldrugClass.pickle("local_result", compress=True)
-            utils.make_sdf(self.moldrugClass.pop, sdf_name="local_pop")
+            make_sdf(self.moldrugClass.pop, sdf_name="local_pop")
         else:
             self.moldrugClass.pickle(f"{self.moldrugClass.deffnm}_result", compress=True)
-            utils.make_sdf(self.moldrugClass.pop, sdf_name=f"{self.moldrugClass.deffnm}_pop")
+            make_sdf(self.moldrugClass.pop, sdf_name=f"{self.moldrugClass.deffnm}_pop")
 
     def __repr__(self) -> str:
         string = self.args.__repr__().replace('Namespace', self.__class__.__name__)
@@ -306,7 +311,7 @@ def __moldrug_cmd():
                         help="To continue the simulation. The moldrug command must be the same "
                         "and all the output moldrug files must be located "
                         "in the working directory. This option is only compatible "
-                        "with moldrug.utils.GA; otherwise, a RuntimeError will be raised.",
+                        "with moldrug.opt.GA; otherwise, a RuntimeError will be raised.",
                         action="store_true",
                         dest="continuation")
     parser.add_argument(
@@ -418,7 +423,7 @@ def __constraintconf_cmd():
         type=Union[int, None],
     )
     args = parser.parse_args()
-    constraintconf.constraintconf(
+    constraintconf(
         pdb=args.pdb,
         smi=args.smi,
         fix=args.fix,
