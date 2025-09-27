@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+### Removed
+
+- Python 3.8 compatibility. The dependency `meeko @ git+https://github.com/ale94mleon/meeko.git@main` requires a higher Python version because building it requires `setuptools>=77.0.0`, which is not compatible with Python 3.8.
+
 ### Changed
 
 - Move from `.rst` to `.md` on the documentation.

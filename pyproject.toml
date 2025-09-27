@@ -1,26 +1,20 @@
 [build-system]
-requires=[
+requires = [
     "setuptools>=77.0.0",
-	"versioningit",
+    "versioningit",
 ]
 build-backend = "setuptools.build_meta"
 
-[project.urls]
-Hompage = "https://github.com/ale94mleon/moldrug"
-Documentation = "https://moldrug.readthedocs.io/en/latest/"
-Discussions = "https://github.com/ale94mleon/moldrug/discussions"
-Issues = "https://github.com/ale94mleon/moldrug/issues"
-Changelog = "https://github.com/ale94mleon/moldrug/blob/main/docs/source/CHANGELOG.md"
-
 [project]
+requires-python = ">= 3.9 , < 3.14"
 name = "moldrug"
 dynamic = ["version"]
 description = "moldrug is a python package for drug-oriented optimization on the chemical space."
 readme = "README.rst"
 license-files = ["LICENSE"]
 
-authors=[
-    {name="Alejandro Martínez León", email="ale94mleon@gmail.com"},
+authors = [
+    { name = "Alejandro Martínez León", email = "ale94mleon@gmail.com" }
 ]
 
 classifiers = [
@@ -28,7 +22,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -37,6 +30,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
+
 keywords = [
     "science",
     "chemistry",
@@ -46,7 +40,6 @@ keywords = [
     "genetic algorithm",
 ]
 
-requires-python = ">= 3.8 , < 3.14"
 dependencies = [
     "crem",
     "tqdm",
@@ -60,11 +53,16 @@ dependencies = [
     "rdkit>=2022.3.5",
 ]
 
-
-
 [project.optional-dependencies]
 dev = ["requests", "pytest", "dask[distributed]", "dask-jobqueue"]
 cluster = ["dask[distributed]", "dask-jobqueue"]
+
+[project.urls]
+Homepage = "https://github.com/ale94mleon/moldrug"
+Documentation = "https://moldrug.readthedocs.io/en/latest/"
+Discussions = "https://github.com/ale94mleon/moldrug/discussions"
+Issues = "https://github.com/ale94mleon/moldrug/issues"
+Changelog = "https://github.com/ale94mleon/moldrug/blob/main/docs/source/CHANGELOG.md"
 
 [tool.versioningit]
 default-version = "1+unknown"
@@ -95,7 +93,6 @@ moldrug = [
     "data/*/*.smi",
     "data/*/*.pdb",
     "data/*/*.pdbqt",
-
 ]
 
 [project.scripts]
