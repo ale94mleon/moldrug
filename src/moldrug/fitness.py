@@ -340,7 +340,8 @@ def _vinadock(
             cmd_vina_str += f" --{constraint_type}"
         else:
             raise Exception("constraint_type only admit two possible values: score_only, local_only.")
-
+        if not isinstance(constraint_ref, Chem.rdchem.Mol):
+            raise ValueError(f"Invalid constraint_ref = {constraint_ref}. MUST be of Chem.rdchem.Mol type")
         # Generate constrained conformer
         try:
             out_mol = constraintconf.generate_conformers(
