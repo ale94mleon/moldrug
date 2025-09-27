@@ -11,8 +11,12 @@ from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
 
-from moldrug import constraintconf, utils
-from moldrug.logging_utils import log, LogLevel
+from moldrug.constraintconf import (ProteinLigandClashFilter,
+                                    generate_conformers)
+from moldrug.logging_utils import LogLevel, log
+from moldrug.utils import (VINA_OUT, DerringerSuichDesirability, Individual,
+                           compressed_pickle, deep_update, import_sascorer,
+                           run)
 
 
 def __get_default_desirability(multireceptor: bool = False) -> dict:
@@ -121,9 +125,9 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
     docking_type : str, optional
         any valid string: score_only, local_only, free, by default True
     desirability : Dict, optional
-        Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
+        Desirability definition to update the internal default values. The update use :meth:`moldrug.deep_update`
         Each variable only will accept
-        the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
+        the keys [w, and the name of the desirability function of :meth:`moldrug.DerringerSuichDesirability`],
         by default None which means that it will use:
 
         .. ipython:: python
@@ -145,7 +149,7 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
     if desirability is None:
         desirability = __get_default_desirability(multireceptor=False)
     else:
-        desirability = utils.deep_update(
+        desirability = deep_update(
             target_dict=__get_default_desirability(multireceptor=False),
             update_dict=desirability
         )
@@ -155,7 +159,7 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
     # Initializing result dict
     results = dict()
     # Importing sascorer
-    sascorer = utils.import_sascorer()
+    sascorer = import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
 
     # Getting estimate of drug-likness
@@ -188,7 +192,7 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
         cmd_vina_str += f" --out {os.path.join(wd, 'ligand_out.pdbqt')}"
     else:
         raise ValueError(f"docking_type must be one of: score_only, local_only or free. {docking_type} was given.")
-    cmd_vina_result = utils.run(cmd_vina_str)
+    cmd_vina_result = run(cmd_vina_str)
     if docking_type in ['score_only', 'local_only']:
         for line in cmd_vina_result.stdout.split('\n'):
             # Check over different vina versions
@@ -199,7 +203,7 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
                 results['vina_score'] = float(line.split(':')[1].split()[0])
                 break
     else:
-        best_energy = utils.VINA_OUT(os.path.join(wd, 'ligand_out.pdbqt')).BestEnergy()
+        best_energy = VINA_OUT(os.path.join(wd, 'ligand_out.pdbqt')).BestEnergy()
         results['vina_score'] = best_energy.freeEnergy
         pdbqt_mol = PDBQTMolecule.from_file(os.path.join(wd, 'ligand_out.pdbqt'), skip_typing=True)
         with Chem.SDWriter(os.path.join(wd, 'ligand_out.sdf')) as w:
@@ -211,13 +215,13 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
         for key in desirability[variable]:
             if key == 'w':
                 w = desirability[variable][key]
-            elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](results[variable], **desirability[variable][key])
+            elif key in DerringerSuichDesirability():
+                d = DerringerSuichDesirability()[key](results[variable], **desirability[variable][key])
             else:
                 raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable}"
                                    f"a non implemented key = {key}. Only are possible: 'w' (standing for weight)"
                                    "and any possible Derringer-Suich desirability function: "
-                                   f"{utils.DerringerSuichDesirability().keys()}")
+                                   f"{DerringerSuichDesirability().keys()}")
         base *= d**w
         exponent += w
 
@@ -227,7 +231,7 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
 
 
 def _vinadock(
-        Individual: utils.Individual,
+        Individual: Individual,
         wd: str = '.vina_jobs',
         vina_executable: str = 'vina',
         vina_seed: Union[int, None] = None,
@@ -254,7 +258,7 @@ def _vinadock(
 
     Parameters
     ----------
-    Individual : utils.Individual
+    Individual : Individual
         An Individual with the pdbqt attribute (only needed for non constraint docking).
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
@@ -345,7 +349,7 @@ def _vinadock(
             raise ValueError(f"Invalid constraint_ref = {constraint_ref}. MUST be of Chem.rdchem.Mol type")
         # Generate constrained conformer
         try:
-            out_mol = constraintconf.generate_conformers(
+            out_mol = generate_conformers(
                 mol=Chem.RemoveHs(Individual.mol),
                 ref_mol=Chem.RemoveHs(constraint_ref),
                 num_conf=constraint_num_conf,
@@ -359,8 +363,8 @@ def _vinadock(
         # Remove conformers that clash with the protein in case of score_only,
         # for local_only vina will handle the clash.
         if constraint_type == 'score_only':
-            clash_filter = constraintconf.ProteinLigandClashFilter(protein_pdbpath=constraint_receptor_pdb_path,
-                                                                   distance=1.5)  # TODO is this a good threshold? 
+            clash_filter = ProteinLigandClashFilter(protein_pdbpath=constraint_receptor_pdb_path,
+                                                    distance=1.5)  # TODO is this a good threshold?
             clashIds = [conf.GetId() for conf in out_mol.GetConformers() if clash_filter(conf)]
             _ = [out_mol.RemoveConformer(clashId) for clashId in clashIds]
 
@@ -384,7 +388,7 @@ def _vinadock(
                 if constraint_type == 'local_only':
                     cmd_vina_str_tmp += f" --out {os.path.join(wd, f'{Individual.idx}_conf_{conf.GetId()}_out.pdbqt')}"
                 try:
-                    cmd_vina_result = utils.run(cmd_vina_str_tmp)
+                    cmd_vina_result = run(cmd_vina_str_tmp)
                 except Exception as e:
                     if os.path.isfile(receptor_pdbqt_path):
                         with open(receptor_pdbqt_path, 'r') as f:
@@ -401,7 +405,7 @@ def _vinadock(
                         'boxcenter': boxcenter,
                         'boxsize': boxsize,
                     }
-                    utils.compressed_pickle(f'error/idx_{Individual.idx}_conf_{conf.GetId()}_error', error)
+                    compressed_pickle(f'error/idx_{Individual.idx}_conf_{conf.GetId()}_error', error)
                     vina_score_pdbqt = (np.inf, PDBQTWriterLegacy.write_string(mol_setups[0])[0])
                     return vina_score_pdbqt
 
@@ -433,7 +437,7 @@ def _vinadock(
         with open(os.path.join(wd, f'{Individual.idx}.pdbqt'), 'w') as lig_pdbqt:
             lig_pdbqt.write(Individual.pdbqt)
         try:
-            utils.run(cmd_vina_str)
+            run(cmd_vina_str)
         except Exception as e:
             receptor_str = None
             if receptor_pdbqt_path:
@@ -448,7 +452,7 @@ def _vinadock(
                 'boxcenter': boxcenter,
                 'boxsize': boxsize,
             }
-            utils.compressed_pickle(f'error/{Individual.idx}_error', error)
+            compressed_pickle(f'error/{Individual.idx}_error', error)
             # warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file in error.\n")
             for key in error:
                 log(f"{key}: {error[key]}", LogLevel.DEBUG)
@@ -456,14 +460,14 @@ def _vinadock(
             return vina_score_pdbqt
 
         # Getting the information
-        best_energy = utils.VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
+        best_energy = VINA_OUT(os.path.join(wd, f'{Individual.idx}_out.pdbqt')).BestEnergy()
         vina_score_pdbqt = (best_energy.freeEnergy, ''.join(best_energy.chunk))
 
     return vina_score_pdbqt
 
 
 def Cost(
-        Individual: utils.Individual,
+        Individual: Individual,
         wd: str = '.vina_jobs',
         vina_executable: str = 'vina',
         vina_seed: Union[int, None] = None,
@@ -495,7 +499,7 @@ def Cost(
 
     Parameters
     ----------
-    Individual : utils.Individual
+    Individual : Individual
         A Individual with the pdbqt attribute
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
@@ -536,9 +540,9 @@ def Cost(
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
-        Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
+        Desirability definition to update the internal default values. The update use :meth:`moldrug.deep_update`
         Each variable only will accept
-        the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`],
+        the keys [w, and the name of the desirability function of :meth:`moldrug.DerringerSuichDesirability`],
         by default None which means that it will use:
 
         .. ipython:: python
@@ -548,7 +552,7 @@ def Cost(
             print(json.dumps(__get_default_desirability(multireceptor=False), indent = 4))
     Returns
     -------
-    utils.Individual
+    Individual
         A new instance of the original Individual with the the new attributes:
         pdbqt, qed, vina_score, sa_score and cost.
         cost attribute will be a number between 0 and 1, been 0 the optimal value.
@@ -563,7 +567,7 @@ def Cost(
         tmp_path = tempfile.TemporaryDirectory()
         data_x0161 = get_data('x0161')
         ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
-        I = utils.Individual(ligand_mol)
+        I = Individual(ligand_mol)
         box = data_x0161['box']
         # Using the default desirability
         NewI = fitness.Cost(Individual=I, wd=tmp_path.name, receptor_pdbqt_path=data_x0161['protein']['pdbqt'], \
@@ -573,12 +577,12 @@ def Cost(
     if desirability is None:
         desirability = __get_default_desirability(multireceptor=False)
     else:
-        desirability = utils.deep_update(
+        desirability = deep_update(
             target_dict=__get_default_desirability(multireceptor=False),
             update_dict=desirability
         )
 
-    sascorer = utils.import_sascorer()
+    sascorer = import_sascorer()
     # multicriteria optimization,Optimization of Several Response Variables
     # Getting estimate of drug-likness
     Individual.qed = QED.weights_mean(Chem.RemoveHs(Individual.mol))
@@ -616,15 +620,15 @@ def Cost(
         for key in desirability[variable]:
             if key == 'w':
                 w = desirability[variable][key]
-            elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](
+            elif key in DerringerSuichDesirability():
+                d = DerringerSuichDesirability()[key](
                     getattr(Individual, variable), **desirability[variable][key])
             else:
                 raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "
                                    f"a non implemented key = {key}. Only are possible:"
                                    "'w' (standing for weight) and any "
                                    "possible Derringer-Suich desirability "
-                                   f"function: {utils.DerringerSuichDesirability().keys()}")
+                                   f"function: {DerringerSuichDesirability().keys()}")
         base *= d**w
         exponent += w
 
@@ -634,7 +638,7 @@ def Cost(
 
 
 def CostOnlyVina(
-        Individual: utils.Individual,
+        Individual: Individual,
         wd: str = '.vina_jobs',
         vina_executable: str = 'vina',
         vina_seed: Union[int, None] = None,
@@ -657,7 +661,7 @@ def CostOnlyVina(
 
     Parameters
     ----------
-    Individual : utils.Individual
+    Individual : Individual
         A Individual with the pdbqt attribute
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
@@ -702,7 +706,7 @@ def CostOnlyVina(
         than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
     Returns
     -------
-    utils.Individual
+    Individual
         A new instance of the original Individual with the the new attributes:
         pdbqt, vina_score and cost. In this case cost = vina_score,
         the lowest the values the best individual.
@@ -717,7 +721,7 @@ def CostOnlyVina(
         tmp_path = tempfile.TemporaryDirectory()
         data_x0161 = get_data('x0161')
         ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
-        I = utils.Individual(ligand_mol)
+        I = Individual(ligand_mol)
         box = data_x0161['box']
         NewI = fitness.CostOnlyVina(Individual=I, wd=tmp_path.name, receptor_pdbqt_path=data_x0161['protein']['pdbqt'],\
             boxcenter=box['boxcenter'], boxsize=box['boxsize'], exhaustiveness=4,ncores=4)
@@ -756,7 +760,7 @@ def CostOnlyVina(
 
 
 def CostMultiReceptors(
-        Individual: utils.Individual,
+        Individual: Individual,
         wd: str = '.vina_jobs',
         vina_executable: str = 'vina',
         vina_seed: Union[int, None] = None,
@@ -792,7 +796,7 @@ def CostMultiReceptors(
 
     Parameters
     ----------
-    Individual : utils.Individual
+    Individual : Individual
         A Individual with the pdbqt attribute
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
@@ -843,9 +847,9 @@ def CostMultiReceptors(
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
-        Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
+        Desirability definition to update the internal default values. The update use :meth:`moldrug.deep_update`
         Each variable only will accept
-        the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
+        the keys [w, and the name of the desirability function of :meth:`moldrug.DerringerSuichDesirability`].
         In the case of vina_scores there is another layer for the vina_score_type = [min, max],
         by default is None which means that it will use:
 
@@ -857,7 +861,7 @@ def CostMultiReceptors(
 
     Returns
     -------
-    utils.Individual
+    Individual
         A new instance of the original Individual with the the new attributes:
         pdbqts [a list of pdbqt], qed, vina_scores[a list of vina_score], sa_score and cost.
         cost attribute will be a number between 0 and 1, been 0 the optimal value.
@@ -874,7 +878,7 @@ def CostMultiReceptors(
         data_6lu7 = get_data('6lu7')
         tmp_path = tempfile.TemporaryDirectory()
         ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
-        I = utils.Individual(ligand_mol)
+        I = Individual(ligand_mol)
         receptor_paths = [data_x0161['protein']['pdbqt'], data_6lu7['protein']['pdbqt']]
         boxcenter = [data_x0161['box']['boxcenter'], data_6lu7['box']['boxcenter']]
         boxsize = [data_x0161['box']['boxsize'], data_6lu7['box']['boxsize']]
@@ -889,7 +893,7 @@ def CostMultiReceptors(
     if desirability is None:
         desirability = __get_default_desirability(multireceptor=True)
     else:
-        desirability = utils.deep_update(
+        desirability = deep_update(
             target_dict=__get_default_desirability(multireceptor=True),
             update_dict=desirability
         )
@@ -897,7 +901,7 @@ def CostMultiReceptors(
     if not ad4map:
         ad4map = [None] * len(receptor_pdbqt_path)
 
-    sascorer = utils.import_sascorer()
+    sascorer = import_sascorer()
     Individual.qed = QED.weights_mean(Chem.RemoveHs(Individual.mol))
 
     # Getting synthetic accessibility score
@@ -957,14 +961,14 @@ def CostMultiReceptors(
         for key in desirability_to_work_with[variable]:
             if key == 'w':
                 w = desirability_to_work_with[variable][key]
-            elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](
+            elif key in DerringerSuichDesirability():
+                d = DerringerSuichDesirability()[key](
                     getattr(Individual, variable), **desirability_to_work_with[variable][key])
             else:
                 raise RuntimeError(f"Inside the desirability dictionary you provided for the variable = {variable} "
                                    f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "
                                    "any possible Derringer-Suich "
-                                   f"desirability function: {utils.DerringerSuichDesirability().keys()}. "
+                                   f"desirability function: {DerringerSuichDesirability().keys()}. "
                                    "Only in the case of vina_scores [min and max] keys")
         base *= d**w
         exponent += w
@@ -983,8 +987,8 @@ def CostMultiReceptors(
         for key in vina_desirability_section['ensemble']:
             if key == 'w':
                 w = vina_desirability_section['ensemble'][key]
-            elif key in utils.DerringerSuichDesirability():
-                d = utils.DerringerSuichDesirability()[key](vina_score_to_use, **vina_desirability_section['ensemble'][key])
+            elif key in DerringerSuichDesirability():
+                d = DerringerSuichDesirability()[key](vina_score_to_use, **vina_desirability_section['ensemble'][key])
             else:
                 raise RuntimeError("Inside the desirability dictionary "
                                    f"you provided for the variable = vina_scores['ensemble'] "
@@ -999,14 +1003,14 @@ def CostMultiReceptors(
             for key in vina_desirability_section[vst]:
                 if key == 'w':
                     w = vina_desirability_section[vst][key]
-                elif key in utils.DerringerSuichDesirability():
-                    d = utils.DerringerSuichDesirability()[key](vs, **vina_desirability_section[vst][key])
+                elif key in DerringerSuichDesirability():
+                    d = DerringerSuichDesirability()[key](vs, **vina_desirability_section[vst][key])
                 else:
                     raise RuntimeError("Inside the desirability dictionary "
                                        f"you provided for the variable = vina_scores[{vst}] "
                                        f"a non implemented key = {key}. Only are possible: 'w' (standing for weight) and "
                                        "any possible Derringer-Suich "
-                                       f"desirability function: {utils.DerringerSuichDesirability().keys()}.")
+                                       f"desirability function: {DerringerSuichDesirability().keys()}.")
             base *= d**w
             exponent += w
 
@@ -1016,7 +1020,7 @@ def CostMultiReceptors(
 
 
 def CostMultiReceptorsOnlyVina(
-        Individual: utils.Individual,
+        Individual: Individual,
         wd: str = '.vina_jobs',
         vina_executable: str = 'vina',
         vina_seed: Union[int, None] = None,
@@ -1048,7 +1052,7 @@ def CostMultiReceptorsOnlyVina(
 
     Parameters
     ----------
-    Individual : utils.Individual
+    Individual : Individual
         A Individual with the pdbqt attribute
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
@@ -1099,9 +1103,9 @@ def CostMultiReceptorsOnlyVina(
     constraint_minimum_conf_rms : int, optional
         RMS to filter duplicate conformers, by default 0.01
     desirability : dict, optional
-        Desirability definition to update the internal default values. The update use :meth:`moldrug.utils.deep_update`
+        Desirability definition to update the internal default values. The update use :meth:`moldrug.deep_update`
         Each variable only will accept
-        the keys [w, and the name of the desirability function of :meth:`moldrug.utils.DerringerSuichDesirability`].
+        the keys [w, and the name of the desirability function of :meth:`moldrug.DerringerSuichDesirability`].
         In the case of vina_scores there is another layer for the vina_score_type = [min, max],
         by default is None which means that it will use:
 
@@ -1130,7 +1134,7 @@ def CostMultiReceptorsOnlyVina(
 
     Returns
     -------
-    utils.Individual
+    Individual
         A new instance of the original Individual with the the new attributes:
         pdbqts [a list of pdbqt], vina_scores [a list of vina_score], and cost.
         cost attribute will be a number between 0 and 1, been 0 the optimal value.
@@ -1146,7 +1150,7 @@ def CostMultiReceptorsOnlyVina(
         data_6lu7 = get_data('6lu7')
         tmp_path = tempfile.TemporaryDirectory()
         ligand_mol = Chem.MolFromSmiles(data_x0161['smiles'])
-        I = utils.Individual(ligand_mol)
+        I = Individual(ligand_mol)
         receptor_paths = [data_x0161['protein']['pdbqt'], data_6lu7['protein']['pdbqt']]
         boxcenter = [data_x0161['box']['boxcenter'], data_6lu7['box']['boxcenter']]
         boxsize = [data_x0161['box']['boxsize'], data_6lu7['box']['boxsize']]
@@ -1161,7 +1165,7 @@ def CostMultiReceptorsOnlyVina(
     if desirability is None:
         desirability = __get_default_desirability(multireceptor=True)['vina_scores']
     else:
-        desirability = utils.deep_update(
+        desirability = deep_update(
             target_dict=__get_default_desirability(multireceptor=True)['vina_scores'],
             update_dict=desirability
         )
@@ -1245,15 +1249,15 @@ def CostMultiReceptorsOnlyVina(
             for key in desirability[vst]:
                 if key == 'w':
                     w = desirability[vst][key]
-                elif key in utils.DerringerSuichDesirability():
-                    d = utils.DerringerSuichDesirability()[key](vs, **desirability[vst][key])
+                elif key in DerringerSuichDesirability():
+                    d = DerringerSuichDesirability()[key](vs, **desirability[vst][key])
                 else:
                     raise RuntimeError("Inside the desirability dictionary you provided "
                                        f"for the variable = vina_scores[{vst}] "
                                        f"a non implemented key = {key}. "
                                        "Only are possible: 'w' (standing for weight) "
                                        "and any possible Derringer-Suich "
-                                       f"desirability function: {utils.DerringerSuichDesirability().keys()}.")
+                                       f"desirability function: {DerringerSuichDesirability().keys()}.")
             base *= d**w
             exponent += w
 
