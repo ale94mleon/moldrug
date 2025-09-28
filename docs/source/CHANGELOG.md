@@ -10,12 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Python 3.8 compatibility. The dependency `meeko @ git+https://github.com/ale94mleon/meeko.git@main` requires a higher Python version because building it requires `setuptools>=77.0.0`, which is not compatible with Python 3.8.
+- Environmental variable `MOLDRUG_VERBOSE`
 
 ### Changed
 
 - CLI has subspaces: `run` and `constraintconf`. The syntax `moldrug config.yml` changed to `moldrug run config.yml` and `constraintconf_moldrug ...` to `moldrug constraintconf ...`.
 - `GA` and `Local` now lies on the `opt` module. they can also be imported directly. E.g. `from moldrug import GA`.
 - Use logging instead of print.
+- Now the user needs to define the desired level for the logging as well the format: `logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(name)s: %(levelname)s: %(message)s')` is recommended.
+- The logging level at CLI is defined by the `verbose` (`V`) flag.
 - Move from `.rst` to `.md` on the documentation.
 - Update installation instructions.
 - Versioning: `Major.Minor.Patch` --> `Major.Minnor.Patch.postX` it helps to distinguish commits that are not yet included on the `Patch`.

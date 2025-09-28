@@ -18,6 +18,7 @@ and the class ProteinLigandClashFilter:
     * Add documentation.
     * Fix handling of some possible exceptions.
 """
+import logging
 import os
 from copy import deepcopy
 from typing import Optional, Union
@@ -25,11 +26,12 @@ from typing import Optional, Union
 import numpy as np
 from rdkit import Chem
 from rdkit.Chem import AllChem, rdFMCS
-# import warnings
 from tqdm import tqdm
 
-from moldrug.logging_utils import LogLevel, log
 from moldrug.utils import compressed_pickle
+
+
+logger = logging.getLogger(__name__)
 
 
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
@@ -190,9 +192,9 @@ def generate_conformers(mol: Chem.rdchem.Mol,
             try:
                 AllChem.ConstrainedEmbed(temp_mol, core1, randomseed=i)
             except Exception as e:
-                log(f"AllChem.ConstrainedEmbed fails with: {e}. \n"
-                    f"On the molecule:\n current mol: {Chem.MolToSmiles(temp_mol)}\n"
-                    f"core: {Chem.MolToSmiles(core1)}\nTrying with gen_aligned_conf", LogLevel.DEBUG)
+                logger.debug(f"AllChem.ConstrainedEmbed fails with: {e}. \n"
+                              f"On the molecule:\n current mol: {Chem.MolToSmiles(temp_mol)}\n"
+                              f"core: {Chem.MolToSmiles(core1)}\nTrying with gen_aligned_conf")
                 temp_mol = gen_aligned_conf(temp_mol, ref_mol, ref_smi, randomseed=randomseed)
             # Remove the explicit Hs
             temp_mol = Chem.RemoveHs(temp_mol)

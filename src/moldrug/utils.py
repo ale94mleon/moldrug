@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import bz2
 import collections.abc
+import logging
 import os
 import random
 import shutil
@@ -19,7 +20,7 @@ from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
 from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, DataStructs, Descriptors, Lipinski, rdFMCS
 
-from moldrug.logging_utils import LogLevel, log
+logger = logging.getLogger(__name__)
 
 RDLogger.DisableLog('rdApp.*')
 # # in order to pickle the isotope properties of the molecule
@@ -284,11 +285,8 @@ def make_sdf(individuals: List[Individual], sdf_name: str = 'out'):
                         w.write(mol)
                     except Exception:
                         # Should be that the pdbqt is not valid
-                        log(
-                            f"{individual} does not have a valid pdbqt: {individual.pdbqt}.",
-                            LogLevel.ERROR
-                        )
-            log(f"File {sdf_name}_{i+1}.sdf was created!")
+                        logger.error(f"{individual} does not have a valid pdbqt: {individual.pdbqt}.")
+            logger.info(f"File {sdf_name}_{i+1}.sdf was created!")
     else:
         with Chem.SDWriter(f"{sdf_name}.sdf") as w:
             for individual in individuals:
@@ -306,11 +304,8 @@ def make_sdf(individuals: List[Individual], sdf_name: str = 'out'):
                     w.write(mol)
                 except Exception:
                     # Should be that the pdbqt is not valid
-                    log(
-                        f"{individual} does not have a valid pdbqt: {individual.pdbqt}.",
-                        LogLevel.ERROR
-                    )
-        log(f"File {sdf_name}.sdf was createad!")
+                    logger.error(f"{individual} does not have a valid pdbqt: {individual.pdbqt}.")
+        logger.info(f"File {sdf_name}.sdf was createad!")
 
 
 def _make_kwargs_copy(costfunc, costfunc_kwargs,):
@@ -342,10 +337,10 @@ def tar_errors(error_path: str = 'error'):
     if os.path.isdir(error_path):
         if os.listdir(error_path):
             shutil.make_archive('error', 'gztar', error_path)
-            
-            log(f"\t\t{20*'=+'}")
-            log("Check the running warnings and erorrs in error.tar.gz file!", LogLevel.WARNING)
-            log(f"\t\t{20*'=+'}")
+
+            logger.info(f"\t\t{20*'=+'}")
+            logger.warning("Check the running warnings and erorrs in error.tar.gz file!")
+            logger.info(f"\t\t{20*'=+'}")
         shutil.rmtree(error_path)
 
 ######################
@@ -1031,8 +1026,3 @@ class VINA_OUT:
         if write:
             min_chunk.write("best_energy.pdbqt")
         return min_chunk
-
-
-
-if __name__ == '__main__':
-    pass

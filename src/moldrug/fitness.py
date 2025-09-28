@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
 import os
 from copy import deepcopy
 from typing import Dict, List, Union
@@ -13,11 +14,11 @@ from rdkit.Chem import QED, Descriptors
 
 from moldrug.constraintconf import (ProteinLigandClashFilter,
                                     generate_conformers)
-from moldrug.logging_utils import LogLevel, log
 from moldrug.utils import (VINA_OUT, DerringerSuichDesirability, Individual,
                            compressed_pickle, deep_update, import_sascorer,
                            run)
 
+logger = logging.getLogger(__name__)
 
 def __get_default_desirability(multireceptor: bool = False) -> dict:
     """Storage default desirability functions values to work with the
@@ -357,7 +358,7 @@ def _vinadock(
                 minimum_conf_rms=constraint_minimum_conf_rms,
                 randomseed=vina_seed)
         except Exception as e:
-            log(f"constraintconf.generate_conformers fails inside moldrug.fitness._vinadock with {e}", LogLevel.DEBUG)
+            logger.debug(f"constraintconf.generate_conformers fails inside moldrug.fitness._vinadock with {e}")
             vina_score_pdbqt = (np.inf, "NonValidConformer")
             return vina_score_pdbqt
         # Remove conformers that clash with the protein in case of score_only,
@@ -455,7 +456,7 @@ def _vinadock(
             compressed_pickle(f'error/{Individual.idx}_error', error)
             # warn(f"\nVina failed! Check: {Individual.idx}_error.pbz2 file in error.\n")
             for key in error:
-                log(f"{key}: {error[key]}", LogLevel.DEBUG)
+                logger.debug(f"{key}: {error[key]}")
             vina_score_pdbqt = (np.inf, 'VinaFailed')
             return vina_score_pdbqt
 

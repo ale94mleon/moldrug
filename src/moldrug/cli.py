@@ -9,6 +9,7 @@ import argparse
 import datetime
 import importlib
 import inspect
+import logging
 import os
 import sys
 from typing import Union
@@ -18,9 +19,10 @@ from rdkit import Chem
 
 from moldrug import __version__
 from moldrug.constraintconf import constraintconf
-from moldrug.logging_utils import log, LogLevel
 from moldrug.opt import GA, Local
 from moldrug.utils import decompress_pickle, make_sdf
+
+logger = logging.getLogger(__name__)
 
 
 class MoldrugRunHelper:
@@ -30,9 +32,6 @@ class MoldrugRunHelper:
         self.continuation = continuation
         self.verbose = verbose
         self._set_attributes()
-
-        if self.verbose:
-            os.environ['MOLDRUG_VERBOSE'] = 'True'
 
     def _set_attributes(self):
         # Get and set configuration
@@ -134,10 +133,9 @@ class MoldrugRunHelper:
             if 'type' not in MainConfig['cluster'] or 'kwargs' not in MainConfig['cluster']:
                 raise ValueError("The cluster configuration must contain 'type' and 'kwargs'.")
 
-            from moldrug.runner import (
-                Runner, RunnerMode, dask_available)
+            from moldrug.runner import Runner, RunnerMode, dask_available
             if not dask_available:
-                log("Dask is not installed and cluster is active", LogLevel.CRITICAL)
+                logger.critical("Dask is not installed and cluster is active")
 
             try:
                 cluster_class = getattr(importlib.import_module("dask_jobqueue"), MainConfig['cluster']['type'])
@@ -293,6 +291,15 @@ def __moldrug_run(yaml_file, fitness, continuation, verbose):
     ValueError
         In case that a non-mutable or non-defined argument is given by the user on the follow jobs.
     """
+
+    # Map verbosity count to logging levels
+    if verbose >= 2:
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+    elif verbose == 1:
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+    else:
+        logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+
     run_helper = MoldrugRunHelper(
         yaml_file=yaml_file,
         fitness=fitness,
@@ -300,9 +307,9 @@ def __moldrug_run(yaml_file, fitness, continuation, verbose):
         verbose=verbose
     )
 
-    log(f"Started at {datetime.datetime.now().strftime('%c')}")
-    log(f"You are using moldrug: {__version__}\n")
-    log(f"{run_helper}\n\n")
+    logger.info(f"Started at {datetime.datetime.now().strftime('%c')}")
+    logger.info(f"You are using moldrug: {__version__}\n")
+    logger.info(f"{run_helper}\n\n")
 
     # Call the class
     run_helper.run_moldrugClass()
@@ -314,7 +321,7 @@ def __moldrug_run(yaml_file, fitness, continuation, verbose):
     if run_helper.FollowConfig:
         MutableArgs = run_helper.MutableArgs.copy()
         for job in run_helper.FollowConfig:
-            log(f"The follow job {job} started.")
+            logger.info(f"The follow job {job} started.")
 
             # Updating arguments
             MutableArgs.update(run_helper.FollowConfig[job])
@@ -328,7 +335,7 @@ def __moldrug_run(yaml_file, fitness, continuation, verbose):
             run_helper.run_moldrugClass()
             # Saving data
             run_helper.save_data()
-            log(f'The job {job} finished!')
+            logger.info(f'The job {job} finished!')
 
     # Clean checkpoint on normal end
     if os.path.isfile('cpt.pbz2'):
@@ -431,14 +438,12 @@ def main():
         action="store_true",
         dest="continuation")
     moldrug_run.add_argument(
-        '-V', '--verbose',
-        nargs="?",
-        dest='verbose',
-        const=True,
-        default=False,
-        type=bool
+        "-V", "--verbose",
+        dest="verbose",
+        action="count",
+        default=0,
+        help="Increase verbosity (-V for INFO, -VV for DEBUG)"
     )
-
     moldrug_run.set_defaults(
         func=lambda args: __moldrug_run(
             yaml_file=args.yaml_file,
@@ -448,7 +453,6 @@ def main():
 
     args = parser.parse_args()
     args.func(args)
-
 
 
 
