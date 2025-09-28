@@ -291,7 +291,7 @@ def constraintconf(pdb: str, smi: str, fix: str, out: str, max_conf: int = 25, r
     pdb : str
         Protein pdb file
     smi : str
-        Input SMILES file name
+        Input SMILES file (multiple SMILES can be defined)
     fix : str
         File with fixed piece of the molecule
     out : str

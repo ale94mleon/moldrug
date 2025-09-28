@@ -155,13 +155,13 @@ def test_single_receptor_command_line():
 
     with open("test_single_receptor.yml", 'w') as c:
         yaml.dump(Config, c)
-    p = run('moldrug test_single_receptor.yml')
+    p = run('moldrug run test_single_receptor.yml')
     print(p.stdout)
     # Run a second time but with a seed population
     Config['01_grow']['seed_mol'] = ['02_allow_grow_pop.pbz2', '02_allow_grow_pop.pbz2']
     with open("test_single_receptor_init_pop.yml", 'w') as c:
         yaml.dump(Config, c)
-    p = run('moldrug test_single_receptor_init_pop.yml')
+    p = run('moldrug run test_single_receptor_init_pop.yml')
     print(p.stdout)
 
 
@@ -292,7 +292,7 @@ def test_local_command_line():
     with open("local_config.yml", 'w') as c:
         yaml.dump(Config, c)
 
-    run(f"moldrug local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')}")
+    run(f"moldrug run local_config.yml --fitness {os.path.join(home.home(), 'fitness.py')}")
     print(os.listdir())
     # This problems with the modules are not so convenient
     sys.path.append('.')

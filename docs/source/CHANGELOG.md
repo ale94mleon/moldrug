@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- CLI has subspaces: `run` and `constraintconf`. The syntax `moldrug config.yml` changed to `moldrug run config.yml` and `constraintconf_moldrug ...` to `moldrug constraintconf ...`.
+- `GA` and `Local` now lies on the `opt` module. they can also be imported directly. E.g. `from moldrug import GA`.
 - Use logging instead of print.
 - Move from `.rst` to `.md` on the documentation.
 - Update installation instructions.
