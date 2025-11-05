@@ -19,7 +19,7 @@ from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
                    RDKitMolCreate)
 from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, DataStructs, Descriptors, Lipinski, rdFMCS
-
+from moldrug.compat import BackCompatUnpickler
 logger = logging.getLogger(__name__)
 
 RDLogger.DisableLog('rdApp.*')
@@ -465,6 +465,18 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False, randomseed: Union[in
     else:
         return pdbqt_string
 
+    AllChem.EmbedMolecule(mol, randomSeed=randomSeed)
+    # The optimization introduce some sort of non-reproducible results.
+    # For that reason is not used when randomseed is set
+    if not randomseed:
+        AllChem.MMFFOptimizeMolecule(mol, maxIters=500)
+    preparator = MoleculePreparation()
+    mol_setups = preparator.prepare(mol)
+    pdbqt_string = PDBQTWriterLegacy.write_string(mol_setups[0])[0]
+    if return_mol:
+        return (pdbqt_string, mol)
+    else:
+        return pdbqt_string
 
 def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol,
                          parent_replace_ids: List[int] = None, parent_protected_ids: List[int] = None):
@@ -841,9 +853,8 @@ def decompress_pickle(file: str):
     object
         The python object.
     """
-    data = bz2.BZ2File(file, 'rb')
-    data = pickle.load(data)
-    return data
+    with bz2.BZ2File(file, 'rb') as f:
+        return BackCompatUnpickler(f).load()
 
 
 def is_iter(obj):

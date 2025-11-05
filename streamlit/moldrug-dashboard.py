@@ -21,7 +21,7 @@ from stmol import showmol
 
 import streamlit as st
 import streamlit.components.v1 as components
-from moldrug import utils
+from moldrug import utils, opt
 
 # TODO
 # add SyGma for metabolic prediction
@@ -333,10 +333,10 @@ def lig_prot_overview(_pop, protein_pdb_string):
 def load_pbz2(pbz2):
     moldrug_result = utils.decompress_pickle(pbz2)
     is_GA = False
-    if isinstance(moldrug_result, utils.GA):
+    if isinstance(moldrug_result, opt.GA):
         gen, pop = moldrug_result.NumGens, moldrug_result.pop
         is_GA = True
-    elif isinstance(moldrug_result, utils.Local):
+    elif isinstance(moldrug_result, opt.Local):
         gen, pop = 0, moldrug_result.pop
     elif isinstance(moldrug_result, tuple):
         if isinstance(moldrug_result[0], int) and isinstance(moldrug_result[1][0], utils.Individual):
@@ -608,7 +608,7 @@ if __name__ == "__main__":
                     if 'kept_gens' in grid.dataframe.columns:
                         props_to_drop.append('kept_gens')
 
-                    prop_df = grid.dataframe.drop(['mol', 'pdbqt', 'kept_gens', 'img', 'mols2grid-id'], axis=1).set_index('idx')
+                    prop_df = grid.dataframe.drop(props_to_drop, axis=1).set_index('idx')
                     st.download_button(
                         "Press to Download",
                         convert_df(prop_df),

@@ -219,7 +219,7 @@ class GA:
     randomseed : Union[None, int]
         The random seed to use with random module.
     __moldrug_version__ : str
-        The molDrug version.
+        The moldrug version.
     costfunc : object
         The cost function set by the user.
     crem_db_path : str
