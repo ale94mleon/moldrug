@@ -182,7 +182,7 @@ class Local:
         Parameters
         ----------
         title : str
-            Name of the object which will be compleated with the correposnding
+            Name of the object which will be completed with the corresponding
             extension depending if compress is set to True or False.
         compress : bool, optional
             Use compression, by default False. If True :meth:`moldrug.compressed_pickle` will be used;
@@ -219,7 +219,7 @@ class GA:
     randomseed : Union[None, int]
         The random seed to use with random module.
     __moldrug_version__ : str
-        The molDrug version.
+        The moldrug version.
     costfunc : object
         The cost function set by the user.
     crem_db_path : str
