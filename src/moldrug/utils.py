@@ -19,7 +19,7 @@ from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
                    RDKitMolCreate)
 from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, DataStructs, Descriptors, Lipinski, rdFMCS
-
+from moldrug.compat import BackCompatUnpickler
 logger = logging.getLogger(__name__)
 
 RDLogger.DisableLog('rdApp.*')
@@ -841,9 +841,8 @@ def decompress_pickle(file: str):
     object
         The python object.
     """
-    data = bz2.BZ2File(file, 'rb')
-    data = pickle.load(data)
-    return data
+    with bz2.BZ2File(file, 'rb') as f:
+        return BackCompatUnpickler(f).load()
 
 
 def is_iter(obj):
