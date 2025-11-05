@@ -182,7 +182,7 @@ class Local:
         Parameters
         ----------
         title : str
-            Name of the object which will be completed with the corresponding
+            Name of the object which will be compleated with the correposnding
             extension depending if compress is set to True or False.
         compress : bool, optional
             Use compression, by default False. If True :meth:`moldrug.compressed_pickle` will be used;

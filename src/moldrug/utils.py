@@ -465,6 +465,18 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False, randomseed: Union[in
     else:
         return pdbqt_string
 
+    AllChem.EmbedMolecule(mol, randomSeed=randomSeed)
+    # The optimization introduce some sort of non-reproducible results.
+    # For that reason is not used when randomseed is set
+    if not randomseed:
+        AllChem.MMFFOptimizeMolecule(mol, maxIters=500)
+    preparator = MoleculePreparation()
+    mol_setups = preparator.prepare(mol)
+    pdbqt_string = PDBQTWriterLegacy.write_string(mol_setups[0])[0]
+    if return_mol:
+        return (pdbqt_string, mol)
+    else:
+        return pdbqt_string
 
 def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol,
                          parent_replace_ids: List[int] = None, parent_protected_ids: List[int] = None):
