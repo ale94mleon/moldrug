@@ -29,10 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Meeko dependency and Python=3.12. Now we use a [simplified version of Meeko](https://github.com/ale94mleon/Meeko).
 - The tests no longer rely on `/tmp`; they now create temporary files in the current directory instead. This approach was already used throughout the package, except in the tests. The change makes the behavior consistent and avoids issues that occurred on certain clusters when using `/tmp`.
 - Prevent race condition when creating `error` directory during parallel execution.
 - The source distribution shipped `tests/test_moldrug.py` without the modules it imports, so the test suite could never run from it. The tests are development-only and are now excluded from the distributions.
+- `tests/get_vina.py` always downloaded the x86_64 AutoDock-Vina build, on every platform. It now picks the build matching the architecture as well as the operating system, so arm64 machines and CI runners no longer depend on emulation.
+- The conda environments in `.binder` and `.conda_create_env` pinned Python 3.9, which is below the supported floor.
 
 ### Added
 
