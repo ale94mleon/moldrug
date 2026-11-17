@@ -9,3 +9,6 @@ matplotlib
 pandas
 stmol==0.0.7
 pubchempy
+MDAnalysis==2.7.0
+beautifulsoup4
+gemmi

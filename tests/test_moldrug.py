@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import copy
-import gzip
 import os
-import shutil
 import sys
 import tempfile
 from multiprocessing import cpu_count
 
+import build_crem_test_db
 import get_vina
-import requests
 import yaml
 from rdkit import Chem
 
@@ -49,15 +47,11 @@ TEST_DATA = {
     '6lu7': get_data('6lu7')
 }
 
-# Getting the crem data base
-url = "http://www.qsar4u.com/files/cremdb/replacements02_sc2.db.gz"
-r = requests.get(url, allow_redirects=True)
-crem_dbgz_path = 'crem.db.gz'
-crem_db_path = 'crem.db'
-open(crem_dbgz_path, 'wb').write(r.content)
-with gzip.open(crem_dbgz_path, 'rb') as f_in:
-    with open(crem_db_path, 'wb') as f_out:
-        shutil.copyfileobj(f_in, f_out)
+# Building a small crem data base.
+# See tests/build_crem_test_db.py for why it is built instead of downloaded.
+crem_db_path = build_crem_test_db.build(
+    os.path.abspath('crem.db'),
+    ncpu=cpu_count())
 
 
 # Execution mode can be changed to "smaug" or "elwe" to calculate cost functions on Smaug or Elwe clusters.
@@ -110,7 +104,7 @@ def test_single_receptor_command_line():
             "mutate_crem_kwargs": {
                 "radius": 3,
                 "min_size": 1,
-                "max_size": 0,
+                "max_size": 5,
                 "min_inc": -5,
                 "max_inc": 3,
                 "ncores": 12

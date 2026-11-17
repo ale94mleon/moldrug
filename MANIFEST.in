@@ -1,0 +1,8 @@
+# The tests are development-only: they are run from a git checkout (CI and
+# local development), not from the distributions. The wheel never contained
+# them, since only src/ is packaged.
+#
+# Without this, setuptools' default sdist patterns pick up tests/test_moldrug.py
+# on its own and ship a test module that cannot run, because the helpers it
+# imports (get_vina, build_crem_test_db) and tests/data/ are left out.
+prune tests

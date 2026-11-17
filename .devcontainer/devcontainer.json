@@ -1,34 +1,33 @@
-// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.238.0/containers/docker-existing-dockerfile
 {
-	"name": "Existing Dockerfile",
+	"name": "moldrug",
+	"build": {
+		"context": "..",
+		"dockerfile": "Dockerfile"   // relative to devcontainer.json
+	},
 
-	// Sets the run context to one level up instead of the .devcontainer folder.
-	"context": "..",
+	"remoteUser": "user",
 
-	// Update the 'dockerFile' property if you aren't using the standard 'Dockerfile' filename.
-	"dockerFile": "../Dockerfile",
+	"mounts": [
+		"source=claude-code-config-${devcontainerId},target=/home/user/.claude,type=volume"
+	],
+	"containerEnv": {
+		"CLAUDE_CONFIG_DIR": "/home/user/.claude"
+	},
+
+	// Editable install + test deps (pytest, crem) + docs deps.
+	// safe.directory avoids git "dubious ownership" errors, which versioningit would hit on the mounted repo.
+	"postCreateCommand": "git config --global --add safe.directory '*' && pip install -e '.[dev]' -r requirements_docs.txt",
+
 	"customizations": {
 		"vscode": {
 			"extensions": [
+				"anthropic.claude-code",
 				"ms-python.python",
 				"ms-toolsai.jupyter"
-			]
+			],
+			"settings": {
+				"python.defaultInterpreterPath": "/home/user/miniforge3/envs/moldrug/bin/python"
+			}
 		}
 	}
-
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	// "forwardPorts": [],
-
-	// Uncomment the next line to run commands after the container is created - for example installing curl.
-	// "postCreateCommand": "apt-get update && apt-get install -y curl",
-
-	// Uncomment when using a ptrace-based debugger like C++, Go, and Rust
-	// "runArgs": [ "--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined" ],
-
-	// Uncomment to use the Docker CLI from inside the container. See https://aka.ms/vscode-remote/samples/docker-from-docker.
-	// "mounts": [ "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind" ],
-
-	// Uncomment to connect as a non-root user if you've added one. See https://aka.ms/vscode-remote/containers/non-root.
-	// "remoteUser": "vscode"
 }

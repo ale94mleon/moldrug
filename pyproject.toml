@@ -54,7 +54,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["requests", "pytest", "dask[distributed]", "dask-jobqueue"]
+# crem>=0.3 ships cremdb_create, used to build the test database
+dev = ["pytest", "crem>=0.3", "dask[distributed]", "dask-jobqueue"]
 cluster = ["dask[distributed]", "dask-jobqueue"]
 
 [project.urls]
