@@ -6,7 +6,7 @@ import os
 import random
 import time
 from copy import deepcopy
-from typing import Callable, Dict, Iterable, Optional, Union
+from typing import Callable, Dict, Iterable, List, Optional, Union
 
 import numpy as np
 from crem.crem import grow_mol, mutate_mol
@@ -416,6 +416,8 @@ class GA:
 
         Raises
         ------
+        ValueError
+            If both njobs > 1 and runner were provided.
         RuntimeError
             Error during the initialization of the population.
         """
@@ -439,99 +441,9 @@ class GA:
         # We need to return the molecule, so we override the possible user definition respect to this keyword
         self.mutate_crem_kwargs['return_mol'] = True
 
-        # Initialize Population
-        # In case that the populating exist there is not need to initialize.
+        # In case that the population exists there is not need to initialize.
         if len(self.pop) == 0:
-            GenInitStructs = []
-            # in case that the input has the popsize memebers there is not need to generate new structures
-            if len(self._seed_mol) < self.popsize:
-                for mol in self._seed_mol:
-                    tmp_GenInitStructs = list(mutate_mol(mol, self.crem_db_path, **self.mutate_crem_kwargs))
-                    tmp_GenInitStructs = [mol for (_, mol) in tmp_GenInitStructs]
-                    GenInitStructs += tmp_GenInitStructs
-                # Checking for possible scenarios
-                if len(GenInitStructs) == 0:
-                    raise RuntimeError("Something really strange happened. The seed_mol did not "
-                                       "generate any new molecule during the initialization of the population. "
-                                       "Check the provided crem parameters!")
-                if len(GenInitStructs) < (self.popsize - len(self._seed_mol)):
-                    logger.warning('The initial population has repeated elements')
-                    # temporal solution
-                    GenInitStructs += random.choices(GenInitStructs,
-                                                     k=self.popsize - len(GenInitStructs) - len(self._seed_mol))
-                elif len(GenInitStructs) > (self.popsize - 1):
-                    # Selected random sample from the generation
-                    GenInitStructs = random.sample(GenInitStructs, k=self.popsize - len(self._seed_mol))
-                else:
-                    # Everything is ok!
-                    pass
-
-            # Adding the inputs to the initial population
-            for i, mol in enumerate(self._seed_mol):
-                individual = Individual(mol, idx=i, randomseed=self.randomseed)
-                if individual.pdbqt:
-                    self.pop.append(individual)
-
-            # Completing the population with the generated structures
-            for i, mol in enumerate(GenInitStructs):
-                if self.AddHs:
-                    individual = Individual(Chem.AddHs(mol), idx=i + len(self._seed_mol), randomseed=self.randomseed)
-                else:
-                    individual = Individual(mol, idx=i + len(self._seed_mol), randomseed=self.randomseed)
-                if individual.pdbqt:
-                    self.pop.append(individual)
-
-            # Make sure that the population do not have more than popsize members and it is without repeated elements.
-            # That could happens if seed_mol has more molecules than popsize
-            self.pop = sorted(set(self.pop), key=lambda x: x.idx)[:self.popsize]
-
-            # Calculating cost of each individual
-            # Creating the arguments
-            args_list = []
-            # Make a copy of the self.costfunc_kwargs
-            # Make a copy of the self.costfunc_kwargs
-            kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
-
-            for individual in self.pop:
-                args_list.append((individual, kwargs_copy))
-
-            logger.info(f'Creating the first population with {len(self.pop)} members:')
-            self.pop = runner.run(self.__costfunc__, entries=args_list)
-
-            # Clean directory
-            costfunc_jobs_tmp_dir.cleanup()
-
-            # Adding generation information
-            for individual in self.pop:
-                individual.genID = self.NumGens
-                individual.kept_gens = set([self.NumGens])
-
-            self.acceptance[self.NumGens] = {
-                'accepted': len(self.pop[:]),
-                'generated': len(self.pop[:])
-            }
-
-            # Get the same order population in case cost is the same. Sorted by idx and then by cost
-            if self.randomseed:
-                self.pop = sorted(self.pop, key=lambda x: x.idx)
-            self.pop = sorted(self.pop)
-            # Print some information of the initial population
-            logger.info(f"Initial Population: Best Individual: {self.pop[0]}")
-            logger.info(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
-            # Updating the info of the first individual (parent)
-            # to print at the end how well performed the method (cost function)
-            # Because How the population was initialized and because we are using pool.imap (ordered).
-            # The parent is the first Individual of self.pop.
-            # We have to use deepcopy because Individual is a mutable object
-            # Because above set were used, we have to sorter based on idx
-            self.InitIndividual = deepcopy(
-                min(
-                    sorted(self.pop, key=lambda x: x.idx)[:len(self._seed_mol)]
-                )
-            )
-            # Best Cost of Iterations
-            self.best_cost = []
-            self.avg_cost = []
+            self._initialize_population(runner)
 
         # Saving tracking variables, the first population, outside the if to take into account second calls
         # with different population provided by the user.
@@ -539,10 +451,7 @@ class GA:
 
         # Saving population in disk if it was required
         if self.save_pop_every_gen:
-            compressed_pickle(f"{self.deffnm}_pop", (self.NumGens, sorted(self.pop)))
-            make_sdf(sorted(self.pop), sdf_name=f"{self.deffnm}_pop")
-            if self.checkpoint:
-                compressed_pickle('cpt', self)
+            self._save_population(sorted(self.pop))
 
         # Main Loop
         # Another control variable. In case that the __call__ method is used more than ones.
@@ -551,95 +460,254 @@ class GA:
             # Saving Number of Generations
             self.NumGens += 1
 
-            # Probabilities Selections
-            probs = softmax((-self.beta * np.array(self.pop)).astype('float64'))
-            if any(np.isnan(probs)):
-                probs = np.nan_to_num(probs)
-            # TODO: This cycle should run in this way only if no user generetor was provided
-            # with and if, else statment I could correct, and then the genereator functions is completlly up to the user,
-            # then I do not need to worry in how the selection is made,
-            # In this case self.nc will not have any validity unless the user use it with its evaluator
-            # the checking of SawIndivduals must be done after the user funcrion return the popc
-            # The other that I need to change is that if the if it is a new genereator the genereation of the initil population is different
-            # the other is that checking for redundancy may be complicated in the case, that molecules are, for example peptides,
-            # in this case other identifier like the aa sequnce should be ued intead. For that the user may need a different Individual instance
-            # a one more efficient, there are a lot of if here :`-)
-            popc = []
-            for _ in range(self.nc):
-                # Perform Roulette Wheel Selection
-                parent = self.pop[roulette_wheel_selection(probs)]
-
-                # Perform Mutation (this mutation is some kind of crossover but with CReM library)
-                children = self.mutate(parent)
-
-                # Save offspring population
-                # I will save only those offsprings that were not seen and that have a correct pdbqt file
-                if children not in self.SawIndividuals and children not in popc and children.pdbqt:
-                    children.genID = self.NumGens
-                    children.kept_gens = set()
-                    popc.append(children)
+            popc = self._generate_offspring()
 
             if popc:  # Only if there are new members
-                # Calculating cost of each offspring individual (Doing Docking)
-
-                # Creating the arguments
-                args_list = []
-                # Make a copy of the self.costfunc_kwargs
-                kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
-
+                # Add idx label to each individual
                 NumbOfSawIndividuals = len(self.SawIndividuals)
                 for (i, individual) in enumerate(popc):
-                    # Add idx label to each individual
                     individual.idx = i + NumbOfSawIndividuals
-                    # The problem here is that we are not being general for other possible Cost functions.
-                    args_list.append((individual, kwargs_copy))
-                logger.info(f'Evaluating generation {self.NumGens} / {self.maxiter + number_of_previous_generations}:')
+                popc = self._evaluate_costs(
+                    popc, runner,
+                    f'Evaluating generation {self.NumGens} / {self.maxiter + number_of_previous_generations}:')
 
-                # Calculating cost function in parallel
-                popc = runner.run(self.__costfunc__, args_list)
-
-                # Clean directory
-                costfunc_jobs_tmp_dir.cleanup()
-
-            # Merge, Sort and Select
-            self.pop += popc
-            if self.randomseed:
-                self.pop = sorted(self.pop, key=lambda x: x.idx)
-            self.pop = sorted(self.pop)
-            self.pop = self.pop[:self.popsize]
-
-            # Update the kept_gens attribute
-            self.acceptance[self.NumGens] = {
-                'accepted': 0,
-                'generated': len(popc)
-            }
-            for individual in self.pop:
-                if not individual.kept_gens:
-                    self.acceptance[self.NumGens]['accepted'] += 1
-                individual.kept_gens.add(self.NumGens)
-
-            # Store Best Cost
-            self.best_cost.append(self.pop[0].cost)
-
-            # Store Average cost
-            self.avg_cost.append(np.mean(self.pop))
-
-            # Saving tracking variables
-            self.SawIndividuals.update(popc)
+            self._update_population(popc)
 
             # Saving population in disk if it was required
             if self.save_pop_every_gen:
                 # Save every save_pop_every_gen and always the last population
                 if self.NumGens % self.save_pop_every_gen == 0 or it + 1 == self.maxiter:
-                    compressed_pickle(f"{self.deffnm}_pop", (self.NumGens, self.pop))
-                    make_sdf(self.pop, sdf_name=f"{self.deffnm}_pop")
-                    if self.checkpoint:
-                        compressed_pickle('cpt', self)
+                    self._save_population(self.pop)
 
             # Show Iteration Information
             logger.info(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}")
             logger.info(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
 
+        self._log_summary(ts)
+
+    def _initialize_population(self, runner: Runner):
+        """Build the first population and evaluate it.
+
+        The seed molecules are kept and the rest of the population is generated from them
+        with CReM, then the whole population is costed and the bookkeeping that the main
+        loop relies on is set up.
+
+        Parameters
+        ----------
+        runner : Runner
+            The runner used to evaluate the cost function.
+
+        Raises
+        ------
+        RuntimeError
+            If the seed molecules did not generate any new molecule.
+        """
+        GenInitStructs = []
+        # in case that the input has the popsize memebers there is not need to generate new structures
+        if len(self._seed_mol) < self.popsize:
+            for mol in self._seed_mol:
+                tmp_GenInitStructs = list(mutate_mol(mol, self.crem_db_path, **self.mutate_crem_kwargs))
+                tmp_GenInitStructs = [mol for (_, mol) in tmp_GenInitStructs]
+                GenInitStructs += tmp_GenInitStructs
+            # Checking for possible scenarios
+            if len(GenInitStructs) == 0:
+                raise RuntimeError("Something really strange happened. The seed_mol did not "
+                                   "generate any new molecule during the initialization of the population. "
+                                   "Check the provided crem parameters!")
+            if len(GenInitStructs) < (self.popsize - len(self._seed_mol)):
+                logger.warning('The initial population has repeated elements')
+                # temporal solution
+                GenInitStructs += random.choices(GenInitStructs,
+                                                 k=self.popsize - len(GenInitStructs) - len(self._seed_mol))
+            elif len(GenInitStructs) > (self.popsize - 1):
+                # Selected random sample from the generation
+                GenInitStructs = random.sample(GenInitStructs, k=self.popsize - len(self._seed_mol))
+            else:
+                # Everything is ok!
+                pass
+
+        # Adding the inputs to the initial population
+        for i, mol in enumerate(self._seed_mol):
+            individual = Individual(mol, idx=i, randomseed=self.randomseed)
+            if individual.pdbqt:
+                self.pop.append(individual)
+
+        # Completing the population with the generated structures
+        for i, mol in enumerate(GenInitStructs):
+            if self.AddHs:
+                individual = Individual(Chem.AddHs(mol), idx=i + len(self._seed_mol), randomseed=self.randomseed)
+            else:
+                individual = Individual(mol, idx=i + len(self._seed_mol), randomseed=self.randomseed)
+            if individual.pdbqt:
+                self.pop.append(individual)
+
+        # Make sure that the population do not have more than popsize members and it is without repeated elements.
+        # That could happens if seed_mol has more molecules than popsize
+        self.pop = sorted(set(self.pop), key=lambda x: x.idx)[:self.popsize]
+
+        self.pop = self._evaluate_costs(
+            self.pop, runner, f'Creating the first population with {len(self.pop)} members:')
+
+        # Adding generation information
+        for individual in self.pop:
+            individual.genID = self.NumGens
+            individual.kept_gens = set([self.NumGens])
+
+        self.acceptance[self.NumGens] = {
+            'accepted': len(self.pop[:]),
+            'generated': len(self.pop[:])
+        }
+
+        # Get the same order population in case cost is the same. Sorted by idx and then by cost
+        if self.randomseed:
+            self.pop = sorted(self.pop, key=lambda x: x.idx)
+        self.pop = sorted(self.pop)
+        # Print some information of the initial population
+        logger.info(f"Initial Population: Best Individual: {self.pop[0]}")
+        logger.info(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
+        # Updating the info of the first individual (parent)
+        # to print at the end how well performed the method (cost function)
+        # Because How the population was initialized and because we are using pool.imap (ordered).
+        # The parent is the first Individual of self.pop.
+        # We have to use deepcopy because Individual is a mutable object
+        # Because above set were used, we have to sorter based on idx
+        self.InitIndividual = deepcopy(
+            min(
+                sorted(self.pop, key=lambda x: x.idx)[:len(self._seed_mol)]
+            )
+        )
+        # Best Cost of Iterations
+        self.best_cost = []
+        self.avg_cost = []
+
+    def _generate_offspring(self):
+        """Select parents and mutate them into the offspring of the current generation.
+
+        Only offspring that are new, not already in this generation, and have a valid pdbqt
+        are kept, so fewer than ``nc`` individuals may come back.
+
+        Returns
+        -------
+        list[Individual]
+            The offspring, without their cost calculated yet.
+        """
+        # Probabilities Selections
+        probs = softmax((-self.beta * np.array(self.pop)).astype('float64'))
+        if any(np.isnan(probs)):
+            probs = np.nan_to_num(probs)
+        # TODO: This cycle should run in this way only if no user generetor was provided
+        # with and if, else statment I could correct, and then the genereator functions is completlly up to the user,
+        # then I do not need to worry in how the selection is made,
+        # In this case self.nc will not have any validity unless the user use it with its evaluator
+        # the checking of SawIndivduals must be done after the user funcrion return the popc
+        # The other that I need to change is that if the if it is a new genereator the genereation of the initil population is different
+        # the other is that checking for redundancy may be complicated in the case, that molecules are, for example peptides,
+        # in this case other identifier like the aa sequnce should be ued intead. For that the user may need a different Individual instance
+        # a one more efficient, there are a lot of if here :`-)
+        popc = []
+        for _ in range(self.nc):
+            # Perform Roulette Wheel Selection
+            parent = self.pop[roulette_wheel_selection(probs)]
+
+            # Perform Mutation (this mutation is some kind of crossover but with CReM library)
+            children = self.mutate(parent)
+
+            # Save offspring population
+            # I will save only those offsprings that were not seen and that have a correct pdbqt file
+            if children not in self.SawIndividuals and children not in popc and children.pdbqt:
+                children.genID = self.NumGens
+                children.kept_gens = set()
+                popc.append(children)
+        return popc
+
+    def _evaluate_costs(self, individuals: List[Individual], runner: Runner, message: str):
+        """Calculate the cost of every individual, in parallel if the runner allows it.
+
+        Parameters
+        ----------
+        individuals : list[Individual]
+            The individuals to evaluate.
+        runner : Runner
+            The runner that spreads the evaluations across workers.
+        message : str
+            Logged just before the evaluations start.
+
+        Returns
+        -------
+        list[Individual]
+            The evaluated individuals, in the order they were given.
+        """
+        # Make a copy of the self.costfunc_kwargs
+        kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
+
+        # The problem here is that we are not being general for other possible Cost functions.
+        args_list = [(individual, kwargs_copy) for individual in individuals]
+
+        logger.info(message)
+        evaluated = runner.run(self.__costfunc__, entries=args_list)
+
+        # Clean directory
+        costfunc_jobs_tmp_dir.cleanup()
+        return evaluated
+
+    def _update_population(self, popc: List[Individual]):
+        """Merge the offspring into the population and keep the best ``popsize`` of them.
+
+        Also updates the acceptance rate, the cost history and the set of individuals seen
+        so far.
+
+        Parameters
+        ----------
+        popc : list[Individual]
+            The evaluated offspring of the current generation.
+        """
+        # Merge, Sort and Select
+        self.pop += popc
+        if self.randomseed:
+            self.pop = sorted(self.pop, key=lambda x: x.idx)
+        self.pop = sorted(self.pop)
+        self.pop = self.pop[:self.popsize]
+
+        # Update the kept_gens attribute
+        self.acceptance[self.NumGens] = {
+            'accepted': 0,
+            'generated': len(popc)
+        }
+        for individual in self.pop:
+            if not individual.kept_gens:
+                self.acceptance[self.NumGens]['accepted'] += 1
+            individual.kept_gens.add(self.NumGens)
+
+        # Store Best Cost
+        self.best_cost.append(self.pop[0].cost)
+
+        # Store Average cost
+        self.avg_cost.append(np.mean(self.pop))
+
+        # Saving tracking variables
+        self.SawIndividuals.update(popc)
+
+    def _save_population(self, population: List[Individual]):
+        """Write the population to disk, and the whole class if checkpointing is on.
+
+        Parameters
+        ----------
+        population : list[Individual]
+            The population to save.
+        """
+        compressed_pickle(f"{self.deffnm}_pop", (self.NumGens, population))
+        make_sdf(population, sdf_name=f"{self.deffnm}_pop")
+        if self.checkpoint:
+            compressed_pickle('cpt', self)
+
+    def _log_summary(self, ts: float):
+        """Report how the simulation went, and how long it took.
+
+        Parameters
+        ----------
+        ts : float
+            The value of ``time.time()`` when the call started.
+        """
         # Printing summary information
         logger.info(f"\t\t{20*'=+'}\n")
         logger.info(f"The simulation finished successfully after {self.NumGens} generations with"
