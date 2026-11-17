@@ -18,6 +18,7 @@ Index
    source/about-us
    
    source/tutorials
+   source/parallelization
 
 .. toctree::
    :caption: 📖 Reference
