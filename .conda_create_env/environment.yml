@@ -8,7 +8,7 @@ dependencies:
   - ipython
   - ipywidgets
   - pip
-  - python==3.9.*
+  - python==3.10.*
   - conda-build
   # This is needed to make easy the documentation build.
   - vina
