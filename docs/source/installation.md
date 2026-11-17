@@ -116,10 +116,16 @@ To perform docking you must provide `boxcenter` (`center` for AutoDock-Vina) and
 
 ## Working with a docker container
 
-- Use the [Docker configuration file on GitHub](https://github.com/ale94mleon/moldrug/blob/main/Dockerfile).
-- Visit the [moldrug's Docker container](https://hub.docker.com/r/ale94mleon/4moldrug).
+[AutoDock-Vina](https://vina.scripps.edu/) is the only dependency of `moldrug` that does not come from PyPI, and installing it by hand is unpleasant on some systems. The [Dockerfile](https://github.com/ale94mleon/moldrug/blob/main/Dockerfile) in the repository builds an image with both `moldrug` and [AutoDock-Vina](https://vina.scripps.edu/) already installed, for the architecture you build it on:
 
-Finally, `pip install moldrug` inside the container.
+```sh
+docker build -t moldrug .
+docker run --rm -it -v "$PWD":/home/user/work moldrug
+```
+
+Use `--build-arg MOLDRUG_VERSION=4.0.0` to pin a release, and `--build-arg PYTHON_VERSION=3.12` to choose the interpreter.
+
+A prebuilt image is also published on [DockerHub](https://hub.docker.com/r/ale94mleon/4moldrug).
 
 ## Running tests
 

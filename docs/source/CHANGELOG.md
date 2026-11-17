@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Versioning: `Major.Minor.Patch` --> `Major.Minnor.Patch.postX` it helps to distinguish commits that are not yet included on the `Patch`.
 - The test suite no longer downloads `replacements02_sc2.db.gz` from `qsar4u.com` (the file is gone). It now builds a small CReM database with `cremdb_create`, see `tests/build_crem_test_db.py`.
 - Update the documentation to point to the CReM databases on [Zenodo](https://doi.org/10.5281/zenodo.16909329).
+- The `Dockerfile` installed Anaconda from an x86_64-only URL, so the image could not be built on arm64, and left the user to `pip install moldrug` by hand inside the container. It now uses Miniforge for the architecture it is built on and ships `moldrug` and AutoDock-Vina ready to use, with `MOLDRUG_VERSION` and `PYTHON_VERSION` build arguments.
 
 ### Fixed
 
