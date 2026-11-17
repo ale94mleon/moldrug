@@ -125,8 +125,6 @@ docker run --rm -it -v "$PWD":/home/user/work moldrug
 
 Use `--build-arg MOLDRUG_VERSION=4.0.0` to pin a release, and `--build-arg PYTHON_VERSION=3.12` to choose the interpreter.
 
-A prebuilt image is also published on [DockerHub](https://hub.docker.com/r/ale94mleon/4moldrug).
-
 ## Running tests
 
 ```sh
