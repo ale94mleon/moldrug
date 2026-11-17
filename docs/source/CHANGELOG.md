@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Python 3.8 compatibility. The dependency [meeko4moldrug](https://pypi.org/project/meeko4moldrug/) requires a higher Python version because building it requires `setuptools>=77.0.0`, which is not compatible with Python 3.8.
+- Python 3.9 compatibility. Building the test CReM database needs `cremdb_create`, added in `crem>=0.3`, which requires `rdkit>=2025.3.5`, and that publishes no CPython 3.9 wheels.
 - Environmental variable `MOLDRUG_VERBOSE`
 
 ### Changed

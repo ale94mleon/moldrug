@@ -6,7 +6,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-requires-python = ">= 3.9 , < 3.14"
+requires-python = ">= 3.10 , < 3.14"
 name = "moldrug"
 dynamic = ["version"]
 description = "moldrug is a python package for drug-oriented optimization on the chemical space."
@@ -22,7 +22,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
