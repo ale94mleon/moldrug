@@ -199,19 +199,24 @@ class Runner:
             If the parameters do not match the mode, or if a Dask mode is asked for without
             the ``cluster`` extra installed.
         """
-        if mode in [RunnerMode.DASK_LOCAL, RunnerMode.DASK_JOB_QUEUE_CLUSTER]:
-            assert dask_available is not None, "Execution using Dask requires installation of optional dependencies. The optional pip package group is called 'cluster'"
+        if mode in [RunnerMode.DASK_LOCAL, RunnerMode.DASK_JOB_QUEUE_CLUSTER] and not dask_available:
+            raise ImportError("Execution using Dask requires installation of optional dependencies. "
+                              "The optional pip package group is called 'cluster'")
 
         if mode is RunnerMode.SERIAL:
-            assert thread_count is None and process_count is None and dask_cluster is None, "Serial execution doesn't take any parameters."
-        elif mode in [RunnerMode.MULTIPROCESSING]:
-            assert thread_count is None and process_count is not None and dask_cluster is None, "Only process count is needed."
-        elif mode in [RunnerMode.DASK_LOCAL]:
-            assert (thread_count is not None or process_count is not None) and dask_cluster is None, "Only process count and/or thread count are needed."
-        elif mode in [RunnerMode.DASK_JOB_QUEUE_CLUSTER]:
-            assert thread_count is None and process_count is None and dask_cluster is not None, "Dask execution takes only a Dask cluster object."
+            if not (thread_count is None and process_count is None and dask_cluster is None):
+                raise ValueError("Serial execution doesn't take any parameters.")
+        elif mode is RunnerMode.MULTIPROCESSING:
+            if not (thread_count is None and process_count is not None and dask_cluster is None):
+                raise ValueError("Only process count is needed.")
+        elif mode is RunnerMode.DASK_LOCAL:
+            if not ((thread_count is not None or process_count is not None) and dask_cluster is None):
+                raise ValueError("Only process count and/or thread count are needed.")
+        elif mode is RunnerMode.DASK_JOB_QUEUE_CLUSTER:
+            if not (thread_count is None and process_count is None and dask_cluster is not None):
+                raise ValueError("Dask execution takes only a Dask cluster object.")
         else:
-            assert False
+            raise ValueError(f"Unknown execution mode: {mode}")
 
         self.mode = mode
         self.thread_count = thread_count
@@ -245,7 +250,7 @@ class Runner:
             return parallel_execution_multiprocessing(func, entries, process_count=self.process_count)
         elif self.mode == RunnerMode.DASK_LOCAL:
             return parallel_execution_dask_local(func, entries, self.client)
-        if self.mode == RunnerMode.DASK_JOB_QUEUE_CLUSTER:
+        elif self.mode == RunnerMode.DASK_JOB_QUEUE_CLUSTER:
             return parallel_execution_dask_cluster(func, entries, self.client)
         else:
-            assert False
+            raise ValueError(f"Unknown execution mode: {self.mode}")

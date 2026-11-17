@@ -40,6 +40,21 @@ class Individual:
     Known issue, in case that we would like to use a numpy array of individuals.
     It is needed to change the dtype of the generated arrays
 
+    .. note::
+
+        Equality and ordering deliberately look at different attributes, which is worth
+        keeping in mind because the usual total-order rules therefore do not hold.
+
+        * ``==``, ``!=`` and ``hash()`` compare the **smiles**, so that a set of Individuals
+          deduplicates by molecule. This is how :class:`moldrug.opt.GA` keeps track of the
+          molecules it has already seen.
+        * ``<``, ``<=``, ``>``, ``>=`` and the arithmetic operators compare the **cost**, so
+          that sorting a population ranks it by fitness and numpy can reduce over it.
+
+        Two Individuals with different molecules but the same cost are therefore neither
+        equal nor ordered with respect to each other: ``i2 == i3`` is False while both
+        ``i2 < i3`` and ``i2 > i3`` are False as well.
+
     Attributes
     ----------
     mol:  Chem.rdchem.Mol

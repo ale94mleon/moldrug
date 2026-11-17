@@ -128,8 +128,8 @@ class Local:
             Providing this parameter instead of njobs allows execution on a cluster with Dask. Few other modes
             of executions are also available, but useful mostly for debugging and profiling.
         """
-        if njobs > 1:
-            assert runner is None, "Both njobs > 1 and runner have been specified. Please use only one of the parameters."
+        if njobs > 1 and runner is not None:
+            raise ValueError("Both njobs > 1 and runner have been specified. Please use only one of the parameters.")
 
         if runner is None:
             runner = Runner(RunnerMode.MULTIPROCESSING, process_count=njobs)
@@ -419,8 +419,8 @@ class GA:
         RuntimeError
             Error during the initialization of the population.
         """
-        if njobs > 1:
-            assert runner is None, "Both njobs > 1 and runner have been specified. Please use only one of the parameters."
+        if njobs > 1 and runner is not None:
+            raise ValueError("Both njobs > 1 and runner have been specified. Please use only one of the parameters.")
 
         if runner is None:
             runner = Runner(RunnerMode.MULTIPROCESSING, process_count=njobs)
@@ -692,14 +692,20 @@ class GA:
 
         try:
             mutants = list(mutate_mol(individual.mol, self.crem_db_path, **mutate_crem_kwargs_to_work_with))
+            if not mutants:
+                raise RuntimeError('CReM did not generate any mutant, check the provided CReM parameters')
             # Bias the searching to similar molecules
             if self.get_similar:
                 mol = get_similar_mols(mols=[mol for _, mol in mutants],
                                        ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
             else:
                 _, mol = random.choice(mutants)  # nosec
-        except Exception:
-            logger.warning(f'The mutation on {individual} did not work, it will be returned the same individual')
+        except Exception as error:
+            # Report what went wrong. CReM takes **kwargs, so a mistake in
+            # mutate_crem_kwargs arrives here as a ValueError naming the unknown column,
+            # which is indistinguishable from a failed mutation without the message.
+            logger.warning(f'The mutation on {individual} did not work '
+                           f'({type(error).__name__}: {error}), it will be returned the same individual')
             mol = individual.mol
         if self.AddHs:
             mol = Chem.AddHs(mol)
