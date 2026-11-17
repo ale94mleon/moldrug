@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The test suite no longer downloads `replacements02_sc2.db.gz` from `qsar4u.com` (the file is gone). It now builds a small CReM database with `cremdb_create`, see `tests/build_crem_test_db.py`.
 - Update the documentation to point to the CReM databases on [Zenodo](https://doi.org/10.5281/zenodo.16909329).
 
+### Fixed
+
+- The source distribution shipped `tests/test_moldrug.py` without the modules it imports, so the test suite could never run from it. The tests are development-only and are now excluded from the distributions.
+
 ## [3.7.3] - 2024.07.05
 
 ### Changed
