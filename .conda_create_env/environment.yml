@@ -18,7 +18,7 @@ dependencies:
     - pandas
     - rdkit
     - pyyaml
-    - meeko
+    - meeko4moldrug
     - scipy
     - six
     - crem

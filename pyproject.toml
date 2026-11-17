@@ -47,8 +47,8 @@ dependencies = [
     "pandas",
     "pyyaml",
     "dill",
-    "meeko @ git+https://github.com/ale94mleon/meeko.git@main",
-    "scipy",  # a meeko dependency
+    "meeko4moldrug>=0.6.1.post8",
+    "scipy",  # a meeko4moldrug dependency
     "six",
     "rdkit>=2022.3.5",
 ]

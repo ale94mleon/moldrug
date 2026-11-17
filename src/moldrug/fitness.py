@@ -7,8 +7,8 @@ from typing import Dict, List, Union
 
 import numpy as np
 # from warnings import import warn
-from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
-                   RDKitMolCreate)
+from meeko4moldrug import (MoleculePreparation, PDBQTMolecule,
+                           PDBQTWriterLegacy, RDKitMolCreate)
 from rdkit import Chem
 from rdkit.Chem import QED, Descriptors
 

@@ -9,11 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Python 3.8 compatibility. The dependency `meeko @ git+https://github.com/ale94mleon/meeko.git@main` requires a higher Python version because building it requires `setuptools>=77.0.0`, which is not compatible with Python 3.8.
+- Python 3.8 compatibility. The dependency [meeko4moldrug](https://pypi.org/project/meeko4moldrug/) requires a higher Python version because building it requires `setuptools>=77.0.0`, which is not compatible with Python 3.8.
 - Environmental variable `MOLDRUG_VERBOSE`
 
 ### Changed
 
+- Depend on [meeko4moldrug](https://pypi.org/project/meeko4moldrug/) instead of a `git+https` reference to the [Meeko fork](https://github.com/ale94mleon/Meeko). PyPI rejects distributions that declare direct URL dependencies, so moldrug could not be released with the previous dependency. Imports change from `meeko` to `meeko4moldrug`.
 - CLI has subspaces: `run` and `constraintconf`. The syntax `moldrug config.yml` changed to `moldrug run config.yml` and `constraintconf_moldrug ...` to `moldrug constraintconf ...`.
 - `GA` and `Local` now lies on the `opt` module. they can also be imported directly. E.g. `from moldrug import GA`.
 - Use logging instead of print.

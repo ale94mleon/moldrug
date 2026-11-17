@@ -13,7 +13,7 @@ import pubchempy as pcp
 import requests
 import seaborn as sns
 from bs4 import BeautifulSoup
-from meeko import PDBQTMolecule, RDKitMolCreate
+from meeko4moldrug import PDBQTMolecule, RDKitMolCreate
 from pandas.api.types import (is_categorical_dtype, is_datetime64_any_dtype,
                               is_numeric_dtype, is_object_dtype)
 from rdkit import Chem, DataStructs

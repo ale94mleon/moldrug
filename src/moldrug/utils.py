@@ -15,8 +15,8 @@ from typing import List, Union
 import dill as pickle
 import numpy as np
 import pandas as pd
-from meeko import (MoleculePreparation, PDBQTMolecule, PDBQTWriterLegacy,
-                   RDKitMolCreate)
+from meeko4moldrug import (MoleculePreparation, PDBQTMolecule,
+                           PDBQTWriterLegacy, RDKitMolCreate)
 from rdkit import Chem, RDLogger
 from rdkit.Chem import AllChem, DataStructs, Descriptors, Lipinski, rdFMCS
 from moldrug.compat import BackCompatUnpickler

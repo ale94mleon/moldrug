@@ -66,7 +66,7 @@ MacOS users may face some problems trying to install because of the AutoDock-Vin
 If some dependencies are missing, please install them through pip. Some of them might be:
 
 ```bash
-pip install meeko crem pyyaml scipy tqdm
+pip install meeko4moldrug crem pyyaml scipy tqdm
 ```
 
 ## AutoDock-Vina dependency and related software
