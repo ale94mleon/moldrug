@@ -34,7 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The source distribution shipped `tests/test_moldrug.py` without the modules it imports, so the test suite could never run from it. The tests are development-only and are now excluded from the distributions.
 - `tests/get_vina.py` always downloaded the x86_64 AutoDock-Vina build, on every platform. It now picks the build matching the architecture as well as the operating system, so arm64 machines and CI runners no longer depend on emulation.
 - The conda environments in `.binder` and `.conda_create_env` pinned Python 3.9, which is below the supported floor.
-- `moldrug.runner.Runner` and the `njobs`/`runner` check validated their input with `assert`, which `python -O` strips, and the guard for the missing Dask dependencies read `assert dask_available is not None`, which is true whether or not Dask is installed. They now raise `ValueError` and `ImportError`.
 - A failed mutation in `moldrug.opt.GA.mutate` reported only that it did not work. The cause is now included, which matters because CReM takes `**kwargs`, so a mistake in `mutate_crem_kwargs` reaches it as an ordinary error rather than an unexpected-keyword one.
 
 ### Added
