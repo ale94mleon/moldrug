@@ -1,7 +1,7 @@
 myst-nb
 myst-parser
 sphinx_book_theme
-sphinx==7.2.6
+sphinx
 sphinx_design
 sphinxcontrib-katex
 sphinx-inline-tabs
