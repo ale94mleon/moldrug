@@ -14,13 +14,15 @@ from rdkit import Chem
 from rdkit.Chem import Descriptors
 
 from moldrug import GA, home
+from moldrug.opt import Local
 from moldrug.data import get_data
 from moldrug.fitness import (Cost, CostMultiReceptors,
                              CostMultiReceptorsOnlyVina, CostOnlyVina,
                              __get_mol_cost)
 from moldrug.runner import Runner, RunnerMode
 from moldrug.utils import (VINA_OUT, Individual, NominalTheBest,
-                           compressed_pickle, decompress_pickle, full_pickle,
+                           compressed_pickle, decompress_pickle, format_duration,
+                           full_pickle,
                            get_sim, lipinski_filter, lipinski_profile, loosen,
                            run, tar_errors)
 
@@ -500,6 +502,52 @@ def test_randomseed_is_reproducible():
 
     assert [individual.smiles for individual in first.pop] == \
         [individual.smiles for individual in second.pop]
+
+
+def test_format_duration():
+    """The duration is reported in the largest unit that keeps it above one."""
+    assert format_duration(0.4) == '0.40 s'
+    assert format_duration(59.9) == '59.90 s'
+    # Each boundary belongs to the larger unit.
+    assert format_duration(60) == '1.00 min'
+    assert format_duration(3600) == '1.00 h'
+    assert format_duration(86400) == '1.00 days'
+    # Days are the largest unit, so a run of a week stays in days.
+    assert format_duration(7 * 86400) == '7.00 days'
+
+
+def test_timing_is_tracked():
+    """Every generation records how long it spent generating and evaluating."""
+    ga = reproducible_ga()
+    ga()
+
+    # Generation 0 is the initialization of the population, 1 is the only iteration.
+    assert sorted(ga.timing) == [0, 1]
+    for generation in ga.timing.values():
+        assert generation['evaluation'] > 0
+    # Nothing is generated during the initialization of a population built from the seed,
+    # but the single iteration does mutate.
+    assert ga.timing[1]['generation'] > 0
+
+
+def test_local_timing_is_tracked():
+    """Local times the same two phases, and accumulates them over calls."""
+    local = Local(
+        seed_mol=Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']),
+        costfunc=molecular_weight_cost,
+        costfunc_kwargs={},
+        crem_db_path=crem_db_path,
+        grow_crem_kwargs={'radius': 3, 'min_atoms': 1, 'max_atoms': 3},
+        randomseed=5)
+    local(pick=2)
+
+    assert sorted(local.timing) == ['evaluation', 'generation']
+    assert all(seconds > 0 for seconds in local.timing.values())
+
+    # A second call adds to the same counters rather than replacing them.
+    first_call = dict(local.timing)
+    local(pick=2)
+    assert all(local.timing[phase] > first_call[phase] for phase in first_call)
 
 
 def test_checkpoint_resume_is_reproducible():

@@ -15,9 +15,9 @@ from rdkit import Chem, RDLogger
 from moldrug import __version__
 from moldrug.runner import Runner, RunnerMode
 from moldrug.utils import (Individual, _make_kwargs_copy, compressed_pickle,
-                           full_pickle, get_similar_mols, is_iter, make_sdf,
-                           roulette_wheel_selection, softmax, tar_errors,
-                           to_dataframe, update_reactant_zone)
+                           format_duration, full_pickle, get_similar_mols,
+                           is_iter, make_sdf, roulette_wheel_selection, softmax,
+                           tar_errors, to_dataframe, update_reactant_zone)
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +55,11 @@ class Local:
         The keyword arguments of the costfunc.
     grow_crem_kwargs : dict
         The keyword arguments to pass to :meth:`crem.crem.grow_mol`.
+    timing : dict
+        With keys ``generation`` and ``evaluation``, how many seconds have been spent
+        building molecules and calculating their cost. Both accumulate over calls, while
+        the summary at the end of a call reports that call alone. They do not add up to
+        the total time of a call, since cleaning the working directory falls outside both.
     AddHs : bool
         In case explicit hydrogens should be added.
     pop : list[:meth:`moldrug.Individuals`]
@@ -124,6 +129,7 @@ class Local:
         self.grow_crem_kwargs = grow_crem_kwargs
         self.costfunc = costfunc
         self.costfunc_kwargs = costfunc_kwargs
+        self.timing = {'generation': 0.0, 'evaluation': 0.0}
         self.pop = [self.InitIndividual]
 
     def __call__(self, njobs: int = 1, pick: int = None, runner: Optional[Runner] = None):
@@ -150,6 +156,8 @@ class Local:
         if self.__moldrug_version != __version__:
             logger.error(f"{self.__class__.__name__} was initilized with moldrug-{self.__moldrug_version} "
                          f"but was called with moldrug-{__version__}")
+        ts = time.time()
+        tg = time.perf_counter()
         self.grow_crem_kwargs.update({'return_mol': True})
         new_mols = list(grow_mol(self._seed_mol, self.crem_db_path, **self.grow_crem_kwargs))
         if pick:
@@ -162,9 +170,12 @@ class Local:
             individual = Individual(mol, idx=idx0 + i, randomseed=self.randomseed)
             if individual.pdbqt:
                 self.pop.append(individual)
+        generation = time.perf_counter() - tg
+        self.timing['generation'] += generation
 
         # Calculating cost of each individual
         # Creating the arguments
+        te = time.perf_counter()
         args_list = []
         # Make a copy of the self.costfunc_kwargs
         kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
@@ -177,11 +188,20 @@ class Local:
 
         # Clean directory
         costfunc_jobs_tmp_dir.cleanup()
+        evaluation = time.perf_counter() - te
+        self.timing['evaluation'] += evaluation
         # Tar errors
         tar_errors('error')
 
-        # Printing how long was the simulation
-        logger.info(f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
+        # Printing how long was the simulation, and where the time went. The two phases do
+        # not add up to the total: cleaning the working directory is outside both.
+        total = time.time() - ts
+        logger.info(f"Total time: {format_duration(total)}.\n"
+                    f"Generating molecules: {format_duration(generation)} "
+                    f"({100 * generation / total:.1f} %).\n"
+                    f"Evaluating the cost function: {format_duration(evaluation)} "
+                    f"({100 * evaluation / total:.1f} %).\n"
+                    f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
         Individual, kwargs = args_list
@@ -274,6 +294,12 @@ class GA:
         A dictionary with key the Generation id and as value another dictionary
         with keys ``accepeted`` and ``generated`` with the number of accepted and genereated
         individuals on the generation respectively.
+    timing : dict
+        A dictionary with key the Generation id and as value another dictionary with keys
+        ``generation`` and ``evaluation``, holding how many seconds that generation spent
+        building molecules and calculating their cost. Generation 0 is the initialization
+        of the population. The two do not add up to the total time of a call: saving,
+        sorting and checkpointing are outside both.
     AddHs : bool
         In case explicit hydrogens should be added for all genreated molecules.
     _seed_mol : list[Chem.rdchem.Mol]
@@ -289,8 +315,6 @@ class GA:
 
     TODO:
 
-        * Timing the simulation, add tracking variable for the timing of the evaluation and
-          generation of molecules. Print at the end of each call
         * Extend to other generators:
 
             - mutate_crem_kwargs = None and some other keyword that gets the generator
@@ -408,6 +432,7 @@ class GA:
         self.NumGens = 0
         self.SawIndividuals = set()
         self.acceptance = dict()
+        self.timing = dict()
 
         # work with the seed molecule or population
         self.AddHs = AddHs
@@ -454,6 +479,10 @@ class GA:
             runner = Runner(RunnerMode.MULTIPROCESSING, process_count=njobs)
 
         ts = time.time()
+        # Earlier calls have already filled self.timing, and the summary at the end of this
+        # one reports this call alone.
+        spent_before = {phase: sum(gen[phase] for gen in self.timing.values())
+                        for phase in ('generation', 'evaluation')}
         # Counting the calls
         self.NumCalls += 1
 
@@ -504,7 +533,7 @@ class GA:
             logger.info(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}")
             logger.info(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
 
-        self._log_summary(ts)
+        self._log_summary(ts, spent_before)
 
     def _crem_kwargs(self):
         """The CReM keywords for one call, with a fresh sampling seed.
@@ -634,6 +663,7 @@ class GA:
         list[Individual]
             The offspring, without their cost calculated yet.
         """
+        ts = time.perf_counter()
         # Probabilities Selections
         probs = softmax((-self.beta * np.array(self.pop)).astype('float64'))
         if any(np.isnan(probs)):
@@ -661,6 +691,7 @@ class GA:
                 children.genID = self.NumGens
                 children.kept_gens = set()
                 popc.append(children)
+        self._record_time('generation', time.perf_counter() - ts)
         return popc
 
     def _evaluate_costs(self, individuals: List[Individual], runner: Runner, message: str):
@@ -680,6 +711,7 @@ class GA:
         list[Individual]
             The evaluated individuals, in the order they were given.
         """
+        ts = time.perf_counter()
         # Make a copy of the self.costfunc_kwargs
         kwargs_copy, costfunc_jobs_tmp_dir = _make_kwargs_copy(self.costfunc, self.costfunc_kwargs)
 
@@ -691,6 +723,7 @@ class GA:
 
         # Clean directory
         costfunc_jobs_tmp_dir.cleanup()
+        self._record_time('evaluation', time.perf_counter() - ts)
         return evaluated
 
     def _update_population(self, popc: List[Individual]):
@@ -743,13 +776,29 @@ class GA:
         if self.checkpoint:
             compressed_pickle('cpt', self)
 
-    def _log_summary(self, ts: float):
+    def _record_time(self, phase: str, seconds: float):
+        """Add ``seconds`` to one phase of the current generation of :attr:`timing`.
+
+        Parameters
+        ----------
+        phase : str
+            Either ``'generation'`` or ``'evaluation'``.
+        seconds : float
+            How long the phase took.
+        """
+        self.timing.setdefault(self.NumGens, {'generation': 0.0, 'evaluation': 0.0})
+        self.timing[self.NumGens][phase] += seconds
+
+    def _log_summary(self, ts: float, spent_before: Dict[str, float]):
         """Report how the simulation went, and how long it took.
 
         Parameters
         ----------
         ts : float
             The value of ``time.time()`` when the call started.
+        spent_before : dict[str, float]
+            How many seconds each phase of :attr:`timing` already held when the call
+            started, so that a second call reports its own time and not the whole history.
         """
         # Printing summary information
         logger.info(f"\t\t{20*'=+'}\n")
@@ -764,8 +813,17 @@ class GA:
         # Tar errors
         tar_errors('error')
 
-        # Printing how long was the simulation
-        logger.info(f"Total time ({self.maxiter} generations): {time.time() - ts:>5.2f} (s).\n"
+        # Printing how long was the simulation, and where the time went. The two phases do
+        # not add up to the total: saving the population, sorting and the checkpoints are
+        # outside both of them.
+        total = time.time() - ts
+        generation = sum(gen['generation'] for gen in self.timing.values()) - spent_before['generation']
+        evaluation = sum(gen['evaluation'] for gen in self.timing.values()) - spent_before['evaluation']
+        logger.info(f"Total time ({self.maxiter} generations): {format_duration(total)}.\n"
+                    f"Generating molecules: {format_duration(generation)} "
+                    f"({100 * generation / total:.1f} %).\n"
+                    f"Evaluating the cost function: {format_duration(evaluation)} "
+                    f"({100 * evaluation / total:.1f} %).\n"
                     f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):

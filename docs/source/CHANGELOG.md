@@ -43,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `moldrug.opt.GA` and `moldrug.opt.Local` keep track of how long they spend building molecules and how long they spend calculating their cost, in the new `timing` attribute, and report both with their share of the total at the end of every call. `GA` keys it by generation, generation 0 being the initialization of the population, while `Local` accumulates the two phases over calls. The phases do not add up to the total, since saving, sorting and checkpointing fall outside both.
+- `moldrug.utils.format_duration` expresses a number of seconds in the largest unit that keeps it above one, from seconds up to days. The timing summaries use it.
 - A page on CReM sampling, documenting what `max_replacements` does to speed and to the way the chemical space is explored, with `Contrib/crem_sampling/crem_sampling.py` to reproduce the measurements on any fragment database.
 - `moldrug.opt.GA` draws a fresh CReM `seed` per mutation from the global random generator when `max_replacements` is set. CReM samples with a `random.Random(seed)` of its own, which does not read the global state that `randomseed` sets, so before this a sampled run could not be reproduced. A `seed` given in `mutate_crem_kwargs` is left untouched.
 - Support for Python 3.12 and 3.13. The blocker was `meeko`, whose releases all declare `python <3.12`; moldrug now depends on [meeko4moldrug](https://pypi.org/project/meeko4moldrug/), which does not. Both versions are covered by the CI matrix.

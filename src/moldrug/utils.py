@@ -358,6 +358,35 @@ def tar_errors(error_path: str = 'error'):
             logger.info(f"\t\t{20*'=+'}")
         shutil.rmtree(error_path)
 
+
+def format_duration(seconds: float) -> str:
+    """Express a number of seconds in the largest unit that keeps it above one.
+
+    Days are the largest unit, so a run of a week is reported in days rather than weeks.
+
+    Parameters
+    ----------
+    seconds : float
+        The duration to express.
+
+    Returns
+    -------
+    str
+        The duration and its unit, for example ``'34.10 s'``, ``'2.50 min'``,
+        ``'1.75 h'`` or ``'3.20 days'``.
+
+    Example
+    -------
+    .. ipython:: python
+
+        from moldrug.utils import format_duration
+        [format_duration(s) for s in (12.5, 90, 5400, 180000)]
+    """
+    for limit, factor, unit in ((60, 1, 's'), (3600, 60, 'min'), (86400, 3600, 'h')):
+        if seconds < limit:
+            return f"{seconds / factor:.2f} {unit}"
+    return f"{seconds / 86400:.2f} days"
+
 ######################
 # Selection functions
 ######################
