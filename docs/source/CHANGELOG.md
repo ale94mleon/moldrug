@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- `moldrug.opt.GA` and `moldrug.opt.Local` no longer call `random.seed()`. Each one owns a `rng` (a `random.Random` seeded with `randomseed`) and every random decision is drawn from it, so constructing them no longer reseeds the global random generator of the process, and nothing else drawing from it can shift a moldrug run. `rng` is pickled with the class, which makes a run restored from a checkpoint reproducible; before, it continued from whatever global state the new process happened to have. The sequence of draws changes, so a given `randomseed` gives different results than in previous versions.
+- `moldrug.utils.roulette_wheel_selection` and `moldrug.utils.get_similar_mols` take the generator to draw from as a new required argument, `rng`.
 - Depend on [meeko4moldrug](https://pypi.org/project/meeko4moldrug/) instead of a `git+https` reference to the [Meeko fork](https://github.com/ale94mleon/Meeko). PyPI rejects distributions that declare direct URL dependencies, so moldrug could not be released with the previous dependency. Imports change from `meeko` to `meeko4moldrug`.
 - CLI has subspaces: `run` and `constraintconf`. The syntax `moldrug config.yml` changed to `moldrug run config.yml` and `constraintconf_moldrug ...` to `moldrug constraintconf ...`.
 - `GA` and `Local` now lies on the `opt` module. they can also be imported directly. E.g. `from moldrug import GA`.

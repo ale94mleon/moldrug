@@ -40,7 +40,11 @@ class Local:
     Attributes
     ----------
     randomseed : Union[None, int]
-        The random seed to use with random module.
+        The seed of :attr:`rng`.
+    rng : random.Random
+        The generator every random decision of this class is drawn from. It is seeded with
+        ``randomseed`` and pickled with the class, so a run restored from a checkpoint
+        carries on where it left off.
     __moldrug_version__ : str
         The molDrug version.
     costfunc : object
@@ -89,8 +93,7 @@ class Local:
             They must be None or a dict instance.
         """
         self.randomseed = randomseed
-        if self.randomseed is not None:
-            random.seed(randomseed)
+        self.rng = random.Random(randomseed)  # nosec
 
         self.__moldrug_version = __version__
 
@@ -150,7 +153,7 @@ class Local:
         self.grow_crem_kwargs.update({'return_mol': True})
         new_mols = list(grow_mol(self._seed_mol, self.crem_db_path, **self.grow_crem_kwargs))
         if pick:
-            random.shuffle(new_mols)
+            self.rng.shuffle(new_mols)
             new_mols = new_mols[:pick]
             new_mols = [item[1] for item in new_mols]
 
@@ -226,7 +229,11 @@ class GA:
     Attributes
     ----------
     randomseed : Union[None, int]
-        The random seed to use with random module.
+        The seed of :attr:`rng`.
+    rng : random.Random
+        The generator every random decision of this class is drawn from. It is seeded with
+        ``randomseed`` and pickled with the class, so a run restored from a checkpoint
+        carries on where it left off.
     __moldrug_version__ : str
         The moldrug version.
     costfunc : object
@@ -345,8 +352,7 @@ class GA:
             In case of crem_db_path deos not exist.
         """
         self.randomseed = randomseed
-        if self.randomseed is not None:
-            random.seed(randomseed)
+        self.rng = random.Random(randomseed)  # nosec
 
         self.__moldrug_version__ = __version__
         if mutate_crem_kwargs is None:
@@ -499,11 +505,11 @@ class GA:
         """The CReM keywords for one call, with a fresh sampling seed.
 
         When ``max_replacements`` is set, CReM samples the replacements with a generator of
-        its own, ``random.Random(seed)``, which does not read the global random state that
-        moldrug seeds. Leaving ``seed`` unset would therefore make a run with ``randomseed``
-        unreproducible, and pinning it to a constant would hand back the same molecule on
-        every mutation of the same parent. Drawing the seed from the global generator gives
-        both: it varies within a run and repeats across runs.
+        its own, ``random.Random(seed)``, which does not read :attr:`rng`. Leaving ``seed``
+        unset would therefore make a run with ``randomseed`` unreproducible, and pinning it
+        to a constant would hand back the same molecule on every mutation of the same
+        parent. Drawing the seed from :attr:`rng` gives both: it varies within a run and
+        repeats across runs.
 
         A ``seed`` the user put in ``mutate_crem_kwargs`` is left alone.
 
@@ -514,7 +520,7 @@ class GA:
         """
         kwargs = self.mutate_crem_kwargs.copy()
         if kwargs.get('max_replacements') is not None and 'seed' not in kwargs:
-            kwargs['seed'] = random.randint(0, 2**31 - 1)  # nosec
+            kwargs['seed'] = self.rng.randint(0, 2**31 - 1)
         return kwargs
 
     def _initialize_population(self, runner: Runner):
@@ -549,11 +555,11 @@ class GA:
             if len(GenInitStructs) < (self.popsize - len(self._seed_mol)):
                 logger.warning('The initial population has repeated elements')
                 # temporal solution
-                GenInitStructs += random.choices(GenInitStructs,
-                                                 k=self.popsize - len(GenInitStructs) - len(self._seed_mol))
+                GenInitStructs += self.rng.choices(GenInitStructs,
+                                                   k=self.popsize - len(GenInitStructs) - len(self._seed_mol))
             elif len(GenInitStructs) > (self.popsize - 1):
                 # Selected random sample from the generation
-                GenInitStructs = random.sample(GenInitStructs, k=self.popsize - len(self._seed_mol))
+                GenInitStructs = self.rng.sample(GenInitStructs, k=self.popsize - len(self._seed_mol))
             else:
                 # Everything is ok!
                 pass
@@ -639,7 +645,7 @@ class GA:
         popc = []
         for _ in range(self.nc):
             # Perform Roulette Wheel Selection
-            parent = self.pop[roulette_wheel_selection(probs)]
+            parent = self.pop[roulette_wheel_selection(probs, self.rng)]
 
             # Perform Mutation (this mutation is some kind of crossover but with CReM library)
             children = self.mutate(parent)
@@ -797,9 +803,9 @@ class GA:
             # Bias the searching to similar molecules
             if self.get_similar:
                 mol = get_similar_mols(mols=[mol for _, mol in mutants],
-                                       ref_mol=self.InitIndividual.mol, pick=1, beta=0.01)[0]
+                                       ref_mol=self.InitIndividual.mol, pick=1, rng=self.rng, beta=0.01)[0]
             else:
-                _, mol = random.choice(mutants)  # nosec
+                _, mol = self.rng.choice(mutants)
         except Exception as error:
             # Report what went wrong. CReM takes **kwargs, so a mistake in
             # mutate_crem_kwargs arrives here as a ValueError naming the unknown column,

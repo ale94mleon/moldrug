@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import copy
 import os
+import random
 import sys
 import tempfile
 from multiprocessing import cpu_count
@@ -10,6 +11,7 @@ import build_crem_test_db
 import get_vina
 import yaml
 from rdkit import Chem
+from rdkit.Chem import Descriptors
 
 from moldrug import GA, home
 from moldrug.data import get_data
@@ -466,6 +468,62 @@ def test_generate_conformers():
 
     # Clean
     tar_errors()
+
+
+def molecular_weight_cost(Individual, **kwargs):
+    """A cost function without docking, so that the reproducibility tests stay fast."""
+    Individual.cost = Descriptors.MolWt(Individual.mol)
+    return Individual
+
+
+def reproducible_ga():
+    """A short GA run, cheap enough to repeat, with every random decision seeded."""
+    return GA(
+        seed_mol=Chem.MolFromSmiles(TEST_DATA['x0161']['smiles']),
+        costfunc=molecular_weight_cost,
+        costfunc_kwargs={},
+        crem_db_path=crem_db_path,
+        maxiter=1,
+        popsize=4,
+        randomseed=42)
+
+
+def test_randomseed_is_reproducible():
+    """The same randomseed gives the same population, whatever the global random state is."""
+    random.seed(1)
+    first = reproducible_ga()
+    first()
+
+    random.seed(999)
+    second = reproducible_ga()
+    second()
+
+    assert [individual.smiles for individual in first.pop] == \
+        [individual.smiles for individual in second.pop]
+
+
+def test_checkpoint_resume_is_reproducible():
+    """A run restored from a checkpoint carries on from where its generator left off.
+
+    The generator lives on the class, so it is pickled with it. Were it the global one,
+    the two continuations below would diverge, because they are seeded differently.
+    """
+    ga = reproducible_ga()
+    ga()
+    ga.pickle('test_checkpoint_resume', compress=True)
+
+    random.seed(1)
+    first = decompress_pickle('test_checkpoint_resume.pbz2')
+    first()
+
+    random.seed(999)
+    second = decompress_pickle('test_checkpoint_resume.pbz2')
+    second()
+
+    assert [individual.smiles for individual in first.pop] == \
+        [individual.smiles for individual in second.pop]
+    # And the resumed run is not simply repeating the generation it loaded.
+    assert first.NumGens == ga.NumGens + 1
 
 
 if __name__ == '__main__':

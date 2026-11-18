@@ -363,13 +363,17 @@ def tar_errors(error_path: str = 'error'):
 ######################
 
 
-def roulette_wheel_selection(p: List[float]):
+def roulette_wheel_selection(p: List[float], rng: random.Random):
     """Function to select the offsprings based on their fitness.
 
     Parameters
     ----------
     p : list[float]
         Probabilities
+    rng : random.Random
+        The generator to draw from. :class:`moldrug.opt.GA` passes its own ``rng``, so that
+        the selection is reproducible from ``randomseed`` and independent of the global
+        random state.
 
     Returns
     -------
@@ -377,7 +381,7 @@ def roulette_wheel_selection(p: List[float]):
         The selected index
     """
     c = np.cumsum(p)
-    r = sum(p) * random.random() # noqa
+    r = sum(p) * rng.random()
     ind = np.argwhere(r <= c)
     return ind[0][0]
 
@@ -582,7 +586,8 @@ def get_sim(ms: List[Chem.rdchem.Mol], ref_fps: List):
     return output
 
 
-def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, beta: float = 0.01):
+def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, rng: random.Random,
+                     beta: float = 0.01):
     """Pick the similar molecules from mols respect to ref_mol using a roulette wheel selection strategy.
 
     Parameters
@@ -593,6 +598,10 @@ def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, beta: floa
         The reference molecule
     pick : int
         Number of molecules to pick from mols
+    rng : random.Random
+        The generator to draw from. :class:`moldrug.opt.GA` passes its own ``rng``, so that
+        the selection is reproducible from ``randomseed`` and independent of the global
+        random state.
     beta : float, optional
         Selection threshold, by default 0.01
 
@@ -611,7 +620,7 @@ def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, beta: floa
         cumsum = np.cumsum(probs)
         indexes = set()
         while len(indexes) != pick:
-            r = sum(probs) * random.random() # noqa
+            r = sum(probs) * rng.random()
             indexes.add(np.argwhere(r <= cumsum)[0][0])
         return [mols[index] for index in indexes]
 

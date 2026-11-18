@@ -254,9 +254,9 @@ and prints every table as Markdown, ready to paste back here.
 ## If you do set it: seeding
 
 CReM samples with a random generator of its own, `random.Random(seed)`, which does **not**
-read the global random state that moldrug seeds through `randomseed`. moldrug therefore draws
-a fresh seed per call from the global generator. There are three ways `seed` can reach CReM,
-and two of them look reasonable but are wrong.
+read the generator moldrug seeds with `randomseed`. moldrug therefore draws a fresh seed per
+call from its own generator, `GA.rng`. There are three ways `seed` can reach CReM, and two of
+them look reasonable but are wrong.
 
 1. **A fixed value on every call.** The generator is rebuilt identically each time, so the same
 parent yields the same child on every mutation. A parent selected across several generations
@@ -267,11 +267,12 @@ Reproducible, but not random.
 within a run, so nothing looks wrong, but the run cannot be reproduced: the same
 `randomseed` gives different molecules every time. Random, but not reproducible.
 
-3. **A fresh seed per call, drawn from the global generator.** This is what moldrug does from
-version 4.0.0. Earlier versions never passed a `seed`, so anyone who set
-`max_replacements` themselves got the second behaviour. The
-seed changes from one mutation to the next, so the children vary, and the sequence of seeds
-is itself determined by `randomseed`, so the whole run repeats. Random *and* reproducible.
+3. **A fresh seed per call, drawn from `GA.rng`.** This is what moldrug does from version
+4.0.0. Earlier versions never passed a `seed`, so anyone who set `max_replacements` themselves
+got the second behaviour. The seed changes from one mutation to the next, so the children
+vary, and the sequence of seeds is itself determined by `randomseed`, so the whole run
+repeats. Random *and* reproducible. `GA.rng` is pickled with the class, so this holds for a
+run restored from a checkpoint too.
 
 If you put your own `seed` in `mutate_crem_kwargs`, moldrug leaves it alone and you get the
 first behaviour.
