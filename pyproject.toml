@@ -40,7 +40,9 @@ keywords = [
 ]
 
 dependencies = [
-    "crem",
+    # crem>=0.3 takes a seed for its sampling, which moldrug.opt.GA passes whenever
+    # max_replacements is set. See the CReM sampling page of the documentation.
+    "crem>=0.3",
     "tqdm",
     "numpy",
     "pandas",
@@ -49,7 +51,9 @@ dependencies = [
     "meeko4moldrug>=0.6.1.post8",
     "scipy",  # a meeko4moldrug dependency
     "six",
-    "rdkit>=2022.3.5",
+    # crem>=0.3 already requires rdkit>=2025.3.5, so the old 2022.3.5 floor could never be
+    # resolved to anyway.
+    "rdkit>=2025.3.5",
 ]
 
 [project.optional-dependencies]
