@@ -21,6 +21,15 @@ from moldrug.utils import (Individual, _make_kwargs_copy, compressed_pickle,
 
 logger = logging.getLogger(__name__)
 
+#: How many replacements CReM is asked to sample per mutation, ``None`` meaning "enumerate
+#: all of them". Capping it saves the work of building mutants that get discarded, the more
+#: so the larger the database, but it is not only a speed setting: CReM gives each fragment
+#: of the molecule an equal quota, however many
+#: replacements the database holds for it, so sampling re-weights which part of the molecule
+#: gets modified, away from the groups the database knows well. See the CReM sampling page
+#: of the documentation for the measurements behind this default.
+DEFAULT_MAX_REPLACEMENTS = None
+
 RDLogger.DisableLog('rdApp.*')
 
 
@@ -310,7 +319,10 @@ class GA:
         get_similar : bool, optional
             If True the searching will be bias to similar molecules, by default False
         mutate_crem_kwargs : Union[None, Dict], optional
-            Parameters for mutate_mol of CReM, by default {}
+            Parameters for mutate_mol of CReM, by default {}. ``max_replacements`` is worth
+            knowing about: it caps how many mutants CReM builds per mutation, which is much
+            faster on a large database, but it also changes how the chemical space is
+            explored. See the CReM sampling page of the documentation.
         save_pop_every_gen : int, optional
             Frequency to save the population, by default 0
         checkpoint : bool, optional
@@ -369,8 +381,11 @@ class GA:
             'min_inc': -5,
             'max_inc': 3,
             'ncores': 1,
+            'max_replacements': DEFAULT_MAX_REPLACEMENTS,
         }
         self.mutate_crem_kwargs.update(mutate_crem_kwargs)
+        # We need the molecule back, so this overrides any user definition of the keyword
+        self.mutate_crem_kwargs['return_mol'] = True
 
         # Saving parameters
         self.save_pop_every_gen = save_pop_every_gen
@@ -436,11 +451,6 @@ class GA:
             logger.error(f"{self.__class__.__name__} was initialized with moldrug-{self.__moldrug_version__} "
                          f"but was called with moldrug-{__version__}")
 
-        # Here we will update if needed some parameters for
-        # the crem operations that could change between different calls.
-        # We need to return the molecule, so we override the possible user definition respect to this keyword
-        self.mutate_crem_kwargs['return_mol'] = True
-
         # In case that the population exists there is not need to initialize.
         if len(self.pop) == 0:
             self._initialize_population(runner)
@@ -485,6 +495,28 @@ class GA:
 
         self._log_summary(ts)
 
+    def _crem_kwargs(self):
+        """The CReM keywords for one call, with a fresh sampling seed.
+
+        When ``max_replacements`` is set, CReM samples the replacements with a generator of
+        its own, ``random.Random(seed)``, which does not read the global random state that
+        moldrug seeds. Leaving ``seed`` unset would therefore make a run with ``randomseed``
+        unreproducible, and pinning it to a constant would hand back the same molecule on
+        every mutation of the same parent. Drawing the seed from the global generator gives
+        both: it varies within a run and repeats across runs.
+
+        A ``seed`` the user put in ``mutate_crem_kwargs`` is left alone.
+
+        Returns
+        -------
+        dict
+            A copy of ``mutate_crem_kwargs``, possibly with ``seed`` added.
+        """
+        kwargs = self.mutate_crem_kwargs.copy()
+        if kwargs.get('max_replacements') is not None and 'seed' not in kwargs:
+            kwargs['seed'] = random.randint(0, 2**31 - 1)  # nosec
+        return kwargs
+
     def _initialize_population(self, runner: Runner):
         """Build the first population and evaluate it.
 
@@ -506,7 +538,7 @@ class GA:
         # in case that the input has the popsize memebers there is not need to generate new structures
         if len(self._seed_mol) < self.popsize:
             for mol in self._seed_mol:
-                tmp_GenInitStructs = list(mutate_mol(mol, self.crem_db_path, **self.mutate_crem_kwargs))
+                tmp_GenInitStructs = list(mutate_mol(mol, self.crem_db_path, **self._crem_kwargs()))
                 tmp_GenInitStructs = [mol for (_, mol) in tmp_GenInitStructs]
                 GenInitStructs += tmp_GenInitStructs
             # Checking for possible scenarios
@@ -745,7 +777,7 @@ class GA:
         """
 
         # Here is were I have to check if replace_ids or protected_ids where provided.
-        mutate_crem_kwargs_to_work_with = self.mutate_crem_kwargs.copy()
+        mutate_crem_kwargs_to_work_with = self._crem_kwargs()
         if 'replace_ids' in self.mutate_crem_kwargs and 'protected_ids' in self.mutate_crem_kwargs:
             mutate_crem_kwargs_to_work_with['replace_ids'], mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(
                 self.InitIndividual.mol, individual.mol, parent_replace_ids=self.mutate_crem_kwargs['replace_ids'],

@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `moldrug.opt.GA` draws a fresh CReM `seed` per mutation from the global random generator when `max_replacements` is set. CReM samples with a `random.Random(seed)` of its own, which does not read the global state that `randomseed` sets, so before this a sampled run could not be reproduced. A `seed` given in `mutate_crem_kwargs` is left untouched.
 - Support for Python 3.12 and 3.13. The blocker was `meeko`, whose releases all declare `python <3.12`; moldrug now depends on [meeko4moldrug](https://pypi.org/project/meeko4moldrug/), which does not. Both versions are covered by the CI matrix.
 - Cluster configuration can be provided to calculate cost function on multiple nodes of a cluster.  
   Cluster support requires installation of optional packages related to Dask, a package set called `cluster`.
