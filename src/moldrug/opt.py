@@ -289,11 +289,16 @@ class GA:
 
     TODO:
 
-        * Timing the simulation, add tracking variable for the timing of the evaluation and genereation of moleucles. Print at the end of each call
-        * Extend to other genereators:
-            - mutate_crem_kwargs = None and some other keyword that get the generator function, in this case the mutate method will be overwrite
-            with the user provided, this fucntion will take an Individual and return a new offspring, to be more copatible and not create issues,
-            I good idea will be that this fucntion accept a self as first arguemnt, and internally, it will use the self of the GA class
+        * Timing the simulation, add tracking variable for the timing of the evaluation and
+          generation of molecules. Print at the end of each call
+        * Extend to other generators:
+
+            - mutate_crem_kwargs = None and some other keyword that gets the generator
+              function, in this case the mutate method will be overwritten with the one the
+              user provided. This function will take an Individual and return a new
+              offspring. To be more compatible and not create issues, a good idea will be
+              that this function accepts a self as first argument, and internally it will
+              use the self of the GA class
 
     """
     def __init__(self, seed_mol: Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],

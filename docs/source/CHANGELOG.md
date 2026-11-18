@@ -285,7 +285,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The use of `moldrug.utils.tar_errors` inside of `moldrug.utils.Local` and `moldrug.utils.GA`.
 - Clean code.
 
-## [3.2.5] - 2022.12.20
+## [3.2.6] - 2022.12.20
 
 ### Fixed
 
@@ -556,17 +556,17 @@ Print the starting date when moldrug is called from the command line.
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/moldrug/compare/3.7.3...HEAD
-[3.7.3]: https://github.com/ale94mleon/moldrug/compare/3.7.2...3.7.3
-[3.7.2]: https://github.com/ale94mleon/moldrug/compare/3.7.1...3.7.2
-[3.7.1]: https://github.com/ale94mleon/moldrug/compare/3.7.0...3.7.1
-[3.7.0]: https://github.com/ale94mleon/moldrug/compare/3.6.1...3.7.0
-[3.6.1]: https://github.com/ale94mleon/moldrug/compare/3.6.0...3.6.1
-[3.6.0]: https://github.com/ale94mleon/moldrug/compare/3.5.0...3.6.0
-[3.5.0]: https://github.com/ale94mleon/moldrug/compare/3.4.0...3.5.0
+[unreleased]: https://github.com/ale94mleon/moldrug/compare/v3.7.3...HEAD
+[3.7.3]: https://github.com/ale94mleon/moldrug/compare/v3.7.2...v3.7.3
+[3.7.2]: https://github.com/ale94mleon/moldrug/compare/v3.7.1...v3.7.2
+[3.7.1]: https://github.com/ale94mleon/moldrug/compare/v3.7.0...v3.7.1
+[3.7.0]: https://github.com/ale94mleon/moldrug/compare/v3.6.1...v3.7.0
+[3.6.1]: https://github.com/ale94mleon/moldrug/compare/v3.6.0...v3.6.1
+[3.6.0]: https://github.com/ale94mleon/moldrug/compare/v3.5.0...v3.6.0
+[3.5.0]: https://github.com/ale94mleon/moldrug/compare/3.4.0...v3.5.0
 [3.4.0]: https://github.com/ale94mleon/moldrug/compare/3.3.0...3.4.0
-[3.3.0]: https://github.com/ale94mleon/moldrug/compare/3.2.5...3.3.0
-[3.2.5]: https://github.com/ale94mleon/moldrug/compare/3.2.2...3.2.5
+[3.3.0]: https://github.com/ale94mleon/moldrug/compare/3.2.6...3.3.0
+[3.2.6]: https://github.com/ale94mleon/moldrug/compare/3.2.2...3.2.6
 [3.2.2]: https://github.com/ale94mleon/moldrug/compare/3.2.0...3.2.2
 [3.2.0]: https://github.com/ale94mleon/moldrug/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/ale94mleon/moldrug/compare/3.0.3...3.1.0
