@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+"""The moldrug command line interface.
+
 For information of moldrug:
+
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
@@ -26,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 
 class MoldrugRunHelper:
+    """Run a moldrug job from the command line, with or without continuation."""
+
     def __init__(self, yaml_file, fitness, continuation, verbose) -> None:
         self.yaml_file = yaml_file
         self.fitness = fitness
@@ -199,7 +203,8 @@ class MoldrugRunHelper:
 
     def _get_continuation_point(self):
         """
-        This gave me the job and how many generation are needed to complete it.
+        Give the job and how many generations are needed to complete it.
+
         The further jobs are suppose that must run.
         """
         if self.continuation:
@@ -256,10 +261,12 @@ class MoldrugRunHelper:
             self.moldrugClass = self.TypeOfRun(**self.InitArgs)
 
     def run_moldrugClass(self):
+        """Run the moldrug class with the arguments taken from the yaml file."""
         self.moldrugClass(**self.CallArgs)
 
     def save_data(self):
         # Saving data
+        """Pickle the result of the run, and write the sdf of the final population."""
         if self._TypeOfRun_str == 'local':
             self.moldrugClass.pickle("local_result", compress=True)
             make_sdf(self.moldrugClass.pop, sdf_name="local_pop")
@@ -268,6 +275,7 @@ class MoldrugRunHelper:
             make_sdf(self.moldrugClass.pop, sdf_name=f"{self.moldrugClass.deffnm}_pop")
 
     def __repr__(self) -> str:
+        """Return the representation of the helper."""
         string = f"{self.__class__.__name__}(yaml_file={self.yaml_file}, "\
             f"fitness={self.fitness}, continuation={self.continuation}, " \
             f"verbose={self.verbose})"
@@ -278,7 +286,8 @@ class MoldrugRunHelper:
 
 def __moldrug_run(yaml_file, fitness, continuation, verbose):
     """
-    This function is only used in as part of the command line interface of moldrug.
+    Serve the command line interface of moldrug only.
+
     It makes possible to use moldrug form the command line. More detail help is available
     from the command line `moldrug -h`.
 
@@ -291,7 +300,6 @@ def __moldrug_run(yaml_file, fitness, continuation, verbose):
     ValueError
         In case that a non-mutable or non-defined argument is given by the user on the follow jobs.
     """
-
     # Map verbosity count to logging levels
     if verbose >= 2:
         logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
@@ -343,6 +351,7 @@ def __moldrug_run(yaml_file, fitness, continuation, verbose):
 
 
 def main():
+    """Entry point of the moldrug command line interface."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '-v', '--version',

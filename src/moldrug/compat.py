@@ -1,5 +1,5 @@
 """
-This module provides backward compatibility with moldrug <= 4.0.
+Provide backward compatibility with moldrug <= 4.0.
 
 It allows pickle objects created with older versions of moldrug
 to be successfully loaded after internal refactoring (e.g. moved classes).
@@ -20,6 +20,7 @@ class BackCompatUnpickler(dill.Unpickler):
     """Custom unpickler that redirects renamed or moved classes."""
 
     def find_class(self, module: str, name: str):
+        """Return the class, following the renames of moldrug 4.0 when there is one."""
         key = (module, name)
         if key in _CLASS_RENAMES:
             new_module, new_name = _CLASS_RENAMES[key]

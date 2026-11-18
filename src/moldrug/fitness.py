@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""The cost functions moldrug ships, built on docking and the desirability concept."""
+
 import logging
 import os
 from copy import deepcopy
@@ -21,8 +23,9 @@ from moldrug.utils import (VINA_OUT, DerringerSuichDesirability, Individual,
 logger = logging.getLogger(__name__)
 
 def __get_default_desirability(multireceptor: bool = False) -> dict:
-    """Storage default desirability functions values to work with the
-    cost functions defined in :mod:`moldrug.fitness`
+    """Storage default desirability functions values.
+
+    They work with the cost functions defined in :mod:`moldrug.fitness`.
 
     Parameters
     ----------
@@ -35,7 +38,6 @@ def __get_default_desirability(multireceptor: bool = False) -> dict:
     dict
         The default desirability
     """
-
     desirability = {
         'qed': {
             'w': 1,
@@ -103,7 +105,8 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
                    docking_type: str = 'score_only',
                    desirability: Dict = None):
     """
-    This function is for developing. It calculate the cost of a single molecule.
+    Calculate the cost of a single molecule, for developing.
+
     I use it for testing.
 
     Parameters
@@ -136,6 +139,7 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
             from moldrug.fitness import __get_default_desirability
             import json
             json.dumps(__get_default_desirability(multireceptor=False), indent = 4)
+
     Returns
     -------
     dict
@@ -146,7 +150,6 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
     RuntimeError
         Inconsistences on user definition of the desirability function parameters.
     """
-
     if desirability is None:
         desirability = __get_default_desirability(multireceptor=False)
     else:
@@ -250,8 +253,8 @@ def _vinadock(
         constraint_num_conf: int = 100,
         constraint_minimum_conf_rms: int = 0.01):
     """
-    This function is intend to be used to perform docking
-    for all the cost functions implemented on :mod:`moldrug.fitness`
+    Perform docking for all the cost functions implemented on :mod:`moldrug.fitness`.
+
     If ad4map (available from moldrug-3.0.0) is set,
     the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
     must be installed. To see how to use AutoDock4 force fields in the new version of vina, follow
@@ -312,7 +315,6 @@ def _vinadock(
         Inappropriate constraint_type. must be local_only or score_only.
         Only will be checked if constraint is set to True.
     """
-
     constraint_type = constraint_type.lower()
 
     # Creating the error directory if needed
@@ -487,7 +489,8 @@ def Cost(
         constraint_minimum_conf_rms: int = 0.01,
         desirability: Dict = None):
     """
-    This is the main Cost function of the module. It use the concept of desirability functions.
+    Calculate the cost with the main Cost function of the module, which uses the concept of desirability functions.
+
     The response variables are:
 
     #. `Vina score. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/>`_
@@ -551,6 +554,7 @@ def Cost(
             from moldrug.fitness import __get_default_desirability
             import json
             print(json.dumps(__get_default_desirability(multireceptor=False), indent = 4))
+
     Returns
     -------
     Individual
@@ -658,7 +662,7 @@ def CostOnlyVina(
         constraint_minimum_conf_rms: int = 0.01,
         wt_cutoff: Union[None, float] = None):
     """
-    This Cost function performs Docking and return the vina_score as Cost.
+    Perform docking and return the vina_score as Cost.
 
     Parameters
     ----------
@@ -781,8 +785,9 @@ def CostMultiReceptors(
         constraint_minimum_conf_rms: int = 0.01,
         desirability: Dict = None):
     """
-    This function is similar to :meth:`moldrug.fitness.Cost` but it will add the possibility
-    to work with more than one receptor. It also use the concept of desirability and the response variables are:
+    Work as :meth:`moldrug.fitness.Cost` does, but with more than one receptor.
+
+    It also use the concept of desirability and the response variables are:
 
     #. `Vina scores. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3041641/>`_
     #. `Quantitative Estimation of Drug-likeness (QED). <https://www.nature.com/articles/nchem.1243>`_
@@ -1042,8 +1047,8 @@ def CostMultiReceptorsOnlyVina(
         desirability: Dict = None,
         wt_cutoff: Union[None, float] = None):
     """
-    This function is similar to :meth:`moldrug.fitness.
-    CostOnlyVina` but it will add the possibility to work with more than one receptor.
+    Work as :meth:`moldrug.fitness.CostOnlyVina` does, but with more than one receptor.
+
     It also use the concept of desirability.
     The response variables are the vina scores on each receptor.
 

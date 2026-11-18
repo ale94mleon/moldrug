@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-For the functions: duplicate_conformers, get_mcs, generate_conformers, constraintconf
-and the class ProteinLigandClashFilter:
+"""Constrained conformer generation, and the clash filter it needs.
+
+For the functions duplicate_conformers, get_mcs, generate_conformers and constraintconf,
+and for the class ProteinLigandClashFilter:
     Code borrowed from Pat Walters
     https://github.com/PatWalters/fragment_expansion/blob/master/rdkit_eval/rd_gen_restricted_confs.py
     Which was borrowed from Joshua Meyers
@@ -36,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
     """
-    Check if a conformer with index new_onf_idx it is duplicated based on rms_limit
+    Check if a conformer with index new_onf_idx it is duplicated based on rms_limit.
 
     Parameters
     ----------
@@ -89,7 +90,7 @@ def get_mcs(mol_one: Chem.rdchem.Mol, mol_two: Chem.rdchem.Mol) -> str:
 
 def gen_aligned_conf(mol: Chem.rdchem.Mol, ref_mol: Chem.rdchem.Mol,
                      ref_smi: str, randomseed: Union[int, None] = None) -> Chem.rdchem.Mol:
-    """Generate a conformation of mol aligned to ref_mol
+    """Generate a conformation of mol aligned to ref_mol.
 
     Parameters
     ----------
@@ -133,7 +134,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                         randomseed: Union[int, None] = None
                         ) -> Chem.rdchem.Mol:
     """
-    Generate constrained conformers
+    Generate constrained conformers.
 
     Parameters
     ----------
@@ -212,9 +213,10 @@ def generate_conformers(mol: Chem.rdchem.Mol,
 
 
 def clashes_present(coords1: np.ndarray, coords2: np.ndarray, clash_distance_threshold: float = 1.5) -> bool:
-    """A function to determine if two set of coordinates n X 3 and m X 3 present clashes based on
-    a threshold. In other words if there are any point from the two set of coordinates at a distances less
-    or equal than clash_distance_threshold.
+    """Determine if two set of coordinates n X 3 and m X 3 present clashes.
+
+    In other words, if there are any point from the two set of coordinates at a distance
+    less or equal than clash_distance_threshold.
 
     Parameters
     ----------
@@ -244,12 +246,11 @@ def clashes_present(coords1: np.ndarray, coords2: np.ndarray, clash_distance_thr
 
 
 class ProteinLigandClashFilter:
-    """
-    Class used to eliminate clash between a ligand and a protein.
-    """
+    """Class used to eliminate clash between a ligand and a protein."""
+
     def __init__(self, protein_pdbpath: str, distance: float = 1.5):
         """
-        This is the constructor of the class
+        Create the exception.
 
         Parameters
         ----------
@@ -263,7 +264,7 @@ class ProteinLigandClashFilter:
 
     def __call__(self, conf: Chem.rdchem.Conformer) -> bool:
         """
-        Call deffinition
+        Call deffinition.
 
         Parameters
         ----------
@@ -285,7 +286,7 @@ class ProteinLigandClashFilter:
 def constraintconf(pdb: str, smi: str, fix: str, out: str, max_conf: int = 25, rms: float = 0.01,
                    bump: float = 1.5, randomseed: Union[int, None] = None):
     """
-    It generates several conformations in the binding pocket with a specified constraint.
+    Generate several conformations in the binding pocket with a specified constraint.
 
     Parameters
     ----------
@@ -308,7 +309,6 @@ def constraintconf(pdb: str, smi: str, fix: str, out: str, max_conf: int = 25, r
        the same coordinates can be obtained for a molecule on multiple runs.
        If None, the RNG will not be seeded, by default None
     """
-
     ref = Chem.MolFromMolFile(fix)
     suppl = Chem.SmilesMolSupplier(smi, titleLine=False)
     writer = Chem.SDWriter(out)

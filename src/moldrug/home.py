@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Locate the files moldrug ships with."""
 
 import moldrug
 import os
@@ -9,6 +10,7 @@ import inspect
 
 def home(dataDir=None):
     """Return the pathname of the moldrug root directory (or a data subdirectory).
+
     Parameters
     ----------
     dataDir : str
@@ -28,7 +30,6 @@ def home(dataDir=None):
     >>> os.path.join(home(dataDir="test-charge"),"H2O.mol2")  # doctest: +ELLIPSIS
     '.../data/test-charge/H2O.mol2'
     """
-
     homeDir = os.path.dirname(inspect.getfile(moldrug))
     try:
         if sys._MEIPASS:

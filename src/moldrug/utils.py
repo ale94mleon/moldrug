@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Helpers shared across moldrug: the Individual, the desirability functions and the vina output readers."""
+
 import bz2
 import collections.abc
 import logging
@@ -30,6 +32,7 @@ RDLogger.DisableLog('rdApp.*')
 class Individual:
     """
     Base class to work with GA, Local and all the fitness functions.
+
     Individual is a mutable object. Only the attribute smiles it is not mutable and is used
     for hash. Therefore this class is hashable based on the smiles attribute.
     This one is also used for '==' comparison
@@ -64,9 +67,6 @@ class Individual:
     pdbqt: str
         A pdbqt string representation of the molecule, used for docking with Vina. It is generated
         during the initialization of the class
-    smiles: str (property)
-        The SMILES representation of the mol attribute without explicit hydrogens,
-        this attribute (property) is immutable.
     cost: float
         This attribute is used to interact with the fitness functions of :mod:`moldrug.fitness`
 
@@ -94,9 +94,10 @@ class Individual:
         # Show copy
         print(copy(i3), deepcopy(i3))
     """
+
     def __init__(self, mol: Chem.rdchem.Mol, idx: Union[int, str] = 0, pdbqt: str = None,
                  cost: float = np.inf, randomseed: Union[int, None] = None) -> None:
-        """This is the constructor of the class.
+        """Create the Individual.
 
         Parameters
         ----------
@@ -129,96 +130,128 @@ class Individual:
 
     @property
     def smiles(self):
+        """Return the SMILES of the mol attribute, without explicit hydrogens.
+
+        It is immutable, and the Individual is hashed on it.
+        """
         return Chem.MolToSmiles(Chem.RemoveHs(self.mol))
 
     def __repr__(self):
+        """Return the representation of the Individual."""
         return f"{self.__class__.__name__}(idx = {self.idx}, smiles = {self.smiles}, cost = {self.cost})"
 
     def __hash__(self):
+        """Return the hash of the Individual, which is the hash of its smiles."""
         return hash(self.smiles)
 
     def __eq__(self, other: object) -> bool:
+        """Return self == other, comparing the smiles."""
         if self.__class__ is other.__class__:
             return self.smiles == other.smiles  # self.cost == other.cost and
         else:
             return False  # self.smiles == other
 
     def __gt__(self, other: object) -> bool:
+        """Return self > other."""
         return self.cost > other.cost
 
     def __ge__(self, other: object) -> bool:
+        """Return self >= other."""
         return self.cost >= other.cost
 
     def __lt__(self, other: object) -> bool:
+        """Return self < other."""
         return self.cost < other.cost
 
     def __le__(self, other: object) -> bool:
+        """Return self <= other."""
         return self.cost <= other.cost
 
     def __neg__(self) -> float:
+        """Return -self."""
         return -self.cost
 
     def __abs__(self) -> float:
+        """Return abs(self)."""
         return abs(self.cost)
 
     def __add__(self, other: object):
+        """Return self + other."""
         return self.cost + other
 
     def __radd__(self, other: object):
+        """Return other + self."""
         return other + self.cost
 
     def __sub__(self, other: object):
+        """Return self - other."""
         return self.cost - other
 
     def __rsub__(self, other: object):
+        """Return other - self."""
         return other - self.cost
 
     def __mul__(self, other: object):
+        """Return self * other."""
         return self.cost * other
 
     def __rmul__(self, other: object):
+        """Return other * self."""
         return other * self.cost
 
     def __truediv__(self, other: object):
+        """Return self / other."""
         return self.cost / other
 
     def __rtruediv__(self, other: object):
+        """Return other / self."""
         return other / self.cost
 
     def __floordiv__(self, other: object):
+        """Return self // other."""
         return self.cost // other
 
     def __rfloordiv__(self, other: object):
+        """Return other // self."""
         return other // self.cost
 
     def __mod__(self, other: object):
+        """Return self % other."""
         return self.cost % other
 
     def __rmod__(self, other: object):
+        """Return other % self."""
         return other % self.cost
 
     def __divmod__(self, other: object):
+        """Return divmod(self, other)."""
         return (self.cost // other, self.cost % other)
 
     def __rdivmod__(self, other: object):
+        """Return divmod(other, self)."""
         return (other // self.cost, other % self.cost)
 
     def __pow__(self, other: object):
+        """Return self ** other."""
         return self.cost ** other
 
     def __rpow__(self, other: object):
+        """Return other ** self."""
         return other ** self.cost
 
     def exp(self):
+        """Return the exponential of the cost."""
         return np.exp(self.cost)
 
     def __copy__(self):
+        """Return a copy of the Individual."""
         cls = self.__class__
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
         return result
 
     def __deepcopy__(self, memo):
+        """Return a deep copy of the Individual."""
         cls = self.__class__
         result = cls.__new__(cls)
         memo[id(self)] = result
@@ -228,7 +261,8 @@ class Individual:
 
 
 def make_sdf(individuals: List[Individual], sdf_name: str = 'out'):
-    """This function create a sdf file from a list of Individuals based on their pdbqt attribute
+    """Create a sdf file from a list of Individuals based on their pdbqt attribute.
+
     This assume that the cost function update the pdbqt attribute after the docking with the conformations obtained
     In the case of multiple receptor the attribute should be a list of valid pdbqt strings.
     Here will export several sdf depending how many pdbqt string are in the pdbqt attribute.
@@ -325,6 +359,7 @@ def make_sdf(individuals: List[Individual], sdf_name: str = 'out'):
 
 def _make_kwargs_copy(costfunc, costfunc_kwargs,):
     """Make a copy of the self.costfunc_kwargs.
+
     It creates a temporal directory.
 
     Returns
@@ -341,6 +376,7 @@ def _make_kwargs_copy(costfunc, costfunc_kwargs,):
 
 def tar_errors(error_path: str = 'error'):
     """Clean errors in the working directory.
+
     Convert to error.tar.gz the error_path
     and delete the directory.
 
@@ -393,7 +429,7 @@ def format_duration(seconds: float) -> str:
 
 
 def roulette_wheel_selection(p: List[float], rng: random.Random):
-    """Function to select the offsprings based on their fitness.
+    """Select the offsprings based on their fitness.
 
     Parameters
     ----------
@@ -416,7 +452,7 @@ def roulette_wheel_selection(p: List[float], rng: random.Random):
 
 
 def to_dataframe(individuals: List[Individual], return_mol: bool = False) -> pd.DataFrame:
-    """Convert a list of individuals to a DataFrame
+    """Convert a list of individuals to a DataFrame.
 
     Parameters
     ----------
@@ -444,7 +480,7 @@ def to_dataframe(individuals: List[Individual], return_mol: bool = False) -> pd.
 
 
 def run(command: str, shell: bool = True, executable: str = '/bin/bash'):
-    """This function is just a useful wrapper around subprocess.run
+    """Wrap subprocess.run in a useful way.
 
     Parameters
     ----------
@@ -465,7 +501,6 @@ def run(command: str, shell: bool = True, executable: str = '/bin/bash'):
     RuntimeError
         In case of non-zero exit status on the provided command.
     """
-
     process = subprocess.run(command, shell=shell, executable=executable,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     returncode = process.returncode
@@ -518,8 +553,8 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False, randomseed: Union[in
 
 def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol,
                          parent_replace_ids: List[int] = None, parent_protected_ids: List[int] = None):
-    """This function will find the difference between offspring and parent
-    based on the Maximum Common Substructure (MCS).
+    """Find the difference between offspring and parent, based on the Maximum Common Substructure (MCS).
+
     This difference will be consider offspring_replace_ids.
     Because after a reaction the indexes of the product could change respect to the reactant,
     the parent_replace_ids could change.
@@ -543,7 +578,6 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol,
         The function returns a tuple composed by two list of integers.
         The first list is offspring_replace_ids and the second one offspring_protected_ids.
     """
-
     # Finding Maximum Common Substructure (MCS) and getting the SMARTS
     mcs = rdFMCS.FindMCS([parent, offspring], matchValences=True, ringMatchesRingOnly=True)
     mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
@@ -645,7 +679,7 @@ def get_similar_mols(mols: List, ref_mol: Chem.rdchem.Mol, pick: int, rng: rando
 
 
 def lipinski_filter(mol: Chem.rdchem.Mol, maxviolation: int = 2):
-    """Implementation of Lipinski filter.
+    """Filter the molecule with the Lipinski rules.
 
     Parameters
     ----------
@@ -678,7 +712,7 @@ def lipinski_filter(mol: Chem.rdchem.Mol, maxviolation: int = 2):
 
 
 def lipinski_profile(mol: Chem.rdchem.Mol):
-    """See: https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski
+    """See: https://www.rdkit.org/docs/source/rdkit.Chem.Lipinski.html?highlight=lipinski#module-rdkit.Chem.Lipinski.
 
     Parameters
     ----------
@@ -722,9 +756,10 @@ def lipinski_profile(mol: Chem.rdchem.Mol):
 
 
 def LargerTheBest(Value: float, LowerLimit: float, Target: float, r: float = 1) -> float:
-    """Desirability function used when larger values are the targets. If Value is higher
-    or equal than the target it will return 1; if it is lower than LowerLimit it will return 0;
-    else a number between 0 and 1.
+    """Desirability function used when larger values are the targets.
+
+    If Value is higher or equal than the target it will return 1; if it is lower than
+    LowerLimit it will return 0; else a number between 0 and 1.
     You can also check:
     doi:10.1016/j.chemolab.2011.04.004
     https://www.youtube.com/watch?v=quz4NW0uIYw&list=PL6ebkIZFT4xXiVdpOeKR4o_sKLSY0aQf_&index=3
@@ -754,9 +789,10 @@ def LargerTheBest(Value: float, LowerLimit: float, Target: float, r: float = 1) 
 
 
 def SmallerTheBest(Value: float, Target: float, UpperLimit: float, r: float = 1) -> float:
-    """Desirability function used when lower values are the targets. If Value is lower or
-    equal than the target it will return 1; if it is higher than UpperLimit it will return 0;
-    else a number between 0 and 1.
+    """Desirability function used when lower values are the targets.
+
+    If Value is lower or equal than the target it will return 1; if it is higher than
+    UpperLimit it will return 0; else a number between 0 and 1.
 
     Parameters
     ----------
@@ -784,9 +820,10 @@ def SmallerTheBest(Value: float, Target: float, UpperLimit: float, r: float = 1)
 
 def NominalTheBest(Value: float, LowerLimit: float, Target: float,
                    UpperLimit: float, r1: float = 1, r2: float = 1) -> float:
-    """Desirability function used when a target value is desired. If Value is
-    lower or equal than the LowerLimit it will return 0; as well values higher or equal than
-    UpperLimit; else a number between 0 and 1.
+    """Desirability function used when a target value is desired.
+
+    If Value is lower or equal than the LowerLimit it will return 0; as well values higher
+    or equal than UpperLimit; else a number between 0 and 1.
 
     Parameters
     ----------
@@ -821,7 +858,7 @@ def NominalTheBest(Value: float, LowerLimit: float, Target: float,
 
 
 def DerringerSuichDesirability():
-    """A warper around the implemented desirability functions
+    """Wrap the implemented desirability functions.
 
     Returns
     -------
@@ -838,7 +875,7 @@ def DerringerSuichDesirability():
 
 # Saving data
 def full_pickle(title: str, data: object):
-    """Normal pickle.
+    """Pickle the data without compression.
 
     Parameters
     ----------
@@ -884,7 +921,7 @@ def compressed_pickle(title: str, data: object):
 
 
 def decompress_pickle(file: str):
-    """Decompress CPickle objects compressed first with bz2 formats
+    """Decompress CPickle objects compressed first with bz2 formats.
 
     Parameters
     ----------
@@ -901,7 +938,7 @@ def decompress_pickle(file: str):
 
 
 def is_iter(obj):
-    """Check if obj is iterable
+    """Check if obj is iterable.
 
     Parameters
     ----------
@@ -921,7 +958,7 @@ def is_iter(obj):
 
 
 def import_sascorer():
-    """Function to import sascorer from RDConfig.RDContribDir of RDKit
+    """Import sascorer from RDConfig.RDContribDir of RDKit.
 
     Returns
     -------
@@ -941,6 +978,7 @@ def import_sascorer():
 
 def deep_update(target_dict: dict, update_dict: dict) -> dict:
     """Recursively update a dictionary with the key-value pairs from another dictionary.
+
     Inpired on https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
 
     Parameters
@@ -977,6 +1015,7 @@ def deep_update(target_dict: dict, update_dict: dict) -> dict:
 
 
 def softmax(x, axis=None):
+    """Compute the softmax of x along the given axis, shifted for numerical stability."""
     x_max = np.amax(x, axis=axis, keepdims=True)
     exp_x_shifted = np.exp(x - x_max)
     return exp_x_shifted / np.sum(exp_x_shifted, axis=axis, keepdims=True)
@@ -986,9 +1025,11 @@ def softmax(x, axis=None):
 
 
 class Atom:
-    """This is a simple class to wrap a pdbqt Atom.
+    """Wrap a pdbqt Atom.
+
     It is based on https://userguide.mdanalysis.org/stable/formats/reference/pdbqt.html#writing-out.
     """
+
     def __init__(self, line):
         self.lineType = "ATOM"
         self.serial = int(line[6:11])
@@ -1007,12 +1048,13 @@ class Atom:
         self.atomType = line[78:80].strip()
 
     def __getitem__(self, key):
+        """Return the attribute stored under key."""
         return self.__dict__[key]
 
 
 class CHUNK_VINA_OUT:
-    """This class will be used by VINA_OUT in order to read the pdbqt ouput of a vina docking results.
-    """
+    """Read the pdbqt output of a vina docking result, for the use of VINA_OUT."""
+
     def __init__(self, chunk):
         self.chunk = chunk
         self.atoms = []
@@ -1023,6 +1065,7 @@ class CHUNK_VINA_OUT:
         self.parse()
 
     def parse(self):
+        """Read the vina output and set the attributes it defines."""
         for line in self.chunk:
             if line.startswith("MODEL"):
                 self.run = int(line[5:])
@@ -1035,10 +1078,12 @@ class CHUNK_VINA_OUT:
         """Return a list of all atoms.
 
         If to_dict is True, each atom is represented as a dictionary.
-        Otherwise, a list of Atom objects is returned."""
+        Otherwise, a list of Atom objects is returned.
+        """
         return [x.__dict__ for x in self.atoms]
 
     def write(self, name=None):
+        """Write the chunk to name, or to the standard output if no name is given."""
         if name:
             with open(name, "w") as f:
                 f.writelines(self.chunk)
@@ -1048,9 +1093,11 @@ class CHUNK_VINA_OUT:
 
 
 class VINA_OUT:
+    """Vina class to handle vina output.
+
+    Think about use meeko in the future.
     """
-    Vina class to handle vina output. Think about use meeko in the future!
-    """
+
     def __init__(self, file):
         self.file = file
 
@@ -1058,6 +1105,7 @@ class VINA_OUT:
         self.parse()
 
     def parse(self):
+        """Read the vina output and set the attributes it defines."""
         with open(self.file, "r") as input_file:
             lines = input_file.readlines()
         i = 0
@@ -1076,6 +1124,7 @@ class VINA_OUT:
             i += 1
 
     def BestEnergy(self, write=False):
+        """Return the chunk with the lowest free energy, optionally writing it to disk."""
         min_chunk = min(self.chunks, key=lambda x: x.freeEnergy)
         if write:
             min_chunk.write("best_energy.pdbqt")

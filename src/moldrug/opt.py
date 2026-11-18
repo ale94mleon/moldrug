@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""Optimization classes: the genetic algorithm GA and the local search Local."""
+
 import datetime
 import logging
 import os
@@ -34,7 +36,8 @@ RDLogger.DisableLog('rdApp.*')
 
 
 class Local:
-    """This class is used to genereate close solutions to the seed molecule.
+    """Generate close solutions to the seed molecule.
+
     It use :meth:`crem.crem.grow_mol`.
 
     Attributes
@@ -65,10 +68,11 @@ class Local:
     pop : list[:meth:`moldrug.Individuals`]
         The final population sorted by cost.
     """
+
     def __init__(self, seed_mol: Chem.rdchem.Mol, crem_db_path: str, costfunc: object, grow_crem_kwargs: Dict = None,
                  costfunc_kwargs: Dict = None, AddHs: bool = False, randomseed: Union[None, int] = None,
                  deffnm: str = 'local') -> None:
-        """Creator
+        """Creator.
 
         Parameters
         ----------
@@ -133,7 +137,7 @@ class Local:
         self.pop = [self.InitIndividual]
 
     def __call__(self, njobs: int = 1, pick: int = None, runner: Optional[Runner] = None):
-        """Call definition
+        """Call definition.
 
         Parameters
         ----------
@@ -204,12 +208,13 @@ class Local:
                     f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
+        """Evaluate the cost function on one individual, as the runner expects it."""
         Individual, kwargs = args_list
         # This is just to use the progress bar on pool.imap
         return self.costfunc(Individual, **kwargs)
 
     def pickle(self, title: str, compress: bool = False):
-        """Method to pickle the whole Local class
+        """Pickle the whole Local class.
 
         Parameters
         ----------
@@ -325,12 +330,13 @@ class GA:
               use the self of the GA class
 
     """
+
     def __init__(self, seed_mol: Union[Chem.rdchem.Mol, Iterable[Chem.rdchem.Mol]],
                  costfunc: Callable, costfunc_kwargs: Dict, crem_db_path: str, maxiter: int = 10, popsize: int = 20,
                  beta: float = 0.001, pc: float = 1, get_similar: bool = False, mutate_crem_kwargs: Union[None, Dict] = None,
                  save_pop_every_gen: int = 0, checkpoint: bool = False, deffnm: str = 'ga',
                  AddHs: bool = False, randomseed: Union[None, int] = None) -> None:
-        """Constructor
+        """Create the GA.
 
         Parameters
         ----------
@@ -455,7 +461,7 @@ class GA:
         self.pop = []
 
     def __call__(self, njobs: int = 1, runner: Optional[Runner] = None):
-        """Call definition
+        """Call definition.
 
         Parameters
         ----------
@@ -536,7 +542,7 @@ class GA:
         self._log_summary(ts, spent_before)
 
     def _crem_kwargs(self):
-        """The CReM keywords for one call, with a fresh sampling seed.
+        """Build the CReM keywords for one call, with a fresh sampling seed.
 
         When ``max_replacements`` is set, CReM samples the replacements with a generator of
         its own, ``random.Random(seed)``, which does not read :attr:`rng`. Leaving ``seed``
@@ -827,12 +833,13 @@ class GA:
                     f"Finished at {datetime.datetime.now().strftime('%c')}.\n")
 
     def __costfunc__(self, args_list):
+        """Evaluate the cost function on one individual, as the runner expects it."""
         individual, kwargs = args_list
         # This is just to use the progress bar on pool.imap
         return self.costfunc(individual, **kwargs)
 
     def mutate(self, individual: Individual):
-        """Genetic operators
+        """Genetic operators.
 
         Parameters
         ----------
@@ -844,7 +851,6 @@ class GA:
         Individual
             A new Individual.
         """
-
         # Here is were I have to check if replace_ids or protected_ids where provided.
         mutate_crem_kwargs_to_work_with = self._crem_kwargs()
         if 'replace_ids' in self.mutate_crem_kwargs and 'protected_ids' in self.mutate_crem_kwargs:
@@ -881,7 +887,7 @@ class GA:
         return Individual(mol, randomseed=self.randomseed)
 
     def pickle(self, title: str, compress: bool = False):
-        """Method to pickle the whole GA class
+        """Pickle the whole GA class.
 
         Parameters
         ----------

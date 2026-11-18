@@ -135,6 +135,7 @@ class RunnerMode(Enum):
         The workers of the ``dask_cluster`` handed to the runner, so the generation is
         spread over the nodes the cluster submits jobs to. Needs the ``cluster`` extra.
     """
+
     SERIAL = "serial"
     MULTIPROCESSING = "multiprocessing"
     DASK_LOCAL = "dask_local"
@@ -171,6 +172,7 @@ class Runner:
         cluster.scale(4)
         ga(runner=Runner(RunnerMode.DASK_JOB_QUEUE_CLUSTER, dask_cluster=cluster))
     """
+
     mode: RunnerMode
     thread_count: Optional[int]
     process_count: Optional[int]
@@ -178,7 +180,7 @@ class Runner:
     client = None
 
     def __init__(self, mode: RunnerMode, thread_count: Optional[int] = None, process_count: Optional[int] = None, dask_cluster = None):
-        """Constructor
+        """Create the Runner.
 
         Parameters
         ----------

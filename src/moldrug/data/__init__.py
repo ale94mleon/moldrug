@@ -1,3 +1,5 @@
+"""The example receptors and ligands moldrug ships with."""
+
 from moldrug.data._get import get_data
 import json
 

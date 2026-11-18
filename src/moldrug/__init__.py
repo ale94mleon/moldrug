@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+"""moldrug: a python package for drug-oriented optimization on the chemical space.
+
 For information of moldrug:
+
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
