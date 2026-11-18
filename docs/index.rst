@@ -19,6 +19,7 @@ Index
    
    source/tutorials
    source/parallelization
+   source/crem-sampling
 
 .. toctree::
    :caption: 📖 Reference
