@@ -7,7 +7,14 @@ For information of moldrug:
 """
 
 from moldrug._version import __version__
-from moldrug.opt import GA, Local
+from moldrug.opt import (GA, Local)
+
+__all__ = [
+    "__version__",
+    "GA",
+    "Local"
+]
+
 
 __author__ = "Alejandro Martínez León"
 __email__ = "ale94mleon@gmail.com"
