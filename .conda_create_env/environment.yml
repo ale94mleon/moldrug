@@ -6,6 +6,8 @@ channels:
 dependencies:
   - ipykernel
   - ipython
+  # IPython.sphinxext.ipython_directive needs it for %bookmark (optional since IPython 8)
+  - pickleshare
   - ipywidgets
   - pip
   - python==3.10.*
