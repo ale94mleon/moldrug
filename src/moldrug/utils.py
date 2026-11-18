@@ -472,10 +472,12 @@ def confgen(mol: Chem.rdchem.Mol, return_mol: bool = False, randomseed: Union[in
         randomSeed = randomseed
 
     AllChem.EmbedMolecule(mol, randomSeed=randomSeed)
-    # The optimization introduce some sort of non-reproducible results.
-    # For that reason is not used when randomseed is set
-    if not randomseed:
-        AllChem.MMFFOptimizeMolecule(mol, maxIters=500)
+    # The optimization is a minimization, not a sampling, so it has no seed of its own and
+    # needs none: the same starting coordinates always give the same optimized ones. Only
+    # the embedding above decides whether a run repeats, which it does once randomseed is
+    # set. Floating point results can still differ between RDKit builds or platforms, as
+    # they can for the embedding itself.
+    AllChem.MMFFOptimizeMolecule(mol, maxIters=500)
     preparator = MoleculePreparation()
     mol_setups = preparator.prepare(mol)
     pdbqt_string = PDBQTWriterLegacy.write_string(mol_setups[0])[0]

@@ -114,10 +114,9 @@ def gen_aligned_conf(mol: Chem.rdchem.Mol, ref_mol: Chem.rdchem.Mol,
     else:
         randomSeed = randomseed
     AllChem.EmbedMolecule(mol, randomSeed=randomSeed)
-    # The optimization introduce some sort of non-reproducible results.
-    # For that reason is not used when randomseed is set
-    if not randomseed:
-        AllChem.MMFFOptimizeMolecule(mol, maxIters=500)
+    # See moldrug.utils.confgen: the optimization is deterministic, so it does not cost
+    # reproducibility and always runs.
+    AllChem.MMFFOptimizeMolecule(mol, maxIters=500)
     ref_smi_mol = Chem.MolFromSmiles(ref_smi)
     Chem.rdMolAlign.AlignMol(
         mol,
