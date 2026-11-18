@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [4.0.0] - 2026.11.18
+
 ### Removed
 
 - Python 3.8 compatibility. The dependency [meeko4moldrug](https://pypi.org/project/meeko4moldrug/) requires a higher Python version because building it requires `setuptools>=77.0.0`, which is not compatible with Python 3.8.
@@ -558,7 +560,9 @@ Print the starting date when moldrug is called from the command line.
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/moldrug/compare/v3.7.3...HEAD
+
+[unreleased]: https://github.com/ale94mleon/moldrug/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/ale94mleon/moldrug/compare/v3.7.3...v4.0.0
 [3.7.3]: https://github.com/ale94mleon/moldrug/compare/v3.7.2...v3.7.3
 [3.7.2]: https://github.com/ale94mleon/moldrug/compare/v3.7.1...v3.7.2
 [3.7.1]: https://github.com/ale94mleon/moldrug/compare/v3.7.0...v3.7.1
