@@ -195,9 +195,10 @@ class Runner:
 
         Raises
         ------
-        AssertionError
-            If the parameters do not match the mode, or if a Dask mode is asked for without
-            the ``cluster`` extra installed.
+        ImportError
+            If a Dask mode is asked for without the ``cluster`` extra installed.
+        ValueError
+            If the parameters do not match the mode, or the mode is unknown.
         """
         if mode in [RunnerMode.DASK_LOCAL, RunnerMode.DASK_JOB_QUEUE_CLUSTER] and not dask_available:
             raise ImportError("Execution using Dask requires installation of optional dependencies. "

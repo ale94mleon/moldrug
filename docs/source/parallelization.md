@@ -56,7 +56,7 @@ For anything else, pass a {py:class}`moldrug.runner.Runner` instead.
 
 ```{warning}
 `njobs` and `runner` are mutually exclusive. Passing `njobs > 1` together with a `runner`
-raises an `AssertionError`; choose one.
+raises a `ValueError`; choose one.
 ```
 
 ### The execution modes
@@ -114,7 +114,7 @@ The Dask modes need optional dependencies, installed as the `cluster` extra:
 pip install moldrug[cluster]
 ```
 
-Without them, constructing a `Runner` in either Dask mode fails with an `AssertionError`
+Without them, constructing a `Runner` in either Dask mode fails with an `ImportError`
 pointing at this package set.
 
 ## Choosing the numbers
