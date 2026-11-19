@@ -18,6 +18,10 @@ ARG PYTHON_VERSION=3.11
 # Empty installs the latest release; set it to pin one
 ARG MOLDRUG_VERSION=
 
+# The versions are deliberately not pinned. Debian keeps only the current version of a
+# package, so a pin breaks the build as soon as one is superseded, and for ca-certificates
+# and curl the patched version is the one the image should carry.
+# hadolint ignore=DL3008
 RUN apt-get update \
     && apt-get install -y --no-install-recommends ca-certificates curl bzip2 \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
