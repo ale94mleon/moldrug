@@ -202,8 +202,7 @@ class MoldrugRunHelper:
         self.MutableArgs = MutableArgs
 
     def _get_continuation_point(self):
-        """
-        Give the job and how many generations are needed to complete it.
+        """Give the job and how many generations are needed to complete it.
 
         The further jobs are suppose that must run.
         """
@@ -285,8 +284,7 @@ class MoldrugRunHelper:
 
 
 def __moldrug_run(yaml_file, fitness, continuation, verbose):
-    """
-    Serve the command line interface of moldrug only.
+    """Serve the command line interface of moldrug only.
 
     It makes possible to use moldrug form the command line. More detail help is available
     from the command line `moldrug -h`.

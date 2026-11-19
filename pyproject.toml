@@ -101,3 +101,11 @@ moldrug = [
 
 [project.scripts]
 moldrug = "moldrug.cli:main"
+
+# The documentation style of the package. The numpy convention is the one the docstrings
+# are written in, and D212 fixes the summary of a multi-line docstring on the first line,
+# which the convention itself leaves open: D212 and D213 state the opposite of each other,
+# so a checker with both enabled flags every multi-line docstring whatever it does.
+[tool.pydocstyle]
+convention = "numpy"
+add-select = "D212,D415"

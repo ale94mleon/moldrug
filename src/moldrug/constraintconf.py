@@ -36,8 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float = 0.5) -> bool:
-    """
-    Check if a conformer with index new_onf_idx it is duplicated based on rms_limit.
+    """Check if a conformer with index new_onf_idx it is duplicated based on rms_limit.
 
     Parameters
     ----------
@@ -63,8 +62,7 @@ def duplicate_conformers(m: Chem.rdchem.Mol, new_conf_idx: int, rms_limit: float
 
 
 def get_mcs(mol_one: Chem.rdchem.Mol, mol_two: Chem.rdchem.Mol) -> str:
-    """
-    Code to find the maximum common substructure between two molecules.
+    """Code to find the maximum common substructure between two molecules.
 
     Parameters
     ----------
@@ -133,8 +131,7 @@ def generate_conformers(mol: Chem.rdchem.Mol,
                         minimum_conf_rms: Optional[float] = None,
                         randomseed: Union[int, None] = None
                         ) -> Chem.rdchem.Mol:
-    """
-    Generate constrained conformers.
+    """Generate constrained conformers.
 
     Parameters
     ----------
@@ -249,8 +246,7 @@ class ProteinLigandClashFilter:
     """Class used to eliminate clash between a ligand and a protein."""
 
     def __init__(self, protein_pdbpath: str, distance: float = 1.5):
-        """
-        Create the exception.
+        """Create the exception.
 
         Parameters
         ----------
@@ -263,8 +259,7 @@ class ProteinLigandClashFilter:
         self.distance = distance
 
     def __call__(self, conf: Chem.rdchem.Conformer) -> bool:
-        """
-        Call deffinition.
+        """Call deffinition.
 
         Parameters
         ----------
@@ -285,8 +280,7 @@ class ProteinLigandClashFilter:
 
 def constraintconf(pdb: str, smi: str, fix: str, out: str, max_conf: int = 25, rms: float = 0.01,
                    bump: float = 1.5, randomseed: Union[int, None] = None):
-    """
-    Generate several conformations in the binding pocket with a specified constraint.
+    """Generate several conformations in the binding pocket with a specified constraint.
 
     Parameters
     ----------

@@ -104,8 +104,7 @@ def __get_mol_cost(mol: Chem.rdchem.Mol,
                    boxsize: List[float] = None,
                    docking_type: str = 'score_only',
                    desirability: Dict = None):
-    """
-    Calculate the cost of a single molecule, for developing.
+    """Calculate the cost of a single molecule, for developing.
 
     I use it for testing.
 
@@ -252,8 +251,7 @@ def _vinadock(
         constraint_receptor_pdb_path: str = None,
         constraint_num_conf: int = 100,
         constraint_minimum_conf_rms: int = 0.01):
-    """
-    Perform docking for all the cost functions implemented on :mod:`moldrug.fitness`.
+    """Perform docking for all the cost functions implemented on :mod:`moldrug.fitness`.
 
     If ad4map (available from moldrug-3.0.0) is set,
     the last version of vina (`releases <https://github.com/ccsb-scripps/AutoDock-Vina/releases>`_)
@@ -488,8 +486,7 @@ def Cost(
         constraint_num_conf: int = 100,
         constraint_minimum_conf_rms: int = 0.01,
         desirability: Dict = None):
-    """
-    Calculate the cost with the main Cost function of the module, which uses the concept of desirability functions.
+    """Calculate the cost with the main Cost function of the module, which uses the concept of desirability functions.
 
     The response variables are:
 
@@ -661,8 +658,7 @@ def CostOnlyVina(
         constraint_num_conf: int = 100,
         constraint_minimum_conf_rms: int = 0.01,
         wt_cutoff: Union[None, float] = None):
-    """
-    Perform docking and return the vina_score as Cost.
+    """Perform docking and return the vina_score as Cost.
 
     Parameters
     ----------
@@ -784,8 +780,7 @@ def CostMultiReceptors(
         constraint_num_conf: int = 100,
         constraint_minimum_conf_rms: int = 0.01,
         desirability: Dict = None):
-    """
-    Work as :meth:`moldrug.fitness.Cost` does, but with more than one receptor.
+    """Work as :meth:`moldrug.fitness.Cost` does, but with more than one receptor.
 
     It also use the concept of desirability and the response variables are:
 
@@ -1046,8 +1041,7 @@ def CostMultiReceptorsOnlyVina(
         constraint_minimum_conf_rms: int = 0.01,
         desirability: Dict = None,
         wt_cutoff: Union[None, float] = None):
-    """
-    Work as :meth:`moldrug.fitness.CostOnlyVina` does, but with more than one receptor.
+    """Work as :meth:`moldrug.fitness.CostOnlyVina` does, but with more than one receptor.
 
     It also use the concept of desirability.
     The response variables are the vina scores on each receptor.

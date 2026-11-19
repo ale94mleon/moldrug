@@ -30,8 +30,7 @@ RDLogger.DisableLog('rdApp.*')
 
 
 class Individual:
-    """
-    Base class to work with GA, Local and all the fitness functions.
+    """Base class to work with GA, Local and all the fitness functions.
 
     Individual is a mutable object. Only the attribute smiles it is not mutable and is used
     for hash. Therefore this class is hashable based on the smiles attribute.

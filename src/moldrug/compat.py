@@ -1,5 +1,4 @@
-"""
-Provide backward compatibility with moldrug <= 4.0.
+"""Provide backward compatibility with moldrug <= 4.0.
 
 It allows pickle objects created with older versions of moldrug
 to be successfully loaded after internal refactoring (e.g. moved classes).
