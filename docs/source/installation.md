@@ -10,6 +10,14 @@ Strongly recommended; although this project is still in beta state.
 pip install moldrug
 ```
 
+````{note}
+To enable calculation of a cost function on [a cluster](https://jobqueue.dask.org/en/latest/clusters-api.html) install optional set of dependencies
+
+```sh
+pip install moldrug[cluster]
+```
+````
+
 ````{admonition} Linux 🐧
 :class: Tip
 
@@ -58,7 +66,7 @@ MacOS users may face some problems trying to install because of the AutoDock-Vin
 If some dependencies are missing, please install them through pip. Some of them might be:
 
 ```bash
-pip install meeko crem pyyaml scipy tqdm
+pip install meeko4moldrug crem pyyaml scipy tqdm
 ```
 
 ## AutoDock-Vina dependency and related software
@@ -108,10 +116,14 @@ To perform docking you must provide `boxcenter` (`center` for AutoDock-Vina) and
 
 ## Working with a docker container
 
-- Use the [Docker configuration file on GitHub](https://github.com/ale94mleon/moldrug/blob/main/Dockerfile).
-- Visit the [moldrug's Docker container](https://hub.docker.com/r/ale94mleon/4moldrug).
+[AutoDock-Vina](https://vina.scripps.edu/) is the only dependency of `moldrug` that does not come from PyPI, and installing it by hand is unpleasant on some systems. The [Dockerfile](https://github.com/ale94mleon/moldrug/blob/main/Dockerfile) in the repository builds an image with both `moldrug` and [AutoDock-Vina](https://vina.scripps.edu/) already installed, for the architecture you build it on:
 
-Finally, `pip install moldrug` inside the container.
+```sh
+docker build -t moldrug .
+docker run --rm -it -v "$PWD":/home/user/work moldrug
+```
+
+Use `--build-arg MOLDRUG_VERSION=4.0.0` to pin a release, and `--build-arg PYTHON_VERSION=3.12` to choose the interpreter.
 
 ## Running tests
 
@@ -119,3 +131,5 @@ Finally, `pip install moldrug` inside the container.
 pip install -e .[dev]
 pytest tests
 ```
+
+To test execution on a cluster, change the `execution_mode` variable in `test_moldrug.py`. The tests you can run on the cluster afterward are called `test_single_receptor_command_line` and `test_multi_receptor`. Each cluster is different, and the current configuration is tailored to our two internal clusters. To test on your own cluster, you’ll also need to modify the `SLURMCluster` configuration in `test_moldrug.py`. During the execution of each test, multiple entries should appear in the Slurm queue.

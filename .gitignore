@@ -19,6 +19,7 @@ ideas
 projects
 pkl
 tmp
+tmp*
 tox.ini
 
 build

@@ -7,16 +7,82 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [4.0.0] - 2026.11.19
+
+### Removed
+
+- Python 3.8 compatibility. The dependency [meeko4moldrug](https://pypi.org/project/meeko4moldrug/) requires a higher Python version because building it requires `setuptools>=77.0.0`, which is not compatible with Python 3.8.
+- Python 3.9 compatibility. Building the test CReM database needs `cremdb_create`, added in `crem>=0.3`, which requires `rdkit>=2025.3.5`, and that publishes no CPython 3.9 wheels.
+- Environmental variable `MOLDRUG_VERBOSE`
+- The prebuilt image on DockerHub. The `Dockerfile` stays in the repository, so an image with `moldrug` and AutoDock-Vina can still be built locally with `docker build`, but there is no published image to pull.
+
 ### Changed
 
-- Move from .rst to .md on the documentation.
+- `moldrug.utils.confgen` and `moldrug.constraintconf.gen_aligned_conf` always run `AllChem.MMFFOptimizeMolecule`. It used to be skipped whenever `randomseed` was set, to protect reproducibility, but the optimization is a minimization rather than a sampling: it takes no seed and needs none, because the same starting coordinates always give the same optimized ones. Only the embedding decides whether a run repeats. The conformer that is docked therefore has the same quality with and without a seed, and a run with `randomseed` is still reproducible.
+- `moldrug.opt.GA` and `moldrug.opt.Local` no longer call `random.seed()`. Each one owns a `rng` (a `random.Random` seeded with `randomseed`) and every random decision is drawn from it, so constructing them no longer reseeds the global random generator of the process, and nothing else drawing from it can shift a moldrug run. `rng` is pickled with the class, which makes a run restored from a checkpoint reproducible; before, it continued from whatever global state the new process happened to have. The sequence of draws changes, so a given `randomseed` gives different results than in previous versions.
+- `moldrug.utils.roulette_wheel_selection` and `moldrug.utils.get_similar_mols` take the generator to draw from as a new required argument, `rng`.
+- Depend on [meeko4moldrug](https://pypi.org/project/meeko4moldrug/) instead of `meeko`, and import from it accordingly. moldrug needs a [fork of Meeko](https://github.com/ale94mleon/Meeko), which is now published on PyPI under that name so that it can be declared as an ordinary dependency: a distribution that points at a repository instead, as this branch did while it was in development, is refused by PyPI.
+- CLI has subspaces: `run` and `constraintconf`. The syntax `moldrug config.yml` changed to `moldrug run config.yml` and `constraintconf_moldrug ...` to `moldrug constraintconf ...`.
+- `GA` and `Local` now lies on the `opt` module. they can also be imported directly. E.g. `from moldrug import GA`.
+- Use logging instead of print.
+- Now the user needs to define the desired level for the logging as well the format: `logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(name)s: %(levelname)s: %(message)s')` is recommended.
+- The logging level at CLI is defined by the `verbose` (`V`) flag.
+- Move from `.rst` to `.md` on the documentation.
 - Update installation instructions.
+- Versioning: `Major.Minor.Patch` --> `Major.Minnor.Patch.postX` it helps to distinguish commits that are not yet included on the `Patch`.
 - The test suite no longer downloads `replacements02_sc2.db.gz` from `qsar4u.com` (the file is gone). It now builds a small CReM database with `cremdb_create`, see `tests/build_crem_test_db.py`.
 - Update the documentation to point to the CReM databases on [Zenodo](https://doi.org/10.5281/zenodo.16909329).
+- The `Dockerfile` installed Anaconda from an x86_64-only URL, so the image could not be built on arm64, and left the user to `pip install moldrug` by hand inside the container. It now uses Miniforge for the architecture it is built on and ships `moldrug` and AutoDock-Vina ready to use, with `MOLDRUG_VERSION` and `PYTHON_VERSION` build arguments.
 
 ### Fixed
 
+- The tests no longer rely on `/tmp`; they now create temporary files in the current directory instead. This approach was already used throughout the package, except in the tests. The change makes the behavior consistent and avoids issues that occurred on certain clusters when using `/tmp`.
+- Prevent race condition when creating `error` directory during parallel execution.
 - The source distribution shipped `tests/test_moldrug.py` without the modules it imports, so the test suite could never run from it. The tests are development-only and are now excluded from the distributions.
+- `tests/get_vina.py` always downloaded the x86_64 AutoDock-Vina build, on every platform. It now picks the build matching the architecture as well as the operating system, so arm64 machines and CI runners no longer depend on emulation.
+- The conda environments in `.binder` and `.conda_create_env` pinned Python 3.9, which is below the supported floor.
+- A failed mutation in `moldrug.opt.GA.mutate` reported only that it did not work. The cause is now included, which matters because CReM takes `**kwargs`, so a mistake in `mutate_crem_kwargs` reaches it as an ordinary error rather than an unexpected-keyword one.
+
+### Added
+
+- `moldrug.opt.GA` and `moldrug.opt.Local` keep track of how long they spend building molecules and how long they spend calculating their cost, in the new `timing` attribute, and report both with their share of the total at the end of every call. `GA` keys it by generation, generation 0 being the initialization of the population, while `Local` accumulates the two phases over calls. The phases do not add up to the total, since saving, sorting and checkpointing fall outside both.
+- `moldrug.utils.format_duration` expresses a number of seconds in the largest unit that keeps it above one, from seconds up to days. The timing summaries use it.
+- A page on CReM sampling, documenting what `max_replacements` does to speed and to the way the chemical space is explored, with `Contrib/crem_sampling/crem_sampling.py` to reproduce the measurements on any fragment database.
+- `moldrug.opt.GA` draws a fresh CReM `seed` per mutation from the global random generator when `max_replacements` is set. CReM samples with a `random.Random(seed)` of its own, which does not read the global state that `randomseed` sets, so before this a sampled run could not be reproduced. A `seed` given in `mutate_crem_kwargs` is left untouched.
+- Support for Python 3.12 and 3.13. The blocker was `meeko`, whose releases all declare `python <3.12`; moldrug now depends on [meeko4moldrug](https://pypi.org/project/meeko4moldrug/), which does not. Both versions are covered by the CI matrix.
+- Cluster configuration can be provided to calculate cost function on multiple nodes of a cluster.  
+  Cluster support requires installation of optional packages related to Dask, a package set called `cluster`.
+
+- ```sh
+  pip install moldrug[cluster]
+  ```
+
+  An example of local parallel execution (same as before, for reference)
+
+  ```python
+  for _ in range(NumbCalls):
+      ga(njobs=njobs)
+  ```
+
+  An example of parallel execution on a SLURM cluster
+
+  ```python
+  cluster = SLURMCluster(
+      queue='short',
+      cores=12,
+      processes=1,
+      memory='8GB',
+      walltime='00:30:00',
+      job_extra_directives=[]
+  )
+  
+  cluster.scale(4)
+
+  runner = Runner(RunnerMode.DASK_JOB_QUEUE_CLUSTER, dask_cluster=cluster)
+
+  for _ in range(NumbCalls):
+      ga(runner=runner)
+  ```
 
 ## [3.7.3] - 2024.07.05
 
@@ -223,7 +289,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The use of `moldrug.utils.tar_errors` inside of `moldrug.utils.Local` and `moldrug.utils.GA`.
 - Clean code.
 
-## [3.2.5] - 2022.12.20
+## [3.2.6] - 2022.12.20
 
 ### Fixed
 
@@ -494,17 +560,19 @@ Print the starting date when moldrug is called from the command line.
 - Minor code cleaning.
 - Better code covered during testing
 
-[unreleased]: https://github.com/ale94mleon/moldrug/compare/3.7.3...HEAD
-[3.7.3]: https://github.com/ale94mleon/moldrug/compare/3.7.2...3.7.3
-[3.7.2]: https://github.com/ale94mleon/moldrug/compare/3.7.1...3.7.2
-[3.7.1]: https://github.com/ale94mleon/moldrug/compare/3.7.0...3.7.1
-[3.7.0]: https://github.com/ale94mleon/moldrug/compare/3.6.1...3.7.0
-[3.6.1]: https://github.com/ale94mleon/moldrug/compare/3.6.0...3.6.1
-[3.6.0]: https://github.com/ale94mleon/moldrug/compare/3.5.0...3.6.0
-[3.5.0]: https://github.com/ale94mleon/moldrug/compare/3.4.0...3.5.0
+
+[unreleased]: https://github.com/ale94mleon/moldrug/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/ale94mleon/moldrug/compare/v3.7.3...v4.0.0
+[3.7.3]: https://github.com/ale94mleon/moldrug/compare/v3.7.2...v3.7.3
+[3.7.2]: https://github.com/ale94mleon/moldrug/compare/v3.7.1...v3.7.2
+[3.7.1]: https://github.com/ale94mleon/moldrug/compare/v3.7.0...v3.7.1
+[3.7.0]: https://github.com/ale94mleon/moldrug/compare/v3.6.1...v3.7.0
+[3.6.1]: https://github.com/ale94mleon/moldrug/compare/v3.6.0...v3.6.1
+[3.6.0]: https://github.com/ale94mleon/moldrug/compare/v3.5.0...v3.6.0
+[3.5.0]: https://github.com/ale94mleon/moldrug/compare/3.4.0...v3.5.0
 [3.4.0]: https://github.com/ale94mleon/moldrug/compare/3.3.0...3.4.0
-[3.3.0]: https://github.com/ale94mleon/moldrug/compare/3.2.5...3.3.0
-[3.2.5]: https://github.com/ale94mleon/moldrug/compare/3.2.2...3.2.5
+[3.3.0]: https://github.com/ale94mleon/moldrug/compare/3.2.6...3.3.0
+[3.2.6]: https://github.com/ale94mleon/moldrug/compare/3.2.2...3.2.6
 [3.2.2]: https://github.com/ale94mleon/moldrug/compare/3.2.0...3.2.2
 [3.2.0]: https://github.com/ale94mleon/moldrug/compare/3.1.0...3.2.0
 [3.1.0]: https://github.com/ale94mleon/moldrug/compare/3.0.3...3.1.0

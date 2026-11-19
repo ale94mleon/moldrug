@@ -11,7 +11,10 @@
 		"source=claude-code-config-${devcontainerId},target=/home/user/.claude,type=volume"
 	],
 	"containerEnv": {
-		"CLAUDE_CONFIG_DIR": "/home/user/.claude"
+		"CLAUDE_CONFIG_DIR": "/home/user/.claude",
+		// The image only ships C.UTF-8; a host locale forwarded by VS Code (e.g. en_US.UTF-8)
+		// makes locale.setlocale(LC_ALL, '') fail, which breaks sphinx-build.
+		"LC_ALL": "C.UTF-8"
 	},
 
 	// Editable install + test deps (pytest, crem) + docs deps.

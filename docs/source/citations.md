@@ -11,7 +11,7 @@ If you use moldrug in your research, please cite the following paper:
   doi = {10.1186/s13321-025-01022-3},
   number = {85},
   journal = {Journal of Cheminformatics},
-  author = {Martínez León, Alejandro and Ries, Benjamin and Hub, Jochen S. and Magarkar, Aniket},
+  author = {Mart\'{i}nez Le\'{o}n, Alejandro and Ries, Benjamin and Hub, Jochen S. and Magarkar, Aniket},
   month = may,
   year = {2025},
 }

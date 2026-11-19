@@ -1,38 +1,35 @@
 [build-system]
-requires=[
-	"setuptools>=61.0",
-	"versioningit",
+requires = [
+    "setuptools>=77.0.0",
+    "versioningit",
 ]
 build-backend = "setuptools.build_meta"
 
-[project.urls]
-Hompage = "https://github.com/ale94mleon/moldrug"
-Documentation = "https://moldrug.readthedocs.io/en/latest/"
-Discussions = "https://github.com/ale94mleon/moldrug/discussions"
-Issues = "https://github.com/ale94mleon/moldrug/issues"
-Changelog = "https://github.com/ale94mleon/moldrug/blob/main/docs/source/CHANGELOG.md"
-
 [project]
+requires-python = ">= 3.10 , < 3.14"
 name = "moldrug"
 dynamic = ["version"]
 description = "moldrug is a python package for drug-oriented optimization on the chemical space."
 readme = "README.rst"
+license-files = ["LICENSE"]
 
-authors=[
-    {name="Alejandro Martínez León", email="ale94mleon@gmail.com"},
+authors = [
+    { name = "Alejandro Martínez León", email = "ale94mleon@gmail.com" }
 ]
 
 classifiers = [
     "Development Status :: 4 - Beta",
     "Operating System :: OS Independent",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
     "Topic :: Scientific/Engineering :: Chemistry",
 ]
+
 keywords = [
     "science",
     "chemistry",
@@ -42,33 +39,42 @@ keywords = [
     "genetic algorithm",
 ]
 
-requires-python = ">= 3.10 , < 3.12"
 dependencies = [
-    "crem",
+    # crem>=0.3 takes a seed for its sampling, which moldrug.opt.GA passes whenever
+    # max_replacements is set. See the CReM sampling page of the documentation.
+    "crem>=0.3",
     "tqdm",
     "numpy",
     "pandas",
     "pyyaml",
     "dill",
-    "meeko>=0.4.0,<0.6.0",
+    "meeko4moldrug>=0.6.1.post8",
+    "scipy",  # a meeko4moldrug dependency
     "six",
-    "rdkit>=2022.3.5",
-    "scipy",  # a meeko dependency
+    # crem>=0.3 already requires rdkit>=2025.3.5, so the old 2022.3.5 floor could never be
+    # resolved to anyway.
+    "rdkit>=2025.3.5",
 ]
 
-[project.license]
-file = "LICENSE"
-
 [project.optional-dependencies]
-dev = ["pytest", "crem>=0.3"]  # crem>=0.3 ships cremdb_create, used to build the test database
+# crem>=0.3 ships cremdb_create, used to build the test database
+dev = ["pytest", "crem>=0.3", "dask[distributed]", "dask-jobqueue"]
+cluster = ["dask[distributed]", "dask-jobqueue"]
+
+[project.urls]
+Homepage = "https://github.com/ale94mleon/moldrug"
+Documentation = "https://moldrug.readthedocs.io/en/latest/"
+Discussions = "https://github.com/ale94mleon/moldrug/discussions"
+Issues = "https://github.com/ale94mleon/moldrug/issues"
+Changelog = "https://github.com/ale94mleon/moldrug/blob/main/docs/source/CHANGELOG.md"
 
 [tool.versioningit]
 default-version = "1+unknown"
 
 [tool.versioningit.format]
-distance = "{base_version}"
-dirty = "{base_version}"
-distance-dirty = "{base_version}"
+distance = "{base_version}.post{distance}"
+dirty = "{base_version}.post{distance}.dev0"
+distance-dirty = "{base_version}.post{distance}.dev0"
 
 [tool.versioningit.vcs]
 method = "git"
@@ -86,16 +92,35 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 moldrug = [
-    "LICENSE",
-    "README.rst",
     "data/*/*.yml",
     "data/*/*.mol",
     "data/*/*.smi",
     "data/*/*.pdb",
     "data/*/*.pdbqt",
-
 ]
 
 [project.scripts]
-moldrug = "moldrug.cli:__moldrug_cmd"
-constrainconf_moldrug = "moldrug.cli:__constraintconf_cmd"
+moldrug = "moldrug.cli:main"
+
+# Codacy reads the configuration of ruff, and of no other Python linter, from this file.
+# D212 and D415 keep the docstrings uniform and the numpy convention leaves them off.
+[tool.pydocstyle]
+convention = "numpy"
+add-select = "D212,D415"
+
+[tool.ruff]
+line-length = 127
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "D"]
+extend-select = ["D212", "D415"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+# The docstring rules are for the package, not for the tests and the scripts.
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+"Contrib/**" = ["D"]
+"streamlit/**" = ["D"]

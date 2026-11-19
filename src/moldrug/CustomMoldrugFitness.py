@@ -2,3 +2,4 @@
 # -*- coding: utf-8 -*-
 # This is a dummy file. It is reserved just for Fitness function implemented for the user and the command line.
 # The only function is to avoid warnings in the code when CustomMoldrugFitness is imported in cli.py
+"""Placeholder module for the cost function a user provides on the command line."""

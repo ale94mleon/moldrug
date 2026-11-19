@@ -8,11 +8,11 @@ _AVAILABLE_DATA = ['6lu7', 'x0161']
 
 
 class DataNotFound(Exception):
-    pass
+    """Raised when the requested data directory does not exist."""
 
 
 def get_data(name: str) -> dict:
-    """Retrieve moldrug data
+    """Retrieve moldrug data.
 
     Parameters
     ----------
@@ -34,7 +34,6 @@ def get_data(name: str) -> dict:
     DataNotFound
         moldrug does not contains the data.
     """
-
     root_data = home.home(dataDir=name)
 
     if not os.path.exists(root_data) or not name:

@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to moldrug (AKA mouse)'s documentation!
-===================================
+===============================================
 .. include:: ../README.rst
 
 Index
@@ -18,6 +18,8 @@ Index
    source/about-us
    
    source/tutorials
+   source/parallelization
+   source/crem-sampling
 
 .. toctree::
    :caption: 📖 Reference

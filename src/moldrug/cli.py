@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
+"""The moldrug command line interface.
+
 For information of moldrug:
+
     Docs: https://moldrug.readthedocs.io/en/latest/
     Source Code: https://github.com/ale94mleon/moldrug
 """
 import argparse
 import datetime
+import importlib
 import inspect
+import logging
 import os
 import sys
 from typing import Union
@@ -15,20 +19,23 @@ from typing import Union
 import yaml
 from rdkit import Chem
 
-from moldrug import __version__, constraintconf, utils
+from moldrug import __version__
+from moldrug.constraintconf import constraintconf
+from moldrug.opt import GA, Local
+from moldrug.utils import decompress_pickle, make_sdf
+
+logger = logging.getLogger(__name__)
 
 
-class CommandLineHelper:
-    def __init__(self, parser) -> None:
-        self.args = parser.parse_args()
-        self.yaml_file = self.args.yaml_file
-        self.fitness = self.args.fitness
-        self.continuation = self.args.continuation
-        self.verbose = self.args.verbose
+class MoldrugRunHelper:
+    """Run a moldrug job from the command line, with or without continuation."""
+
+    def __init__(self, yaml_file, fitness, continuation, verbose) -> None:
+        self.yaml_file = yaml_file
+        self.fitness = fitness
+        self.continuation = continuation
+        self.verbose = verbose
         self._set_attributes()
-
-        if self.verbose:
-            os.environ['MOLDRUG_VERBOSE'] = 'True'
 
     def _set_attributes(self):
         # Get and set configuration
@@ -70,9 +77,9 @@ class CommandLineHelper:
     def _set_TypeOfRun(self):
         self._TypeOfRun_str = self._split_config()[0]['type'].lower()
         if self._TypeOfRun_str == 'ga':
-            self.TypeOfRun = utils.GA
+            self.TypeOfRun = GA
         elif self._TypeOfRun_str == 'local':
-            self.TypeOfRun = utils.Local
+            self.TypeOfRun = Local
         else:
             raise NotImplementedError(f"\"{self._split_config()[0]['type']}\" it is not a possible type. "
                                       "Select from: GA or Local")
@@ -90,7 +97,7 @@ class CommandLineHelper:
                 if any([os.path.isfile(path) for path in MainConfig['seed_mol']]):
                     seed_pop = set()
                     for solution in MainConfig['seed_mol']:
-                        _, pop = utils.decompress_pickle(solution)
+                        _, pop = decompress_pickle(solution)
                         seed_pop.update(pop)
                     # Sort
                     seed_pop = sorted(seed_pop)
@@ -114,7 +121,8 @@ class CommandLineHelper:
         InitArgs = MainConfig.copy()
 
         # Modifying InitArgs
-        _ = [InitArgs.pop(key, None) for key in ['type', 'njobs', 'pick']]
+        for key in ['type', 'njobs', 'cluster', 'pick']:
+            InitArgs.pop(key, None)
         InitArgs['costfunc'] = self.costfunc
 
         # Getting call arguments
@@ -124,6 +132,25 @@ class CommandLineHelper:
                 CallArgs[key] = MainConfig[key]
             except KeyError:
                 pass
+
+        if 'cluster' in MainConfig:
+            if 'type' not in MainConfig['cluster'] or 'kwargs' not in MainConfig['cluster']:
+                raise ValueError("The cluster configuration must contain 'type' and 'kwargs'.")
+
+            from moldrug.runner import Runner, RunnerMode, dask_available
+            if not dask_available:
+                logger.critical("Dask is not installed and cluster is active")
+
+            try:
+                cluster_class = getattr(importlib.import_module("dask_jobqueue"), MainConfig['cluster']['type'])
+            except ImportError:
+                raise ImportError(f"Unable to import {MainConfig['cluster']['type']} from dask_jobqueue module.")
+
+            cluster = cluster_class(**MainConfig['cluster']['kwargs'])
+            cluster.scale(MainConfig.get('njobs', 1))
+
+            CallArgs['runner'] = Runner(RunnerMode.DASK_JOB_QUEUE_CLUSTER, dask_cluster=cluster)
+            del CallArgs['njobs']
 
         # Checking for follow jobs and sanity check on the arguments
         if FollowConfig:
@@ -145,7 +172,7 @@ class CommandLineHelper:
                         InitArgs[param.name] = param.default
 
                 MutableArgs = {
-                    'njobs': CallArgs['njobs'],
+                    'njobs': MainConfig['njobs'],
                     'crem_db_path': InitArgs['crem_db_path'],
                     'maxiter': InitArgs['maxiter'],
                     'popsize': InitArgs['popsize'],
@@ -175,8 +202,8 @@ class CommandLineHelper:
         self.MutableArgs = MutableArgs
 
     def _get_continuation_point(self):
-        """
-        This gave me the job and how many generation are needed to complete it.
+        """Give the job and how many generations are needed to complete it.
+
         The further jobs are suppose that must run.
         """
         if self.continuation:
@@ -199,7 +226,7 @@ class CommandLineHelper:
             # If there is a continuation file, use this
             if os.path.isfile("cpt.pbz2"):
                 pbz2 = 'cpt.pbz2'
-                iter_done = utils.decompress_pickle(pbz2).NumGens
+                iter_done = decompress_pickle(pbz2).NumGens
                 total_iter = 0
                 for job in self.configuration:
                     total_iter += self.configuration[job]['maxiter']
@@ -207,7 +234,7 @@ class CommandLineHelper:
                         del self.FollowConfig[job]
                         break
             elif pbz2:
-                iter_done = utils.decompress_pickle(pbz2).NumGens
+                iter_done = decompress_pickle(pbz2).NumGens
             else:
                 iter_done = 0
             new_maxiter = total_iter - iter_done
@@ -226,34 +253,39 @@ class CommandLineHelper:
         self._get_continuation_point()
 
         if self.pbz2:
-            self.moldrugClass = utils.decompress_pickle(self.pbz2)
+            self.moldrugClass = decompress_pickle(self.pbz2)
             self.moldrugClass.maxiter = self.new_maxiter
         else:
             # Initialize the class from scratch
             self.moldrugClass = self.TypeOfRun(**self.InitArgs)
 
     def run_moldrugClass(self):
+        """Run the moldrug class with the arguments taken from the yaml file."""
         self.moldrugClass(**self.CallArgs)
 
     def save_data(self):
         # Saving data
+        """Pickle the result of the run, and write the sdf of the final population."""
         if self._TypeOfRun_str == 'local':
             self.moldrugClass.pickle("local_result", compress=True)
-            utils.make_sdf(self.moldrugClass.pop, sdf_name="local_pop")
+            make_sdf(self.moldrugClass.pop, sdf_name="local_pop")
         else:
             self.moldrugClass.pickle(f"{self.moldrugClass.deffnm}_result", compress=True)
-            utils.make_sdf(self.moldrugClass.pop, sdf_name=f"{self.moldrugClass.deffnm}_pop")
+            make_sdf(self.moldrugClass.pop, sdf_name=f"{self.moldrugClass.deffnm}_pop")
 
     def __repr__(self) -> str:
-        string = self.args.__repr__().replace('Namespace', self.__class__.__name__)
+        """Return the representation of the helper."""
+        string = f"{self.__class__.__name__}(yaml_file={self.yaml_file}, "\
+            f"fitness={self.fitness}, continuation={self.continuation}, " \
+            f"verbose={self.verbose})"
         if self.continuation:
             string += f"\nContinuationPoint(pbz2={self.pbz2}, do_iter={self.new_maxiter})"
         return string
 
 
-def __moldrug_cmd():
-    """
-    This function is only used in as part of the command line interface of moldrug.
+def __moldrug_run(yaml_file, fitness, continuation, verbose):
+    """Serve the command line interface of moldrug only.
+
     It makes possible to use moldrug form the command line. More detail help is available
     from the command line `moldrug -h`.
 
@@ -266,129 +298,109 @@ def __moldrug_cmd():
     ValueError
         In case that a non-mutable or non-defined argument is given by the user on the follow jobs.
     """
-    parser = argparse.ArgumentParser(description=__doc__,
-                                     formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument(
-        help='The configuration yaml file',
-        dest='yaml_file',
-        type=str)
-    parser.add_argument("-f", "--fitness",
-                        help="The path to the user-custom fitness module; inside of which the given custom "
-                        "cost function must be implemented. "
-                        "See the docs for how to do it properly. E.g. my/awesome/fitness_module.py. "
-                        "By default will look in the moldrug.fitness module.",
-                        dest="fitness",
-                        nargs=argparse.OPTIONAL,
-                        default=None,
-                        type=str)
-    parser.add_argument("-c", "--continue",
-                        help="To continue the simulation. The moldrug command must be the same "
-                        "and all the output moldrug files must be located "
-                        "in the working directory. This option is only compatible "
-                        "with moldrug.utils.GA; otherwise, a RuntimeError will be raised.",
-                        action="store_true",
-                        dest="continuation")
-    parser.add_argument(
-        '-v', '--version',
-        action='version',
-        version=f"moldrug: {__version__}")
-    parser.add_argument(
-        '-V', '--verbose',
-        nargs="?",
-        dest='verbose',
-        const=True,
-        default=False,
-        type=bool
-    )
-    UserArgs = CommandLineHelper(parser)
+    # Map verbosity count to logging levels
+    if verbose >= 2:
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+    elif verbose == 1:
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
+    else:
+        logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(name)s - %(message)s')
 
-    print(
-        f"Started at {datetime.datetime.now().strftime('%c')}\n"
-        f"You are using moldrug: {__version__}.\n\n"
-        f"{UserArgs}\n\n")
+    run_helper = MoldrugRunHelper(
+        yaml_file=yaml_file,
+        fitness=fitness,
+        continuation=continuation,
+        verbose=verbose
+    )
+
+    logger.info(f"Started at {datetime.datetime.now().strftime('%c')}")
+    logger.info(f"You are using moldrug: {__version__}\n")
+    logger.info(f"{run_helper}\n\n")
 
     # Call the class
-    UserArgs.run_moldrugClass()
+    run_helper.run_moldrugClass()
     # Saving data
-    UserArgs.save_data()
+    run_helper.save_data()
     # print('The main job finished!')
 
     # In case that follows jobs were defined
-    if UserArgs.FollowConfig:
-        MutableArgs = UserArgs.MutableArgs.copy()
-        for job in UserArgs.FollowConfig:
-            print(f"The follow job {job} started.")
+    if run_helper.FollowConfig:
+        MutableArgs = run_helper.MutableArgs.copy()
+        for job in run_helper.FollowConfig:
+            logger.info(f"The follow job {job} started.")
 
             # Updating arguments
-            MutableArgs.update(UserArgs.FollowConfig[job])
+            MutableArgs.update(run_helper.FollowConfig[job])
             InitArgs = MutableArgs.copy()
 
             # Changing the attributes values
             for arg in InitArgs:
-                setattr(UserArgs.moldrugClass, arg, InitArgs[arg])
+                setattr(run_helper.moldrugClass, arg, InitArgs[arg])
 
             # Call the class again
-            UserArgs.run_moldrugClass()
+            run_helper.run_moldrugClass()
             # Saving data
-            UserArgs.save_data()
-            print(f'The job {job} finished!')
+            run_helper.save_data()
+            logger.info(f'The job {job} finished!')
 
     # Clean checkpoint on normal end
     if os.path.isfile('cpt.pbz2'):
         os.remove('cpt.pbz2')
 
 
-def __constraintconf_cmd():
-    """
-    Command line implementation for :meth:`moldrug.constraintconf.constraintconf`
-    """
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+def main():
+    """Entry point of the moldrug command line interface."""
+    parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--pdb",
-        help="Protein pdb file",
-        dest="pdb",
-        type=str,
-    )
-    parser.add_argument(
-        "--smi",
-        help="Input SMILES file name",
-        dest="smi",
-        type=str,
-    )
-    parser.add_argument(
-        "--fix",
-        help="File with fixed piece of the molecule",
-        dest="fix",
-        type=str,
-    )
-    parser.add_argument(
-        "--out",
-        help="Output file name",
-        dest="out",
-        type=str,
-    )
-    parser.add_argument(
+        '-v', '--version',
+        action='version',
+        version=f"✨ moldrug: {__version__}")
+
+    subparsers = parser.add_subparsers(required=True, dest="command")
+
+    conf = subparsers.add_parser('constraintconf',
+                                 help="⛓️ Conformer constraint generator",
+                                 description="⛓️ Command line implementation for "
+                                             ":meth:`moldrug.constraintconf.constraintconf`")
+    conf.add_argument(
+        '--pdb',
+        dest='pdb',
+        help='Protein pdb file',
+        type=str)
+    conf.add_argument(
+        '--smi',
+        dest='smi',
+        help='Input SMILES file (multiple SMILES can be defined)',
+        type=str)
+    conf.add_argument(
+        '--fix',
+        dest='fix',
+        help='File with fixed piece of the molecule',
+        type=str)
+    conf.add_argument(
+        '--out',
+        dest='out',
+        help='Output file name',
+        type=str)
+    conf.add_argument(
         "--max",
         help="Maximum number of conformers to generate, by default %(default)s",
         dest="max",
         default=25,
-        type=int,
-    )
-    parser.add_argument(
+        type=int)
+    conf.add_argument(
         "--rms",
         help="RMS cutoff, by default %(default)s",
         dest="rms",
         default=0.01,
-        type=float,
-    )
-    parser.add_argument(
+        type=float)
+    conf.add_argument(
         "--bump",
         help="Bump cutoff, by default %(default)s",
         dest="bump",
         default=1.5,
-        type=float,
-    )
-    parser.add_argument(
+        type=float)
+    conf.add_argument(
         "--seed",
         help="Provide a seed for the random number generator so that "
         "the same coordinates can be obtained for a molecule on multiple runs. "
@@ -397,16 +409,58 @@ def __constraintconf_cmd():
         default=None,
         type=Union[int, None],
     )
+    conf.set_defaults(
+        func=lambda args: constraintconf(
+            pdb=args.pdb,
+            smi=args.smi,
+            fix=args.fix,
+            out=args.out,
+            max_conf=args.max,
+            rms=args.rms,
+            bump=args.bump,
+            randomseed=args.seed))
+
+    moldrug_run = subparsers.add_parser('run',
+                                        help="🚀 Main moldrug runner",
+                                        description="🚀 Main moldrug runner")
+    moldrug_run.add_argument(
+        help='The configuration yaml file',
+        dest='yaml_file',
+        type=str)
+    moldrug_run.add_argument(
+        "-f", "--fitness",
+        help="The path to the user-custom fitness module; inside of which the given custom "
+        "cost function must be implemented. "
+        "See the docs for how to do it properly. E.g. my/awesome/fitness_module.py. "
+        "By default will look in the moldrug.fitness module.",
+        dest="fitness",
+        nargs=argparse.OPTIONAL,
+        default=None,
+        type=str)
+    moldrug_run.add_argument(
+        "-c", "--continue",
+        help="To continue the simulation. The moldrug command must be the same "
+        "and all the output moldrug files must be located "
+        "in the working directory. This option is only compatible "
+        "with moldrug.opt.GA; otherwise, a RuntimeError will be raised.",
+        action="store_true",
+        dest="continuation")
+    moldrug_run.add_argument(
+        "-V", "--verbose",
+        dest="verbose",
+        action="count",
+        default=0,
+        help="Increase verbosity (-V for INFO, -VV for DEBUG)"
+    )
+    moldrug_run.set_defaults(
+        func=lambda args: __moldrug_run(
+            yaml_file=args.yaml_file,
+            fitness=args.fitness,
+            continuation=args.continuation,
+            verbose=args.verbose))
+
     args = parser.parse_args()
-    constraintconf.constraintconf(
-        pdb=args.pdb,
-        smi=args.smi,
-        fix=args.fix,
-        out=args.out,
-        max_conf=args.max,
-        rms=args.rms,
-        bump=args.bump,
-        randomseed=args.seed)
+    args.func(args)
 
 
 if __name__ == '__main__':
