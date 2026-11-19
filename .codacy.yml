@@ -7,8 +7,12 @@
 # Paths use Java glob syntax. This file cannot enable or disable rules, only exclude
 # paths: the rules live in pyproject.toml for ruff, and in the Codacy interface for the
 # other tools. See .github/MAINTAINING.md.
+# A pattern with ** matches only below a directory, so the files at the root are named by
+# a pattern of their own.
 exclude_paths:
   - "docs/**"
+  - "*.md"
   - "**/*.md"
+  - "*.rst"
   - "**/*.rst"
   - ".deprecated/**"

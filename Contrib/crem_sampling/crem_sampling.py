@@ -30,7 +30,7 @@ Against a real one, from https://doi.org/10.5281/zenodo.16909329::
 """
 import argparse
 import collections
-import random
+import random  # nosec B311 - sampling for a measurement, not for anything secret
 import statistics
 import time
 
@@ -75,11 +75,12 @@ def draw_many(mol, db, draws, max_replacements, seed=1):
             # would return the same molecule every time and no seed would make the run
             # unreproducible. See https://github.com/DrrDom/crem/issues/12
             products = list(mutate_mol(mol, db, max_replacements=max_replacements,
-                                       seed=random.randint(0, 2**31 - 1), **kwargs))
+                                       seed=random.randint(0, 2**31 - 1),  # nosec B311
+                                       **kwargs))
         if not products:
             empty += 1
             continue
-        _, rxn, product = random.choice(products)
+        _, rxn, product = random.choice(products)  # nosec B311
         counts[Chem.MolToSmiles(product)] += 1
         by_fragment[rxn.split('>>')[0]] += 1
     return counts, by_fragment, empty
@@ -185,11 +186,11 @@ def main():
     random.seed(1)
     for _ in range(args.draws):
         products = list(mutate_mol(mol, args.db, max_replacements=smallest,
-                                   seed=random.randint(0, 2**31 - 1),
+                                   seed=random.randint(0, 2**31 - 1),  # nosec B311
                                    **dict(CREM_KWARGS, return_rxn=True)))
         if not products:
             continue
-        _, rxn, product = random.choice(products)
+        _, rxn, product = random.choice(products)  # nosec B311
         children[rxn.split('>>')[0]][Chem.MolToSmiles(product)] += 1
     for frag in sorted(children, key=lambda f: -sum(children[f].values())):
         c = children[frag]
