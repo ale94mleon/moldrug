@@ -31,6 +31,13 @@ written. The package follows D212, the style PEP 257 describes.
 Ruff is the only Python linter whose configuration file Codacy reads, so none of this can
 be moved into the repository.
 
+### What `.codacy.yml` can do
+
+`.codacy.yml` at the root excludes paths from the analysis, and that is all it does here:
+it cannot enable or disable tools or rules. What it excludes is prose, `docs/` and every
+`.md` and `.rst`, so that a page of text is not reported as code, plus the deprecated
+folder. The code stays in, the dashboard and the contributed scripts included.
+
 ## Cutting a release
 
 1. `docs/source/CHANGELOG.md`: `## [unreleased]` becomes `## [X.Y.Z] - <date>`, with the
