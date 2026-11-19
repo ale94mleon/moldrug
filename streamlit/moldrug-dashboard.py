@@ -37,7 +37,8 @@ with st.expander('**About the App**'):
                 "Check this [flash tutorial](https://moldrug.readthedocs.io/en/latest/source/moldrug_dahsboard.html) "
                 "in case you get stock on how to use the app; or [moldrug's docs](https://moldrug.rtfd.io/) "
                 "and [moldrug's GitHub](https://github.com/ale94mleon/moldrug/) for more information.\n\n"
-                "This project received foundings from [Marie Skłodowska-Curie Actions](https://cordis.europa.eu/project/id/860592). "
+                "This project received foundings from "
+                "[Marie Skłodowska-Curie Actions](https://cordis.europa.eu/project/id/860592). "
                 "It was developed in the [Computational Biophysics Group](https://biophys.uni-saarland.de/) "
                 "of [Saarland University](https://www.uni-saarland.de/en/home.html) in collaboration "
                 "with the pharmaceutical company [Boehringer Ingelheim](https://www.boehringer-ingelheim.com/de/).")
@@ -192,9 +193,11 @@ def plot_dist(individuals: list[utils.Individual], properties: list[str], every_
 
     for i, prop in enumerate(properties):
         if len(properties) <= 1:
-            sns.violinplot(hue='genID', x='genID', y=prop, data=pops, palette="Set3", bw_adjust=.2, cut=0, linewidth=1, ax=axes, legend=False)
+            sns.violinplot(hue='genID', x='genID', y=prop, data=pops, palette="Set3",
+                           bw_adjust=.2, cut=0, linewidth=1, ax=axes, legend=False)
         else:
-            sns.violinplot(hue='genID', x='genID', y=prop, data=pops, palette="Set3", bw_adjust=.2, cut=0, linewidth=1, ax=axes[i], legend=False)
+            sns.violinplot(hue='genID', x='genID', y=prop, data=pops, palette="Set3",
+                           bw_adjust=.2, cut=0, linewidth=1, ax=axes[i], legend=False)
 
             # Remove x-axis labels and ticks from all but the bottom subplot
             if i < len(properties) - 1:
@@ -634,7 +637,8 @@ if __name__ == "__main__":
                 # dataframe['idx'][:2]
                 idx_selection = st.multiselect(label="Choose some idxs", options=grid.dataframe['idx'], default=None)
                 if idx_selection:
-                    pubchem_dataframe = get_pubchem_dataframe(dataframe[dataframe[['idx', 'smiles']]['idx'].isin(idx_selection)])
+                    pubchem_dataframe = get_pubchem_dataframe(
+                        dataframe[dataframe[['idx', 'smiles']]['idx'].isin(idx_selection)])
                     # pubchem_dataframe = pubchem_dataframe[pubchem_dataframe['idx'].isin(grid.dataframe['idx'])]
                     pubchem_dataframe = pubchem_dataframe.set_index('idx')
                     st.dataframe(pubchem_dataframe)
@@ -701,14 +705,16 @@ if __name__ == "__main__":
         # Plot the distribution
         with tab2:
             try:
-                every_gen = st.number_input("Every how many generations:", min_value=1, max_value=moldrug_result.NumGens, value=10)
+                every_gen = st.number_input("Every how many generations:", min_value=1,
+                                            max_value=moldrug_result.NumGens, value=10)
                 col1, col2 = st.columns(2)
 
                 # Add widgets to each column
                 fig_size_x = col1.number_input("Size of the figure in x:", value=10)
                 fig_size_y = col2.number_input("Size of the figure in y:", value=10)
                 properties_to_plot = [prop for prop in properties if prop not in ['genID']]
-                fig, axes = plot_dist(moldrug_result.SawIndividuals, properties=properties_to_plot, every_gen=every_gen, figsize=(fig_size_x, fig_size_y))
+                fig, axes = plot_dist(moldrug_result.SawIndividuals, properties=properties_to_plot,
+                                      every_gen=every_gen, figsize=(fig_size_x, fig_size_y))
                 st.pyplot(fig)
             except Exception:
                 if is_GA:
