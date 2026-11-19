@@ -179,7 +179,8 @@ class Runner:
     dask_cluster = None
     client = None
 
-    def __init__(self, mode: RunnerMode, thread_count: Optional[int] = None, process_count: Optional[int] = None, dask_cluster = None):
+    def __init__(self, mode: RunnerMode, thread_count: Optional[int] = None,
+                 process_count: Optional[int] = None, dask_cluster=None):
         """Create the Runner.
 
         Parameters

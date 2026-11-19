@@ -22,6 +22,7 @@ from moldrug.utils import (VINA_OUT, DerringerSuichDesirability, Individual,
 
 logger = logging.getLogger(__name__)
 
+
 def __get_default_desirability(multireceptor: bool = False) -> dict:
     """Storage default desirability functions values.
 
@@ -705,6 +706,7 @@ def CostOnlyVina(
     wt_cutoff : Union[None, float], optional
         If some number is provided the molecules with a molecular weight higher
         than wt_cutoff will get as vina_score = cost = np.inf. Vina will not be invoked, by default None
+
     Returns
     -------
     Individual
@@ -1057,7 +1059,8 @@ def CostMultiReceptorsOnlyVina(
     wd : str, optional
         The working directory to execute the docking jobs, by default '.vina_jobs'
     vina_executable : str, optional
-        This is the name of the vina executable, could be a path to the binary object (absolute path is recommended), which must have
+        This is the name of the vina executable, could be a path to the binary object
+        (absolute path is recommended), which must have
         execution permits (chmod a+x <your binary file>), by default 'vina'
     vina_seed : Union[int, None], optional
         Explicit random seed used by vina, by default None

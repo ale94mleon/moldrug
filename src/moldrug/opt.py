@@ -377,6 +377,7 @@ class GA:
            If True the explicit hydrogens will be added, by default False
         randomseed : Union[None, int], optional
            Set a random seed for reproducibility, by default None
+
         Raises
         ------
         TypeError
@@ -537,7 +538,8 @@ class GA:
 
             # Show Iteration Information
             logger.info(f"Generation {self.NumGens}: Best Individual: {self.pop[0]}")
-            logger.info(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
+            logger.info(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / "
+                        f"{self.acceptance[self.NumGens]['generated']}\n")
 
         self._log_summary(ts, spent_before)
 
@@ -642,7 +644,8 @@ class GA:
         self.pop = sorted(self.pop)
         # Print some information of the initial population
         logger.info(f"Initial Population: Best Individual: {self.pop[0]}")
-        logger.info(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / {self.acceptance[self.NumGens]['generated']}\n")
+        logger.info(f"Acceptance rate: {self.acceptance[self.NumGens]['accepted']} / "
+                    f"{self.acceptance[self.NumGens]['generated']}\n")
         # Updating the info of the first individual (parent)
         # to print at the end how well performed the method (cost function)
         # Because How the population was initialized and because we are using pool.imap (ordered).
@@ -679,9 +682,11 @@ class GA:
         # then I do not need to worry in how the selection is made,
         # In this case self.nc will not have any validity unless the user use it with its evaluator
         # the checking of SawIndivduals must be done after the user funcrion return the popc
-        # The other that I need to change is that if the if it is a new genereator the genereation of the initil population is different
+        # The other that I need to change is that if the if it is a new genereator the
+        # genereation of the initil population is different
         # the other is that checking for redundancy may be complicated in the case, that molecules are, for example peptides,
-        # in this case other identifier like the aa sequnce should be ued intead. For that the user may need a different Individual instance
+        # in this case other identifier like the aa sequnce should be ued intead. For that
+        # the user may need a different Individual instance
         # a one more efficient, there are a lot of if here :`-)
         popc = []
         for _ in range(self.nc):
@@ -854,7 +859,8 @@ class GA:
         # Here is were I have to check if replace_ids or protected_ids where provided.
         mutate_crem_kwargs_to_work_with = self._crem_kwargs()
         if 'replace_ids' in self.mutate_crem_kwargs and 'protected_ids' in self.mutate_crem_kwargs:
-            mutate_crem_kwargs_to_work_with['replace_ids'], mutate_crem_kwargs_to_work_with['protected_ids'] = update_reactant_zone(
+            (mutate_crem_kwargs_to_work_with['replace_ids'],
+             mutate_crem_kwargs_to_work_with['protected_ids']) = update_reactant_zone(
                 self.InitIndividual.mol, individual.mol, parent_replace_ids=self.mutate_crem_kwargs['replace_ids'],
                 parent_protected_ids=self.mutate_crem_kwargs['protected_ids'])
         elif 'replace_ids' in self.mutate_crem_kwargs:

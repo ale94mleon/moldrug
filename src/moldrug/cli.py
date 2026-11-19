@@ -360,7 +360,8 @@ def main():
 
     conf = subparsers.add_parser('constraintconf',
                                  help="⛓️ Conformer constraint generator",
-                                 description="⛓️ Command line implementation for :meth:`moldrug.constraintconf.constraintconf`")
+                                 description="⛓️ Command line implementation for "
+                                             ":meth:`moldrug.constraintconf.constraintconf`")
     conf.add_argument(
         '--pdb',
         dest='pdb',
@@ -460,7 +461,6 @@ def main():
 
     args = parser.parse_args()
     args.func(args)
-
 
 
 if __name__ == '__main__':

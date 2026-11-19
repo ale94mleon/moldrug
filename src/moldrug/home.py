@@ -15,6 +15,7 @@ def home(dataDir=None):
     ----------
     dataDir : str
         If not None, return the path to a specific data directory
+
     Returns
     -------
     dir : str

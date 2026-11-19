@@ -62,10 +62,12 @@ crem_db_path = build_crem_test_db.build(
 # Both configurations are used only internally by the author, because none of the two clusters is publicly available.
 # That being said, an example cluster configuration can be adopted to your needs.
 #
-# Note on Elwe: Worker nodes of Elwe are unable to reach the controller when MolDrug is running directly on the frontend.
-# One way to circumvent it is to run tests from an interactive job, eg. by calling `elwe slot`, `pytest tests -k test_multi_receptor`.
+# Note on Elwe: Worker nodes of Elwe are unable to reach the controller when moldrug is
+# running directly on the frontend. One way to circumvent it is to run tests from an
+# interactive job, eg. by calling `elwe slot`, `pytest tests -k test_multi_receptor`.
 # Sending the main job to the queue works as well
-#   sbatch --partition uds-hub --nodes 1 --mem-per-cpu 1GB --time 00:15:00 --ntasks-per-node 10 --gres gpu:1 --constraint 'XEON_E5_2630v4' \
+#   sbatch --partition uds-hub --nodes 1 --mem-per-cpu 1GB --time 00:15:00 \
+#       --ntasks-per-node 10 --gres gpu:1 --constraint 'XEON_E5_2630v4' \
 #       --wrap 'bash -c "source .venv/bin/activate ; pytest tests -k test_multi_receptor"'
 execution_mode = "multiprocessing"
 
