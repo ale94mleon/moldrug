@@ -14,7 +14,10 @@ from copy import deepcopy
 from inspect import signature
 from typing import List, Union
 
-import dill as pickle
+# dill, rather than pickle, because a GA carries the cost function the user wrote, and
+# pickle cannot serialize a function defined in __main__. See loosen and decompress_pickle
+# for what that costs on the way back in.
+import dill as pickle  # nosec B403
 import numpy as np
 import pandas as pd
 from meeko4moldrug import (MoleculePreparation, PDBQTMolecule,
@@ -571,6 +574,7 @@ def update_reactant_zone(parent: Chem.rdchem.Mol, offspring: Chem.rdchem.Mol,
         A list of replaceable indexes in the parent, by default None
     parent_protected_ids : List[int], optional
         A list of protected indexes in the parent, by default None
+
     Returns
     -------
     tuple[list[int]]
@@ -890,6 +894,13 @@ def full_pickle(title: str, data: object):
 def loosen(file: str):
     """Unpickle a pickled object.
 
+    .. warning::
+
+        Unpickling executes the code the file names, so a prepared file can run anything
+        the user running moldrug can. Only open files you produced yourself. To hand
+        results to someone else, use :meth:`moldrug.utils.to_dataframe` or
+        :meth:`moldrug.utils.make_sdf` instead, which write data rather than objects.
+
     Parameters
     ----------
     file : str
@@ -901,7 +912,7 @@ def loosen(file: str):
         The python object.
     """
     with open(file, 'rb') as pkl:
-        data = pickle.load(pkl)
+        data = pickle.load(pkl)  # nosec B301
     return data
 
 
@@ -922,6 +933,13 @@ def compressed_pickle(title: str, data: object):
 def decompress_pickle(file: str):
     """Decompress CPickle objects compressed first with bz2 formats.
 
+    .. warning::
+
+        Unpickling executes the code the file names, so a prepared file can run anything
+        the user running moldrug can. Only open files you produced yourself. To hand
+        results to someone else, use :meth:`moldrug.utils.to_dataframe` or
+        :meth:`moldrug.utils.make_sdf` instead, which write data rather than objects.
+
     Parameters
     ----------
     file : str
@@ -933,7 +951,7 @@ def decompress_pickle(file: str):
         The python object.
     """
     with bz2.BZ2File(file, 'rb') as f:
-        return BackCompatUnpickler(f).load()
+        return BackCompatUnpickler(f).load()  # nosec B301
 
 
 def is_iter(obj):

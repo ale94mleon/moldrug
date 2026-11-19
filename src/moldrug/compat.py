@@ -3,7 +3,7 @@
 It allows pickle objects created with older versions of moldrug
 to be successfully loaded after internal refactoring (e.g. moved classes).
 """
-import dill
+import dill  # nosec B403
 import importlib
 from typing import Dict, Tuple
 
@@ -16,7 +16,13 @@ _CLASS_RENAMES: Dict[Tuple[str, str], Tuple[str, str]] = {
 
 
 class BackCompatUnpickler(dill.Unpickler):
-    """Custom unpickler that redirects renamed or moved classes."""
+    """Custom unpickler that redirects renamed or moved classes.
+
+    .. warning::
+
+        It unpickles, so it executes the code the file names. Only open files you produced
+        yourself.
+    """
 
     def find_class(self, module: str, name: str):
         """Return the class, following the renames of moldrug 4.0 when there is one."""
