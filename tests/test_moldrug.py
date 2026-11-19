@@ -164,8 +164,6 @@ def test_single_receptor_command_line():
 
 
 def test_dask_local():
-    from moldrug.runner import Runner, RunnerMode
-
     runner_instance = Runner(
         mode=RunnerMode.DASK_LOCAL,
         process_count=6
